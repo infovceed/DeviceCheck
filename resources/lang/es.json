@@ -234,4 +234,6 @@
     "Validation error.": "Error de validación.",
     "Unknown error.": "Error desconocido.",
     "Device assigned to another polling station.": "Dispositivo asignado a otra mesa."
+    ,
+    "The details you entered did not match our records. Please double-check and try again.": "Credenciales inválidas. Por favor verifique su usuario y/o contraseña e inténtelo nuevamente."
 }
