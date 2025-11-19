@@ -14,6 +14,7 @@ use Orchid\Screen\Repository;
 use Orchid\Screen\Actions\Link;
 use Orchid\Support\Facades\Layout;
 use App\Orchid\Layouts\Dashboard\ChartsLayout;
+use App\Orchid\Layouts\Dashboard\PieChartLayout;
 use App\Orchid\Layouts\Dashboard\ChartFiltersLayout;
 
 class PlatformScreen extends Screen
@@ -30,21 +31,56 @@ class PlatformScreen extends Screen
             ? request('department', 'all')
             : $user->department_id;
         $incidents = Device::getIncidentsOpen();
+        $date = request('chart_date', now()->toDateString());
+        [$labels, $valuesTotal, $valuesReported, $reportedCheckout] = Department::getChartData($date, $departmentID);
 
-        [$labels, $valuesTotal, $valuesReported] = Department::getChartData($departmentID);
-        return [
-            'departmentsChart' => [
-                ['labels' => $labels, 'name' => 'Total',            'values' => $valuesTotal],
-                ['labels' => $labels, 'name' => 'Total reportados', 'values' => $valuesReported],
-            ],
+        $totalReportedIn = array_sum($valuesReported);
+        $totalReportedOut = array_sum($reportedCheckout);
+        $totalDevicesSum = array_sum($valuesTotal);
+
+        $percentageIn = $totalDevicesSum ? round(($totalReportedIn / $totalDevicesSum) * 100, 2) : 0;
+        $percentageOut = $totalDevicesSum ? round(($totalReportedOut / $totalDevicesSum) * 100, 2) : 0;
+
+        $data = [
             'stats' => [
-                'totalRecords' => array_sum($valuesTotal),
-                'totalReported' => array_sum($valuesReported),
-                'percentage' => array_sum($valuesTotal) ? round((array_sum($valuesReported) / array_sum($valuesTotal)) * 100, 2) : 0,
+                'totalRecords' => $totalDevicesSum,
+                'totalReported' => $totalReportedIn + $totalReportedOut,
+                'totalReportedIn' => $totalReportedIn,
+                'totalReportedOut' => $totalReportedOut,
+                'percentage' => $totalDevicesSum ? round((($totalReportedIn + $totalReportedOut) / $totalDevicesSum) * 100, 2) : 0,
+                'percentageIn' => $percentageIn,
+                'percentageOut' => $percentageOut,
             ],
             'departmentID' => $departmentID,
             'incidents' => $incidents,
         ];
+
+        if ($departmentID === 'all') {
+            $data['departmentsChart'] = [
+                ['labels' => $labels, 'name' => __('Meta'),    'values' => $valuesTotal],
+                ['labels' => $labels, 'name' => __('Check-in'),'values' => $valuesReported],
+                ['labels' => $labels, 'name' => __('Check-out'),'values' => $reportedCheckout],
+            ];
+        } else {
+            // For a single department return two pie chart series (total vs reported)
+            $totalDevices = $valuesTotal[0] ?? 0;
+            $reportedIn   = $valuesReported[0] ?? 0;
+            $reportedOut  = $reportedCheckout[0] ?? 0;
+
+            // For pie chart show Unreported vs Reported so percentages are reported/totalDevices
+            $unreportedIn = max(0, $totalDevices - $reportedIn);
+            $unreportedOut = max(0, $totalDevices - $reportedOut);
+
+            $data['checkinChart'] = [
+                ['labels' => [__('Not Reported'), __('Reported')], 'name' => __('Check-in'), 'values' => [$unreportedIn, $reportedIn]],
+            ];
+
+            $data['checkoutChart'] = [
+                ['labels' => [__('Not Reported'), __('Reported')], 'name' => __('Check-out'), 'values' => [$unreportedOut, $reportedOut]],
+            ];
+        }
+
+        return $data;
     }
 
     /**
@@ -94,13 +130,23 @@ class PlatformScreen extends Screen
                     'icon' => 'bs.phone',
                 ]),
                 Layout::view('components.dashboard.stats',[
-                    'title' => "{$data['stats']['percentage']}%",
-                    'subtitle' => 'Dispositivos Reportados',
+                    'title' => "{$data['stats']['percentageIn']}%",
+                    'subtitle' => __('Dispositivos Reportados (entrada)'),
                     'icon' => 'bs.phone-vibrate',
                 ]),
                 Layout::view('components.dashboard.stats',[
-                    'title' => $data['stats']['totalReported'],
-                    'subtitle' => 'Total Dispositivos Reportados',
+                    'title' => "{$data['stats']['percentageOut']}%",
+                    'subtitle' => __('Dispositivos Reportados (salida)'),
+                    'icon' => 'bs.phone-vibrate',
+                ]),
+                Layout::view('components.dashboard.stats',[
+                    'title' => $data['stats']['totalReportedIn'],
+                    'subtitle' => __('Total Reportados (entrada)'),
+                    'icon' => 'bs.phone-vibrate-fill',
+                ]),
+                Layout::view('components.dashboard.stats',[
+                    'title' => $data['stats']['totalReportedOut'],
+                    'subtitle' => __('Total Reportados (salida)'),
                     'icon' => 'bs.phone-vibrate-fill',
                 ]),
             ]),
@@ -109,14 +155,22 @@ class PlatformScreen extends Screen
             $chartFilters = new ChartFiltersLayout();
             $layouts[] = $chartFilters;
         }
-        $deptLayout = ChartsLayout::make('departmentsChart', 'Reporte por departamento')
-            ->description('Comparativa de empaques reportados por departamento.');
+        
+        if ($data['departmentID'] === 'all') {
+            $deptLayout = ChartsLayout::make('departmentsChart', 'Reporte por departamento')
+                ->description('Comparativa de dispositivos reportados por departamento.');
+            $layouts[] = $deptLayout;
+        } else {
+            $pieIn = PieChartLayout::make('checkinChart', __('Check-in'))
+                ->description(__('Total devices vs reported (check-in)'));
+            $pieOut = PieChartLayout::make('checkoutChart', __('Check-out'))
+                ->description(__('Total devices vs reported (check-out)'));
 
-
-        $layouts[] = $data['departmentID'] === 'all'
-            ? $deptLayout
-            : Layout::split([$deptLayout, $corpLayout])->ratio('30/70');
-
+            $layouts[] = Layout::split([
+                $pieIn,
+                $pieOut,
+            ])->ratio('50/50');
+        }
          $layouts[] = Layout::split([
             Layout::table('incidents', [
                 TD::make('department_name', __('Department')),

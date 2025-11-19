@@ -252,5 +252,19 @@
     "Position code": "Código de puesto",
     "Check-in": "Entrada",
     "Check-out": "Salida",
-    "Type": "Tipo"
+    "Type": "Tipo",
+    "Date": "Fecha",
+    "Total Reportados (entrada)": "Total Reportados (entrada)",
+    "Total Reportados (salida)": "Total Reportados (salida)",
+    "Total devices vs reported (check-in)": "Total dispositivos vs reportados (Entrada)",
+    "Total devices vs reported (check-out)": "Total dispositivos vs reportados (Salida)",
+    "Meta": "Meta",
+    "Write": "Abrir",
+    "Export": "Exportar",
+    "Add": "Agregar",
+    "Profile": "Perfil",
+    "Create": "Crear",
+    "Users": "Usuarios",
+    "Roles": "Roles",
+    "Total": "Total"
 }

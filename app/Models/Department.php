@@ -57,26 +57,32 @@ class Department extends Model
      * @param float $minutes cache duration
      * @return array [labels, totals, reporteds]
      */
-    public static function getChartData(int|string $departmentID = 'all', float $minutes = 1): array
+    public static function getChartData(string $date,int|string $departmentID = 'all', float $minutes = 1): array
     {
-        $cacheKey = "dashboard.chart.{$departmentID}";
+        // Include date in cache key so results are cached per-date
+        $cacheKey = "dashboard.chart.{$departmentID}.{$date}";
         return Cache::remember(
             $cacheKey,
             now()->addMinutes($minutes),
-            function () use ($departmentID) {
+            function () use ($departmentID, $date) {
                 $query = DB::table('departments')
                     ->leftJoin('divipoles', 'departments.id', '=', 'divipoles.department_id')
                     ->leftJoin('devices', 'divipoles.id', '=', 'devices.divipole_id')
-                    ->leftJoin('users', 'devices.updated_by', '=', 'users.id')
-                    ->when($departmentID !== 'all', function ($query) use ($departmentID) {
-                        $query->where('departments.id', $departmentID);
+                    ->leftJoin('device_checks', function ($join) use ($date) {
+                        $join->on('device_checks.device_id', '=', 'devices.id')
+                             ->whereDate('device_checks.created_at', '=', $date);
                     });
+
+                if ($departmentID !== 'all') {
+                    $query->where('departments.id', $departmentID);
+                }
 
                 $rows = $query
                     ->select(
                         'departments.name as name',
-                        DB::raw('COUNT(devices.id) as total'),
-                        DB::raw('SUM(CASE WHEN devices.status = 1 THEN 1 ELSE 0 END) as reported'),
+                        DB::raw('COUNT(DISTINCT devices.id) as total_devices'),
+                        DB::raw("COUNT(DISTINCT CASE WHEN device_checks.type = 'checkin' THEN devices.id END) as reported_checkin"),
+                        DB::raw("COUNT(DISTINCT CASE WHEN device_checks.type = 'checkout' THEN devices.id END) as reported_checkout")
                     )
                     ->groupBy('departments.id', 'departments.name')
                     ->orderBy('departments.name')
@@ -84,8 +90,9 @@ class Department extends Model
 
                 return [
                     $rows->pluck('name')->toArray(),
-                    $rows->pluck('total')->toArray(),
-                    $rows->pluck('reported')->toArray(),
+                    $rows->pluck('total_devices')->toArray(),
+                    $rows->pluck('reported_checkin')->toArray(),
+                    $rows->pluck('reported_checkout')->toArray(),
                 ];
             }
         );
