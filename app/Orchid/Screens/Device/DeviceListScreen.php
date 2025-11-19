@@ -133,26 +133,6 @@ class DeviceListScreen extends Screen
                     ->render(fn(Device $device) => $device->longitude ?? '(N/A)'),
                 TD::make('report_time', __('Hora de Reporte'))
                     ->render(fn(Device $device) => $device->report_time ?? __('Not Reported')),
-                TD::make('status', __('Status'))
-                    ->sort()
-                    ->filter(
-                        Select::make('status')
-                            ->options([
-                                1 => __('Not Reported'),
-                                0 => __('Reported'),
-                            ])
-                            ->empty(__('All'))
-                            ->title(__('Status'))
-                    )
-                    ->filterValue(function ($value) {
-                        return $value ? __('Reported') : __('Not Reported');
-                    })
-                    ->render(function (Device $Device) {
-                        return $this->badge([
-                            'text'  => $Device->status ? __('Reported') : __('Not Reported'),
-                            'color' => $Device->status ? 'success' : 'danger',
-                        ]);
-                    }),
                 TD::make('status_incidents', __('Incidents'))
                     ->sort()
                     ->filter(

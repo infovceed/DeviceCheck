@@ -14,10 +14,11 @@ return new class extends Migration
         Schema::create('devices', function (Blueprint $table) {
             $table->id();
             $table->foreignId('divipole_id')->constrained()->onDelete('cascade');
+            $table->string('tel')->maxLength(30)->nullable()->comment('Numero de telefono del dispositivo');
             $table->string('imei')->maxLength(30)->nullable()->comment('Numero de IMEI del dispositivo');
             $table->string('device_key')->maxLength(30)->nullable()->comment('1 para empaque, 2 para simulacro');
             $table->string('sequential')->maxLength(30)->nullable()->comment('Numero CONSECUTIVO del dispositivo');
-            $table->dateTime('report_time')->nullable()->comment('Hora de reporte del dispositivo');
+            $table->time('report_time')->nullable()->comment('Hora de reporte del dispositivo');
             $table->string('latitude')->maxLength(30)->nullable()->comment('Latitud del dispositivo');
             $table->string('longitude')->maxLength(30)->nullable()->comment('Longitud del dispositivo');
             $table->boolean('status')->default(false)->comment('verdadero para reporte exitoso, falso para falta de reporte');

@@ -235,5 +235,22 @@
     "Unknown error.": "Error desconocido.",
     "Device assigned to another polling station.": "Dispositivo asignado a otra mesa."
     ,
-    "The details you entered did not match our records. Please double-check and try again.": "Credenciales inválidas. Por favor verifique su usuario y/o contraseña e inténtelo nuevamente."
+    "The details you entered did not match our records. Please double-check and try again.": "Credenciales inválidas. Por favor verifique su usuario y/o contraseña e inténtelo nuevamente.",
+    "Device Check": "Verificación de Dispositivo",
+    "Device Checks": "Verificaciones de Dispositivo",
+    "An error occurred while processing the report. Please try again.": "Ocurrió un error al procesar el informe. Por favor, inténtelo de nuevo.",
+    "The type field is required.": "El campo tipo es obligatorio.",
+    "The type field must be either checkin or checkout.": "El campo tipo debe ser checkin o checkout.",
+    "Report received": "Reporte exitoso",
+    "You must check in before checking out.": "Debes hacer check-in antes de hacer check-out.",
+    "Mobile": "Celular",
+    "Distance": "Distancia",
+    "Report date": "Fecha de reporte",
+    "Arrival time": "Hora de llegada",
+    "Report time": "Hora de reporte",
+    "Time difference (minutes)": "Minutos de diferencia",
+    "Position code": "Código de puesto",
+    "Check-in": "Entrada",
+    "Check-out": "Salida",
+    "Type": "Tipo"
 }

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use Tabuna\Breadcrumbs\Trail;
-use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use Tabuna\Breadcrumbs\Trail;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 use App\Orchid\Screens\PlatformScreen;
 use App\Orchid\Screens\Role\RoleEditScreen;
 use App\Orchid\Screens\Role\RoleListScreen;
@@ -14,6 +14,7 @@ use App\Orchid\Screens\User\UserListScreen;
 use App\Orchid\Screens\User\UserProfileScreen;
 use App\Orchid\Screens\Device\DeviceListScreen;
 use App\Orchid\Screens\Incident\IncidentListScreen;
+use App\Orchid\Screens\Check\CheckListScreen;
 use App\Orchid\Screens\Department\DepartmentListScreen;
 use App\Orchid\Screens\Municipality\MunicipalityListScreen;
 use App\Orchid\Screens\ConfigSystem\SystemSettingsEditScreen;
@@ -128,6 +129,16 @@ Route::group(['prefix' => 'devices'], function () {
         ->breadcrumbs(fn (Trail $trail) => $trail
             ->parent('platform.index')
             ->push(__('Devices'), route('platform.systems.devices')));
+});
+
+// Platform > System > Device Checks
+Route::group(['prefix' => 'device-checks'], function () {
+    // Platform > System > Device Checks > Device Check
+    Route::screen('/', CheckListScreen::class)
+        ->name('platform.systems.devices-check')
+        ->breadcrumbs(fn (Trail $trail) => $trail
+            ->parent('platform.index')
+            ->push(__('Device Checks'), route('platform.systems.devices-check')));
 });
 
 Route::screen('devices/{device}/incidents', IncidentListScreen::class)

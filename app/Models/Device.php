@@ -55,6 +55,11 @@ class Device extends Model
         );
     }
 
+    public function deviceChecks()
+    {
+        return $this->hasMany(DeviceCheck::class);
+    }
+
     public static function totalReportedByDepartment(int $departmentId = null)
     {
         $query = Department::query()

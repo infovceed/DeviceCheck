@@ -43,9 +43,13 @@ class PlatformProvider extends OrchidServiceProvider
                 ->route('platform.main')
                 ->title(__('System Management')),
             Menu::make(__('Devices'))
-                ->icon('bs.geo-alt-fill')
+                ->icon('bs.phone-vibrate-fill')
                 ->route('platform.systems.devices')
                 ->permission('platform.systems.devices'),
+            Menu::make(__('Device Checks'))
+                ->icon('bs.geo-alt-fill')
+                ->route('platform.systems.devices-check')
+                ->permission('platform.systems.device-check'),
             Menu::make(__('Users'))
                 ->icon('bs.people')
                 ->route('platform.systems.users')
@@ -92,6 +96,7 @@ class PlatformProvider extends OrchidServiceProvider
                 ->addPermission('platform.systems.users', __('Users'))
                 ->addPermission('platform.systems.report-download', __('Report Download'))
                 ->addPermission('platform.systems.devices', __('Devices'))
+                ->addPermission('platform.systems.device-check', __('Device Checks'))
 
                 ->addPermission('platform.settings', __('Settings'))
                 ->addPermission('platform.systems.departments', __('Departments'))

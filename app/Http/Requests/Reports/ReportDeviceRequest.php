@@ -25,10 +25,11 @@ class ReportDeviceRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'puesto' => ['required', 'string', 'max:10'],
-            'imei'   => ['required', 'string', 'max:50'],
-            'lat'    => ['required', 'string', 'max:30'],
-            'lon'    => ['required', 'string', 'max:30'],
+            'puesto' => ['bail','required', 'string', 'max:10'],
+            'imei'   => ['bail','required', 'string', 'max:50'],
+            'lat'    => ['bail','required', 'string', 'max:30'],
+            'lon'    => ['bail','required', 'string', 'max:30'],
+            'tipo'   => ['bail','required', 'in:checkin,checkout'],
         ];
     }
 
@@ -45,6 +46,9 @@ class ReportDeviceRequest extends FormRequest
             'lon.required'    => __('The longitude field is required.'),
             'lon.string'      => __('The longitude field must be a string.'),
             'lon.max'         => __('The longitude field may not be greater than 30 characters.'),
+            'tipo.required'   => __('The type field is required.'),
+            'tipo.in'         => __('The type field must be either checkin or checkout.'),
+
         ];
     }
 
@@ -72,7 +76,22 @@ class ReportDeviceRequest extends FormRequest
         if ($position != $device->divipole->code) {
             $this->responseMessage(2);
         }
-        if ($device->status) {
+        // Evitar checkout sin un checkin previo en el mismo día
+        if ($this->input('tipo') === 'checkout') {
+            $hasCheckinToday = $device->deviceChecks()
+                ->whereDate('created_at', now()->toDateString())
+                ->where('type', 'checkin')
+                ->exists();
+
+            if (! $hasCheckinToday) {
+                $this->responseMessage(4);
+            }
+        }
+        $deviceCheck = $device->deviceChecks()
+            ->whereDate('created_at', now()->toDateString())
+            ->where('type', $this->input('tipo'))
+            ->exists();
+        if ($deviceCheck) {
             $this->responseMessage(3);
         }
     }
@@ -83,6 +102,7 @@ class ReportDeviceRequest extends FormRequest
             1 => __('Device identifier not found.'),
             2 => __('Device assigned to another polling station.'),
             3 => __('Device already reported.'),
+            4 => __('You must check in before checking out.'),
             default => __('Unknown error.'),
         };
         throw new HttpResponseException(response()->json([

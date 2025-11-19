@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\Device;
+use App\Models\DeviceCheck;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Reports\ReportDeviceRequest;
@@ -16,11 +17,20 @@ class ReportDeviceController extends Controller
     {
 
         $deviceData = $request->validated();
-        Device::saveReport($deviceData);
-        return response()->json([
-            'status' => 'ok',
-            'message' => __('Report received'),
-        ], 200);
+        try {
+            DeviceCheck::saveReport($deviceData);
+            return response()->json([
+                'status' => 'ok',
+                'message' => __('Report received'),
+            ], 200);
+        } catch (\Exception $e) {
+            logger()->error('Error saving device report: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => __('An error occurred while processing the report. Please try again.'),
+            ], 500);
+        }
+        
     }
 
     /**

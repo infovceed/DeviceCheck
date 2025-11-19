@@ -13,10 +13,11 @@ return new class extends Migration
     {
         Schema::create('device_checks', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('device_id')->constrained()->onDelete('cascade');
             $table->string('latitude')->maxLength(30)->nullable()->comment('Latitud del dispositivo');
             $table->string('longitude')->maxLength(30)->nullable()->comment('Longitud del dispositivo');
             $table->decimal('distance', 10, 6)->nullable()->comment('Distancia calculada');
-            $table->string('type')->maxLength(10)->nullable()->comment('0 sin reporte, 1 entrada y 2 salida');
+            $table->string('type')->maxLength(10)->nullable()->comment('checkin entrada y checkout salida');
             $table->time('time')->nullable()->comment('Hora del registro');
             $table->timestamps();
         });
