@@ -13,11 +13,12 @@
      data-chart-line-options="{{$lineOptions}}"
      data-chart-markers="{{$markers}}"
 >
-    <div class="bg-white rounded shadow-sm mb-3 pt-3">
+    <div class="bg-white rounded shadow-sm mb-3 pt-3 overflow-auto">
 
+        @php($labelsCount = count(json_decode($labels, true) ?? []))
         <div class="d-flex px-3 align-items-center">
             <legend class="text-black px-2 mt-2 mb-0">
-                <div class="d-flex align-items-center">
+                <div style="min-width: {{ max(800, $labelsCount * 80) }}px" class="d-flex align-items-center">
                     <small class="d-block">{{ __($title ?? '') }}</small>
 
                     @if($export)
@@ -35,12 +36,11 @@
             </legend>
 
         </div>
-
-        @php($labelsCount = count(json_decode($labels, true) ?? []))
-        <div class="position-relative w-100 overflow-auto">
-            <div class="w-100" style="min-width: {{ max(800, $labelsCount * 80) }}px">
-                <figure id="{{$slug}}" class="w-100 h-full m-0 p-0 d-flex"></figure>
-            </div>
+        
+        <div class="position-relative w-100">
+            <figure id="{{$slug}}" style="min-width: {{ max(800, $labelsCount * 80) }}px"  class="w-100 h-full m-0 p-0 d-flex"></figure>
         </div>
     </div>
 </div>
+
+
