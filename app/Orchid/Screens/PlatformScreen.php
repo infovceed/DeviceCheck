@@ -43,13 +43,13 @@ class PlatformScreen extends Screen
 
         $data = [
             'stats' => [
-                'totalRecords' => $totalDevicesSum,
-                'totalReported' => $totalReportedIn + $totalReportedOut,
-                'totalReportedIn' => $totalReportedIn,
+                'totalRecords'     => $totalDevicesSum,
+                'totalReported'    => $totalReportedIn + $totalReportedOut,
+                'totalReportedIn'  => $totalReportedIn,
                 'totalReportedOut' => $totalReportedOut,
-                'percentage' => $totalDevicesSum ? round((($totalReportedIn + $totalReportedOut) / $totalDevicesSum) * 100, 2) : 0,
-                'percentageIn' => $percentageIn,
-                'percentageOut' => $percentageOut,
+                'percentage'       => $totalDevicesSum ? round((($totalReportedIn + $totalReportedOut) / $totalDevicesSum) * 100, 2) : 0,
+                'percentageIn'     => $percentageIn,
+                'percentageOut'    => $percentageOut,
             ],
             'departmentID' => $departmentID,
             'incidents' => $incidents,
@@ -62,21 +62,18 @@ class PlatformScreen extends Screen
                 ['labels' => $labels, 'name' => __('Check-out'),'values' => $reportedCheckout],
             ];
         } else {
-            // For a single department return two pie chart series (total vs reported)
-            $totalDevices = $valuesTotal[0] ?? 0;
-            $reportedIn   = $valuesReported[0] ?? 0;
-            $reportedOut  = $reportedCheckout[0] ?? 0;
-
-            // For pie chart show Unreported vs Reported so percentages are reported/totalDevices
-            $unreportedIn = max(0, $totalDevices - $reportedIn);
+            $totalDevices  = $valuesTotal[0] ?? 0;
+            $reportedIn    = $valuesReported[0] ?? 0;
+            $reportedOut   = $reportedCheckout[0] ?? 0;
+            $unreportedIn  = max(0, $totalDevices - $reportedIn);
             $unreportedOut = max(0, $totalDevices - $reportedOut);
 
             $data['checkinChart'] = [
-                ['labels' => [__('Not Reported'), __('Reported')], 'name' => __('Check-in'), 'values' => [$unreportedIn, $reportedIn]],
+                ['labels' => [__('Pending'), __('Reported')], 'name' => __('Check-in'), 'values' => [$unreportedIn, $reportedIn]],
             ];
 
             $data['checkoutChart'] = [
-                ['labels' => [__('Not Reported'), __('Reported')], 'name' => __('Check-out'), 'values' => [$unreportedOut, $reportedOut]],
+                ['labels' => [__('Pending'), __('Reported')], 'name' => __('Check-out'), 'values' => [$unreportedOut, $reportedOut]],
             ];
         }
 
@@ -131,22 +128,22 @@ class PlatformScreen extends Screen
                 ]),
                 Layout::view('components.dashboard.stats',[
                     'title' => "{$data['stats']['percentageIn']}%",
-                    'subtitle' => __('Dispositivos Reportados (entrada)'),
+                    'subtitle' => __('Dispositivos Reportados (Entrada)'),
                     'icon' => 'bs.phone-vibrate',
                 ]),
                 Layout::view('components.dashboard.stats',[
                     'title' => "{$data['stats']['percentageOut']}%",
-                    'subtitle' => __('Dispositivos Reportados (salida)'),
+                    'subtitle' => __('Dispositivos Reportados (Salida)'),
                     'icon' => 'bs.phone-vibrate',
                 ]),
                 Layout::view('components.dashboard.stats',[
                     'title' => $data['stats']['totalReportedIn'],
-                    'subtitle' => __('Total Reportados (entrada)'),
+                    'subtitle' => __('Total Reported (Check-in)'),
                     'icon' => 'bs.phone-vibrate-fill',
                 ]),
                 Layout::view('components.dashboard.stats',[
                     'title' => $data['stats']['totalReportedOut'],
-                    'subtitle' => __('Total Reportados (salida)'),
+                    'subtitle' => __('Total Reported (Check-out)'),
                     'icon' => 'bs.phone-vibrate-fill',
                 ]),
             ]),

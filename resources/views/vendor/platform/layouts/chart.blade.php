@@ -16,9 +16,10 @@
     <div class="bg-white rounded shadow-sm mb-3 pt-3 overflow-auto">
 
         @php($labelsCount = count(json_decode($labels, true) ?? []))
+        @php($minWidth = ($type === 'bar') ? max(800, $labelsCount * 80) : null)
         <div class="d-flex px-3 align-items-center">
             <legend class="text-black px-2 mt-2 mb-0">
-                <div style="min-width: {{ max(800, $labelsCount * 80) }}px" class="d-flex align-items-center">
+                <div @if($minWidth) style="min-width: {{ $minWidth }}px" @endif class="d-flex align-items-center">
                     <small class="d-block">{{ __($title ?? '') }}</small>
 
                     @if($export)
@@ -38,7 +39,7 @@
         </div>
         
         <div class="position-relative w-100">
-            <figure id="{{$slug}}" style="min-width: {{ max(800, $labelsCount * 80) }}px"  class="w-100 h-full m-0 p-0 d-flex"></figure>
+            <figure id="{{$slug}}" @if($minWidth) style="min-width: {{ $minWidth }}px" @endif class="w-100 h-full m-0 p-0 d-flex"></figure>
         </div>
     </div>
 </div>
