@@ -5,6 +5,8 @@
 
     <!-- For Safari on iOS -->
     <meta name="theme-color" content="#21252a">
+    {{-- Estilos --}}
+    <link rel="stylesheet" href="/assets/css/app.css">
 @endpush
 
 <div class="h2 d-flex align-items-center">
