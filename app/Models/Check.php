@@ -5,7 +5,9 @@ namespace App\Models;
 use App\Models\Device;
 use App\Models\Divipole;
 use Orchid\Filters\Types\Where;
-use Orchid\Filters\Types\WhereDate;
+use Orchid\Filters\Types\WhereIn;
+use App\Filters\Types\WhereDateIn;
+use App\Filters\Types\WhereDistance500;
 use Orchid\Screen\AsSource;
 use Orchid\Filters\Filterable;
 use Orchid\Filters\Types\Like;
@@ -35,14 +37,15 @@ class Check extends Model
     ];
 
     protected $allowedFilters = [
-        'department'  =>Like::class,
-        'municipality'=>Like::class,
-        'position'    =>Like::class,
-        'tel'         =>Like::class,
-        'device_key'  =>Like::class,
-        'type'        =>Like::class,
-        'code'        =>Where::class,
-        'created_at'  =>WhereDate::class,
+        'department'    => WhereIn::class,
+        'municipality'  => WhereIn::class,
+        'position_name' => WhereIn::class,
+        'tel'           => WhereIn::class,
+        'device_key'    => WhereIn::class,
+        'type'          => Like::class,
+        'code'          => Where::class,
+        'created_at'    => WhereDateIn::class,
+        'distance'      => WhereDistance500::class,
     ];
 
     public function device()

@@ -11,8 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        $sql = "
-                CREATE FUNCTION getDistance(
+        $sql = "CREATE FUNCTION getDistance(
                 lat1 DOUBLE, lon1 DOUBLE,
                 lat2 DOUBLE, lon2 DOUBLE
                 ) RETURNS DOUBLE
