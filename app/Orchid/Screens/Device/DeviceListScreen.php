@@ -117,6 +117,10 @@ class DeviceListScreen extends Screen
                     ->sort()
                     ->filter(TD::FILTER_TEXT)
                     ->render(fn(Device $device) => $device->divipole->position_name ?? ''),
+                TD::make('tel', __('Phone'))
+                    ->sort()
+                    ->filter(TD::FILTER_TEXT)
+                    ->render(fn(Device $device) => $device->tel ?? ''),
                 TD::make('imei', __('IMEI'))
                     ->sort()
                     ->filter(TD::FILTER_TEXT)
