@@ -14,6 +14,7 @@ class Device extends Model
 
     protected $fillable = [
         'divipole_id',
+        'tel',
         'imei',
         'device_key',
         'sequential',

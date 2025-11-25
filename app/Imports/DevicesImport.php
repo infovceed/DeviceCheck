@@ -24,9 +24,12 @@ class DevicesImport implements ToModel, WithHeadingRow, WithChunkReading, WithBa
         try {
             if (!array_key_exists('id', $row) ||
                 !array_key_exists('divipole_id', $row) ||
+                !array_key_exists('tel', $row) ||
                 !array_key_exists('imei', $row) ||
                 !array_key_exists('llave', $row) ||
-                !array_key_exists('consecutivo', $row)
+                !array_key_exists('consecutivo', $row)||
+                !array_key_exists('reporte', $row)
+
               ) {
                 Log::info('Invalid row: ' . json_encode($row));
                 return null;
@@ -34,9 +37,11 @@ class DevicesImport implements ToModel, WithHeadingRow, WithChunkReading, WithBa
             return new Device([
                 'id'             => $row['id'],
                 'divipole_id'    => $row['divipole_id'],
+                'tel'            => $row['tel'],
                 'imei'           => $row['imei'],
                 'device_key'     => $row['llave'],
                 'sequential'     => $row['consecutivo'],
+                'report_time'    => $row['reporte'],
                 'status'         => 0,
                 'created_by'     => 1,
                 'updated_by'     => 1,
