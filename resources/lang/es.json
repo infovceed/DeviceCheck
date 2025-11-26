@@ -228,12 +228,12 @@
     "The longitude field is required.": "El campo longitud es obligatorio.",
     "The longitude field must be a string.": "El campo longitud debe ser una cadena de texto.",
     "The longitude field may not be greater than 30 characters.": "El campo longitud no debe exceder los 30 caracteres.",
-    "Device identifier not found.": "Identificador de dispositivo no encontrado.",
+    "Device identifier not found.": "Dispositivo no encontrado en la base de datos.",
     "Device already reported.": "Dispositivo ya reportado.",
     "The reported device does not match the assigned position.": "El dispositivo reportado no coincide con la posición asignada.",
     "Validation error.": "Error de validación.",
     "Unknown error.": "Error desconocido.",
-    "Device assigned to another polling station.": "Dispositivo asignado a otra mesa."
+    "Device assigned to another polling station.": "Dispositivo asignado a otro lugar."
     ,
     "The details you entered did not match our records. Please double-check and try again.": "Credenciales inválidas. Por favor verifique su usuario y/o contraseña e inténtelo nuevamente.",
     "Device Check": "Verificación de Dispositivo",
@@ -242,7 +242,7 @@
     "The type field is required.": "El campo tipo es obligatorio.",
     "The type field must be either checkin or checkout.": "El campo tipo debe ser checkin o checkout.",
     "Report received": "Reporte exitoso",
-    "You must check in before checking out.": "Debes hacer check-in antes de hacer check-out.",
+    "You must check in before checking out.": "Debes reportar la entrada antes de reportar la salida.",
     "Mobile": "Celular",
     "Distance": "Distancia",
     "Report date": "Fecha de reporte",

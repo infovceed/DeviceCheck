@@ -64,7 +64,7 @@ class DeviceCheck extends Model
         return $this->belongsTo(Divipole::class);
     }
 
-    public static function saveReport(array $deviceData)
+    public static function saveReport(array $deviceData):Device
     {
         $device = Device::query()
                     ->where('imei', $deviceData['imei'])
@@ -80,6 +80,7 @@ class DeviceCheck extends Model
             'longitude' => $deviceData['lon'],
             'type'      => $deviceData['tipo'],
         ]);
+        return $device;
     }
 
     /**

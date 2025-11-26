@@ -28,7 +28,9 @@ class DevicesImport implements ToModel, WithHeadingRow, WithChunkReading, WithBa
                 !array_key_exists('imei', $row) ||
                 !array_key_exists('llave', $row) ||
                 !array_key_exists('consecutivo', $row)||
-                !array_key_exists('reporte', $row)
+                !array_key_exists('reporte', $row)||
+                !array_key_exists('latitud', $row)||
+                !array_key_exists('longitud', $row)
 
               ) {
                 Log::info('Invalid row: ' . json_encode($row));
@@ -42,6 +44,8 @@ class DevicesImport implements ToModel, WithHeadingRow, WithChunkReading, WithBa
                 'device_key'     => $row['llave'],
                 'sequential'     => $row['consecutivo'],
                 'report_time'    => $row['reporte'],
+                'latitude'       => $row['latitud'],
+                'longitude'      => $row['longitud'],
                 'status'         => 0,
                 'created_by'     => 1,
                 'updated_by'     => 1,

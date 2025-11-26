@@ -18,10 +18,14 @@ class ReportDeviceController extends Controller
 
         $deviceData = $request->validated();
         try {
-            DeviceCheck::saveReport($deviceData);
+            $deviceID=DeviceCheck::saveReport($deviceData);
+            $device=Device::find($deviceID)->first();
+            $department=$device->divipole()->first()->department()->first()->name;
+            $municipality=$device->divipole()->first()->municipality()->first()->name;
+            $position=$device->divipole()->first()->position_name;
             return response()->json([
                 'status' => 'ok',
-                'message' => __('Report received'),
+                'message' => "Departamento: $department, Municipio: $municipality, Puesto: $position, ".__('Report received'),
             ], 200);
         } catch (\Exception $e) {
             logger()->error('Error saving device report: ' . $e->getMessage());
