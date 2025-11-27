@@ -54,7 +54,7 @@ class DepartmentChartsFilter extends Filter
     public function display(): array
     {
         $user = auth()->user();
-        $cacheKey = "departments.chart.filter.{$user->id}";
+        $cacheKey = "departments.chart.filter.department.{$user->id}";
         $options = Cache::remember($cacheKey, 60, function () use ($user) {
             return Department::when(!$user->hasAccess('platform.systems.dashboard.show-all'), function (Builder $query) use ($user) {
                 $query->where('id', $user->department_id);
@@ -67,6 +67,7 @@ class DepartmentChartsFilter extends Filter
                 ->options($options)
                 ->empty(__('All Departments'))
                 ->value($this->request->get('department'))
+                ->multiple()
                 ->title(__('Departments')),
         ];
     }
@@ -76,6 +77,10 @@ class DepartmentChartsFilter extends Filter
      */
     public function value(): string
     {
-        return $this->name().': '.Department::where('id', $this->request->get('department'))->first()->name;
+        $departments=Department::whereIn('id', (array)$this->request->get('department'))
+            ->orderBy('name', 'asc')
+            ->pluck('name')
+            ->join(', ');
+        return $this->name().': '.$departments;
     }
 }

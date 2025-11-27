@@ -28,18 +28,19 @@ class PlatformScreen extends Screen
     {
         $user    = auth()->user();
         $departmentID  = $user->hasAccess('platform.systems.dashboard.show-all')
-            ? request('department', 'all')
-            : $user->department_id;
+            ? request('department', [])
+            : [$user->department_id];
+        $municipalities = request('municipality', []);
+        $positions = request('position', []);
         $incidents = Device::getIncidentsOpen();
         $date = request('chart_date', now()->toDateString());
-        [$labels, $valuesTotal, $valuesReported, $reportedCheckout] = Department::getChartData($date, $departmentID);
+        [$labels, $valuesTotal, $valuesReported, $reportedCheckout] = Department::getChartData($date, $departmentID, $municipalities,$positions );
 
-        $totalReportedIn = array_sum($valuesReported);
+        $totalReportedIn  = array_sum($valuesReported);
         $totalReportedOut = array_sum($reportedCheckout);
-        $totalDevicesSum = array_sum($valuesTotal);
-
-        $percentageIn = $totalDevicesSum ? round(($totalReportedIn / $totalDevicesSum) * 100, 2) : 0;
-        $percentageOut = $totalDevicesSum ? round(($totalReportedOut / $totalDevicesSum) * 100, 2) : 0;
+        $totalDevicesSum  = array_sum($valuesTotal);
+        $percentageIn     = $totalDevicesSum ? round(($totalReportedIn / $totalDevicesSum) * 100, 2) : 0;
+        $percentageOut    = $totalDevicesSum ? round(($totalReportedOut / $totalDevicesSum) * 100, 2) : 0;
 
         $data = [
             'stats' => [
@@ -55,16 +56,16 @@ class PlatformScreen extends Screen
             'incidents' => $incidents,
         ];
 
-        if ($departmentID === 'all') {
+        if ($departmentID === []) {
             $data['departmentsChart'] = [
                 ['labels' => $labels, 'name' => __('Meta'),    'values' => $valuesTotal],
                 ['labels' => $labels, 'name' => __('Check-in'),'values' => $valuesReported],
                 ['labels' => $labels, 'name' => __('Check-out'),'values' => $reportedCheckout],
             ];
         } else {
-            $totalDevices  = $valuesTotal[0] ?? 0;
-            $reportedIn    = $valuesReported[0] ?? 0;
-            $reportedOut   = $reportedCheckout[0] ?? 0;
+            $totalDevices  = array_sum($valuesTotal)??0;
+            $reportedIn    = array_sum($valuesReported) ?? 0;
+            $reportedOut   = array_sum($reportedCheckout) ?? 0;
             $unreportedIn  = max(0, $totalDevices - $reportedIn);
             $unreportedOut = max(0, $totalDevices - $reportedOut);
 
@@ -75,6 +76,21 @@ class PlatformScreen extends Screen
             $data['checkoutChart'] = [
                 ['labels' => [__('Pending'), __('Reported')], 'name' => __('Check-out'), 'values' => [$unreportedOut, $reportedOut]],
             ];
+
+            if (is_array($departmentID) && count($departmentID) === 1 && $departmentID[0]) {
+                [$mlabels, $mtotal, $mcheckin, $mcheckout] = Department::getMunicipalityChartData(
+                    $date,
+                    (int)$departmentID[0],
+                    $municipalities,
+                    $positions
+                );
+
+                $data['municipalitiesChart'] = [
+                    ['labels' => $mlabels, 'name' => 'Meta',       'values' => $mtotal],
+                    ['labels' => $mlabels, 'name' => __('Check-in'),   'values' => $mcheckin],
+                    ['labels' => $mlabels, 'name' => __('Check-out'),  'values' => $mcheckout],
+                ];
+            }
         }
 
         return $data;
@@ -149,11 +165,13 @@ class PlatformScreen extends Screen
             ]),
         ];
         if($showAll) {
+            // Activa auto-aplicación de filtros solo en esta vista
+            $layouts[] = Layout::view('partials.auto-filter-enable');
             $chartFilters = new ChartFiltersLayout();
             $layouts[] = $chartFilters;
         }
         
-        if ($data['departmentID'] === 'all') {
+        if ($data['departmentID'] === []) {
             $deptLayout = ChartsLayout::make('departmentsChart', 'Reporte por departamento')
                 ->description('Comparativa de dispositivos reportados por departamento.');
             $layouts[] = $deptLayout;
@@ -167,6 +185,12 @@ class PlatformScreen extends Screen
                 $pieIn,
                 $pieOut,
             ])->ratio('50/50');
+
+            if (isset($data['municipalitiesChart'])) {
+                $munLayout = ChartsLayout::make('municipalitiesChart', 'Reporte por municipio')
+                    ->description('Totales, check-in y check-out por municipio.');
+                $layouts[] = $munLayout;
+            }
         }
          $layouts[] = Layout::split([
             Layout::table('incidents', [

@@ -21,4 +21,8 @@ class ChartsLayout extends Chart
      * @var bool
      */
     protected $export = true;
+    protected $valuesOverPoints = 1;
+
+
+
 }

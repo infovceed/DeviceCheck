@@ -267,5 +267,8 @@
     "Users": "Usuarios",
     "Roles": "Roles",
     "Total": "Total",
-    "Phone": "Teléfono"
+    "Phone": "Teléfono",
+    "All Positions": "Todos los Puestos",
+    "Positions": "Puestos",
+    "Reset": "Restablecer"
 }

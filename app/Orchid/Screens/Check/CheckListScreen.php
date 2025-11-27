@@ -159,13 +159,11 @@ class CheckListScreen extends Screen
     {
         $layout[] = CheckListLayout::class;
         $filters = request()->query('filter', []);
-        $showSummary = !empty($filters['department']) && !empty($filters['type']&& !empty($filters['created_at']));
+        $showSummary = !empty($filters['department']) && isset($filters['type']) && !empty($filters['type']) && isset($filters['created_at']) && !empty($filters['created_at']);
 
         if ($showSummary) {
             $layout[] = DepartmentSummaryLayout::class;
         }
-        
-
         return $layout;
     }
 
