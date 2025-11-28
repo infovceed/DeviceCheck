@@ -17,11 +17,12 @@ class AuthenticateStorage
     public function handle(Request $request, Closure $next): Response
     {
         if (!Auth::check()) {
-            $path = $request->path();
-            if (strpos($path, 'storage') !== false) {
-                return response('Unauthorized.', 401);
+            // Si es petición web, redirige al login de Orchid
+            if (!$request->expectsJson()) {
+                return redirect()->guest(route('platform.login'));
             }
-
+            // API/JSON: responde 401
+            return response('Unauthorized.', 401);
         }
         return $next($request);
     }
