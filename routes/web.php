@@ -11,5 +11,7 @@ Route::get('/storage/{any}',function ($any) {
     return $any;
 })->where('any', '.*\.(jpg|jpeg|png|gif|bmp|pdf|xls|xlsx|doc|docx|txt)$')->middleware(AuthenticateStorage::class);
 
-// Descargar export generado (acción clicable de notificación)
-Route::get('/exports/download', [ExportController::class, 'download'])->name('exports.download');
+// Descargar export generado (requiere sesión y enlace firmado)
+Route::get('/exports/download', [ExportController::class, 'download'])
+    ->name('exports.download')
+    ->middleware(['auth', 'signed']);

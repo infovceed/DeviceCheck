@@ -12,9 +12,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        /* $middleware->use([
-            AuthenticateStorage::class,
-        ]); */
+        // Alias 'auth' para usar nuestro Authenticate personalizado (redirección a plataforma Orchid)
+        $middleware->alias([
+            'auth' => \App\Http\Middleware\Authenticate::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

@@ -160,7 +160,12 @@ class CheckListScreen extends Screen
         $disk      = 'public';
         $path      = "exports/{$fileName}";
 
-        $downloadUrl = route('exports.download', ['path' => $path]);
+        $ttl = (int) config('export.signed_url_ttl', 60 * 24);
+        $downloadUrl = \Illuminate\Support\Facades\URL::temporarySignedRoute(
+            'exports.download',
+            now()->addMinutes($ttl),
+            ['path' => $path]
+        );
         Excel::queue(new ChecksExport($filters, $user), $path, $disk)
             ->chain([
                 new NotifyUserOfCompletedExport($user, $downloadUrl, $fileName),

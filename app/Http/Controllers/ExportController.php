@@ -10,8 +10,12 @@ class ExportController extends Controller
 {
     public function download(Request $request): BinaryFileResponse
     {
-        $path = $request->query('path');
-        if (! $path || ! Storage::disk('public')->exists($path)) {
+        $path = (string) $request->query('path', '');
+        // Restringir carpeta y evitar path traversal
+        if ($path === '' || !str_starts_with($path, 'exports/') || str_contains($path, '..')) {
+            abort(403);
+        }
+        if (! Storage::disk('public')->exists($path)) {
             abort(404);
         }
         $fullPath = Storage::disk('public')->path($path);
