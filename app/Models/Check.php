@@ -46,7 +46,81 @@ class Check extends Model
         'code'          => Where::class,
         'created_at'    => WhereDateIn::class,
         'distance'      => WhereDistance500::class,
+        'report_time'   => Where::class,
     ];
+
+    /**
+     * Aplica filtros permitidos reutilizando la definición de $allowedFilters.
+     * Pensado para exportaciones (queue) donde no existe Request.
+     */
+    public static function applyAllowedFilters($query, array $filters)
+    {
+        foreach ((new self)->allowedFilters as $column => $filterClass) {
+            if (!array_key_exists($column, $filters) || $filters[$column] === null || $filters[$column] === '') {
+                continue;
+            }
+            $value = $filters[$column];
+            // Normalizar arrays provenientes del front
+            if (is_string($value) && str_contains($value, ',')) {
+                // Para filtros que aceptan múltiples valores separados por coma
+                $valueParts = collect(preg_split('/\s*,\s*/', $value))->filter();
+            } elseif (is_array($value)) {
+                $valueParts = collect($value)->filter();
+            } else {
+                $valueParts = collect([$value])->filter();
+            }
+
+            if ($filterClass === WhereIn::class) {
+                $query->whereIn($column, $valueParts->values()->all());
+                continue;
+            }
+            if ($filterClass === Where::class) {
+                // Usamos igualdad directa si sólo hay un valor
+                $query->where($column, $valueParts->first());
+                continue;
+            }
+            if ($filterClass === Like::class) {
+                // Si vienen múltiples valores aplicamos OR LIKE
+                $query->where(function($q) use ($column, $valueParts) {
+                    foreach ($valueParts as $part) {
+                        $q->orWhere($column, 'like', '%'.$part.'%');
+                    }
+                });
+                continue;
+            }
+            if ($filterClass === WhereDateIn::class) {
+                // Reutiliza lógica similar a la clase de filtro custom (OR por fecha)
+                $dates = $valueParts->map(fn($d) => trim($d))
+                    ->filter(fn($d) => preg_match('/^\d{4}-\d{2}-\d{2}$/', $d))
+                    ->unique();
+                if ($dates->isNotEmpty()) {
+                    $query->where(function($q) use ($dates, $column) {
+                        foreach ($dates as $d) {
+                            $q->orWhereDate($column, $d);
+                        }
+                    });
+                }
+                continue;
+            }
+            if ($filterClass === WhereDistance500::class) {
+                // Reutilizar lógica central: aceptar gt/le/num
+                $raw = $valueParts->first();
+                if ($raw !== null && $raw !== '') {
+                    $lower = strtolower((string)$raw);
+                    if (in_array($lower, ['gt','greater','1'], true)) {
+                        $query->where('distance', '>', 0.5);
+                    } elseif (in_array($lower, ['le','lte','less','0'], true)) {
+                        $query->where('distance', '<=', 0.5);
+                    } elseif (is_numeric($raw)) {
+                        $km = floatval($raw) / 1000.0;
+                        $query->where('distance', '>', $km);
+                    }
+                }
+                continue;
+            }
+        }
+        return $query;
+    }
 
     public function device()
     {

@@ -18,6 +18,10 @@ use Orchid\Screen\Actions\ModalToggle;
 use App\Services\DeviceReportQueryBuilder;
 use App\Orchid\Layouts\Check\CheckListLayout;
 use App\Orchid\Layouts\Check\DepartmentSummaryLayout;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\ChecksExport;
+use App\Jobs\NotifyUserOfCompletedExport;
+use App\Notifications\DashboardNotification;
 
 class CheckListScreen extends Screen
 {
@@ -72,19 +76,6 @@ class CheckListScreen extends Screen
 
             $query->groupBy('department', 'municipality')
                 ->orderBy('department');
-
-            // Filtro por departamento
-            /* if (!empty($filters['department'])) {
-                $deptFilter = (array) $filters['department'];
-                $query->whereIn('department', $deptFilter);
-            }
-            // filtro por fechas separadas por comas
-            if (!empty($filters['created_at'])) {
-                $dateFilter = (array) $filters['created_at'];
-                $query->whereIn(DB::raw('DATE(check_day)'), $dateFilter);
-            } */
-
-            $raw=$query->toRawSql();
             $rows = $query->get();
 
             $summary = $rows->map(function ($row) {
@@ -142,12 +133,40 @@ class CheckListScreen extends Screen
                 ->canSee(auth()->user()->hasAccess('platform.systems.devices.create')),
             Button::make(__('Export'))
                 ->icon('download')
-                ->canSee(auth()->user()->hasAccess('platform.systems.devices.export'))
-                ->download()
-                ->method('export',[
+                ->canSee(auth()->user()->hasAccess('platform.systems.report-download'))
+                ->method('export', [
                     'filter' => request()->query('filter', []),
                 ]),
         ];
+    }
+
+    public function export(Request $request)
+    {
+        $user = auth()->user();
+        if (! $user->hasAccess('platform.systems.report-download')) {
+            Alert::error('You do not have permission to export.');
+            return;
+        }
+
+        $filters = $request->input('filter', $request->query('filter', []));
+
+        $user->notify(new DashboardNotification(
+            __('Excel export started'),
+            __('We are generating your Excel file. You will be notified when it is ready.'),
+        ));
+
+        $timestamp = now()->format('Ymd_His');
+        $fileName  = "checks_{$timestamp}.xlsx";
+        $disk      = 'public';
+        $path      = "exports/{$fileName}";
+
+        $downloadUrl = route('exports.download', ['path' => $path]);
+        Excel::queue(new ChecksExport($filters, $user), $path, $disk)
+            ->chain([
+                new NotifyUserOfCompletedExport($user, $downloadUrl, $fileName),
+            ]);
+
+        Toast::info(__('Your export has started. We will notify you when it finishes.'));
     }
 
     /**
@@ -188,47 +207,5 @@ class CheckListScreen extends Screen
         $device->save();
         Toast::info(__('Device report was removed'));
     }
-
-    public function export(Request $request, array $filter = [] )
-    {
-        $exportDir = storage_path('app/exports/Device_report');
-        if (! file_exists($exportDir)) {
-            mkdir($exportDir, 0755, true);
-        }
-
-        $userId  = auth()->id();
-        $date    = date('YmdHis');
-        $sqlPath = "{$exportDir}/{$userId}.sql";
-        $csvPath = "{$exportDir}/{$userId}-{$date}.csv";
-
-        $hasShowAllAccess = auth()->user()->hasAccess('platform.systems.Devices.show-all');
-
-        // 1) Genero el SQL de consulta
-        $sql = DeviceReportQueryBuilder::build($filter, $userId, $hasShowAllAccess);
-        Log::info('SQL generado para exportación', ['sql' => $sql]);
-        file_put_contents($sqlPath, $sql);
-
-        // 2) Ejecuta el script
-        $script  = "{$exportDir}/exportExcel.sh";
-        exec("sh {$script} {$sqlPath} {$csvPath}", $output, $status);
-
-        if ($status !== 0 || ! file_exists($csvPath)) {
-            Log::error('Error ejecutando exportExcel.sh', [
-                'status' => $status,
-                'output' => $output,
-                'script' => $script,
-                'sqlPath' => $sqlPath,
-                'csvPath' => $csvPath,
-            ]);
-            Toast::error(__('There was an error generating the CSV file. Please try again.'));
-            return;
-        }
-
-        // 3) Devuelve la descarga y elimina el archivo
-        return response()
-            ->download($csvPath, "Device_report.csv", [
-                'Content-Type' => 'text/csv'
-            ])
-            ->deleteFileAfterSend(true);
-    }
+    
 }

@@ -55,7 +55,11 @@ class CheckListLayout extends Table
                     Relation::make('position_name')
                         ->fromModel(Divipole::class, 'position_name','position_name')
                         ->multiple()
-                ),
+                )->filterValue(function ($value) {
+                        if (is_array($value)) {
+                            return implode(', ', array_map(fn($v) => mb_strimwidth($v, 0, 20, '...'), $value));
+                        }
+                }),
             TD::make('tel', __('Mobile'))
                 ->filter(
                     Relation::make('tel')
@@ -109,7 +113,16 @@ class CheckListLayout extends Table
                         'color' => $distance<500 ? 'info' : 'danger',
                     ]);
                 })->alignCenter(),
-            TD::make('report_time', __('Report time')),
+            TD::make('report_time', __('Report time'))
+            ->filter(
+                DateTimer::make('report_time')
+                    ->noCalendar()
+                    ->serverFormat('H:i:s')
+                    ->format('H:i')
+                    ->placeholder('00:00:00')
+                    ->allowInput()
+                    ->multiple()
+            ),
             TD::make('time', __('Arrival time')),
             TD::make('time_difference_minutes', __('Time difference (minutes)'))->alignCenter(),
             TD::make('code', __('Position code'))

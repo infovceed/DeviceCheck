@@ -270,5 +270,10 @@
     "Phone": "Teléfono",
     "All Positions": "Todos los Puestos",
     "Positions": "Puestos",
-    "Reset": "Restablecer"
+    "Reset": "Restablecer",
+    "Excel export started": "Exportación a Excel iniciada",
+    "We are generating your Excel file. You will be notified when it is ready.": "Estamos generando tu archivo de Excel. Serás notificado cuando esté listo.",
+    "Your export is ready": "Tu exportación está lista",
+    "Download report: :url": "Descargar informe: :url",
+    "Your export has started. We will notify you when it finishes.": " Tu exportación ha comenzado. Te notificaremos cuando termine."
 }
