@@ -47,7 +47,7 @@ class CheckListScreen extends Screen
      
         $filters = request()->query('filter', []);
         // show summary when department and type filters are present (date filter optional)
-        $showSummary = !empty($filters['department']) && !empty($filters['type']);
+        $showSummary = !empty($filters['department']) && isset($filters['type']) && !empty($filters['type']) && isset($filters['created_at']) && !empty($filters['created_at']);
         if ($showSummary) {
             if (!empty($filters['created_at']) && empty($filters['check_day'])) {
                 $inputFilters = request()->input('filter', $filters);

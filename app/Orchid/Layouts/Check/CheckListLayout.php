@@ -110,7 +110,7 @@ class CheckListLayout extends Table
                     $distance = $check->distance*1000;
                     return $this->badge([
                         'text'  => $distance,
-                        'color' => $distance<500 ? 'info' : 'danger',
+                        'color' => $distance<500 ? 'success' : 'danger',
                     ]);
                 })->alignCenter(),
             TD::make('report_time', __('Report time'))
@@ -128,23 +128,23 @@ class CheckListLayout extends Table
             TD::make('code', __('Position code'))
                 ->filter(TD::FILTER_TEXT)
                 ->alignCenter(),
-            TD::make('type', __('Type'))
+            TD::make('type', __('Report type'))
                 ->filter(
                     Select::make()
                         ->options([
-                            'checkin'  => __('Check-in'),
-                            'checkout' => __('Check-out'),
+                            'checkin'  => __('Arrival'),
+                            'checkout' => __('Departure'),
                         ])
                         ->empty(__('All'))
                 )
                 ->filterValue(fn($value) => match ($value) {
-                    'checkin' => __('Check-in'),
-                    'checkout' => __('Check-out'),
+                    'checkin' => __('Arrival'),
+                    'checkout' => __('Departure'),
                     default => $value,
                 })
                 ->render(function(Check $check) {
                     return $this->badge([
-                        'text'  => $check->type == 'checkin' ? __('Check-in') : __('Check-out'),
+                        'text'  => $check->type == 'checkin' ? __('Arrival') : __('Departure'),
                         'color' => $check->type == 'checkin' ? 'success' : 'info',
                     ]);
                 }),
