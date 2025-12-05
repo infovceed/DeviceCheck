@@ -9,7 +9,7 @@
             </div>
             <div>
                 <div class="col-3 text-primary">
-                    <x-orchid-icon path="{{ $icon }}" class="d-inline mx-1" style="font-size: 4rem;" />
+                    <x-orchid-icon path="{{ $icon }}" class="d-inline mx-1" style="font-size: 4rem; color: {{ $iconColor ?? 'inherit' }};" />
                 </div>
             </div>
         </div>

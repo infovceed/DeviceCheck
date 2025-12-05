@@ -37,16 +37,17 @@ class Check extends Model
     ];
 
     protected $allowedFilters = [
-        'department'    => WhereIn::class,
-        'municipality'  => WhereIn::class,
-        'position_name' => WhereIn::class,
-        'tel'           => WhereIn::class,
-        'device_key'    => WhereIn::class,
-        'type'          => Like::class,
-        'code'          => Where::class,
-        'created_at'    => WhereDateIn::class,
-        'distance'      => WhereDistance500::class,
-        'report_time'   => Where::class,
+        'department'             => WhereIn::class,
+        'municipality'           => WhereIn::class,
+        'position_name'          => WhereIn::class,
+        'tel'                    => WhereIn::class,
+        'device_key'             => WhereIn::class,
+        'type'                   => Like::class,
+        'code'                   => Where::class,
+        'created_at'             => WhereDateIn::class,
+        'distance'               => WhereDistance500::class,
+        'report_time'            => Where::class,
+        'report_time_departure'  => Where::class,
     ];
 
     /**
@@ -142,7 +143,7 @@ class Check extends Model
         try {
             $report = Carbon::parse($this->report_time);
             $check  = Carbon::parse($this->time);
-            $seconds = abs($report->diffInSeconds($check));
+            $seconds = $report->diffInSeconds($check);
             $minutes = $seconds / 60;
             return number_format($minutes, 2);
         } catch (\Exception $e) {

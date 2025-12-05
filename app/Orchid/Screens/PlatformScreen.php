@@ -138,26 +138,31 @@ class PlatformScreen extends Screen
                     'title' => $data['stats']['totalRecords'] ?? 0,
                     'subtitle' =>__('Total Devices'),
                     'icon' => 'bs.phone',
+                    'iconColor' => '#92D050',
                 ]),
                 Layout::view('components.dashboard.stats',[
                     'title' => "{$data['stats']['percentageIn']}%",
                     'subtitle' => __('Devices Reported (Arrival)'),
                     'icon' => 'bs.phone-vibrate',
+                    'iconColor' => '#002060',
                 ]),
                 Layout::view('components.dashboard.stats',[
                     'title' => "{$data['stats']['percentageOut']}%",
                     'subtitle' => __('Devices Reported (Departure)'),
                     'icon' => 'bs.phone-vibrate',
+                    'iconColor' => '#FF8805',
                 ]),
                 Layout::view('components.dashboard.stats',[
                     'title' => $data['stats']['totalReportedIn'],
                     'subtitle' => __('Total Reported (Arrival)'),
                     'icon' => 'bs.phone-vibrate-fill',
+                    'iconColor' => '#002060',
                 ]),
                 Layout::view('components.dashboard.stats',[
                     'title' => $data['stats']['totalReportedOut'],
                     'subtitle' => __('Total Reported (Departure)'),
                     'icon' => 'bs.phone-vibrate-fill',
+                    'iconColor' => '#FF8805',
                 ]),
             ]),
         ];

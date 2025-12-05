@@ -281,5 +281,17 @@
     "Arrival": "Llegada",
     "Departure": "Salida",
     "Total Devices": "Total Dispositivos",
-    "Report type": "Tipo de reporte"
+    "Report type": "Tipo de reporte",
+    "Records per page": "Registros por página",
+    "Choose how many records to display.": "Elige cuántos registros mostrar.",
+    "Report time (Arrival)": "Hora reporte (Llegada)",
+    "Report time (Departure)": "Hora reporte (Salida)",
+    "Report hour": "Hora de reporte",
+    "Time difference (Arrival minutes)": "Minutos de diferencia (Llegada)",
+    "Time difference (Departure minutes)": "Minutos de diferencia (Salida)",
+    "Scheduled Time": "Hora programada",
+    "Not Scheduled": "No programado",
+    "Missing Devices": "Dispositivos faltantes por reportar",
+    "Reported Devices": "Dispositivos Reportados",
+    "Department Summary": "Resumen por Departamento"
 }

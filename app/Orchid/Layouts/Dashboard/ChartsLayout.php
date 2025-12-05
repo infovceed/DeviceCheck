@@ -23,6 +23,10 @@ class ChartsLayout extends Chart
     protected $export = true;
     protected $valuesOverPoints = 1;
 
-
+    protected $colors = [
+        '#92D050', // Meta (Verde)
+        '#002060', // Reportados (Azul oscuro)
+        '#FF8805', // Checkout (naranja)
+    ];
 
 }

@@ -36,7 +36,7 @@ class DivipoleListScreen extends Screen
      */
     public function name(): ?string
     {
-        return 'Divipole';
+        return 'Divipol';
     }
 
     /**

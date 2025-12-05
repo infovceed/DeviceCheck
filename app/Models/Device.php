@@ -21,6 +21,7 @@ class Device extends Model
         'latitude',
         'longitude',
         'report_time',
+        'report_time_departure',
         'status',
         'status_incidents',
         'created_by',

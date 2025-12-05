@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         $sql = "CREATE OR REPLACE VIEW checks AS
-                SELECT 
+                SELECT
                 device_checks.id AS id,
                 device_checks.device_id,
                 device_checks.distance,
@@ -27,7 +27,10 @@ return new class extends Migration
                 divipoles.code,
                 devices.tel,
                 devices.device_key,
-                devices.report_time
+                 CASE
+                    WHEN device_checks.type = 'checkin' THEN devices.report_time
+                    ELSE devices.report_time_departure
+                END AS report_time
                 FROM device_checks
                 INNER JOIN devices ON devices.id=device_checks.device_id
                 INNER JOIN divipoles ON divipoles.id=devices.divipole_id

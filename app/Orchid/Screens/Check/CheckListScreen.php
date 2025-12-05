@@ -6,22 +6,26 @@ use App\Models\Check;
 use App\Models\Device;
 use Orchid\Screen\Screen;
 use Illuminate\Http\Request;
+use App\Exports\ChecksExport;
 use App\Traits\ComponentsTrait;
 use App\Models\DeviceDailyCheck;
+use Orchid\Screen\Fields\Select;
 use Orchid\Screen\Actions\Button;
 use Orchid\Support\Facades\Alert;
 use Orchid\Support\Facades\Toast;
+use App\Models\DeviceWithLocation;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Collection;
 use Orchid\Support\Facades\Layout;
 use Illuminate\Support\Facades\Log;
-use Orchid\Screen\Actions\ModalToggle;
-use App\Services\DeviceReportQueryBuilder;
-use App\Orchid\Layouts\Check\CheckListLayout;
-use App\Orchid\Layouts\Check\DepartmentSummaryLayout;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\ChecksExport;
+use Orchid\Screen\Actions\ModalToggle;
 use App\Jobs\NotifyUserOfCompletedExport;
+use App\Services\DeviceReportQueryBuilder;
 use App\Notifications\DashboardNotification;
+use App\Orchid\Layouts\Check\CheckListLayout;
+use App\Orchid\Layouts\Check\MissingDevicesLayout;
+use App\Orchid\Layouts\Check\DepartmentSummaryLayout;
 
 class CheckListScreen extends Screen
 {
@@ -33,6 +37,7 @@ class CheckListScreen extends Screen
      */
     public function query(): iterable
     {
+        $perPage = request()->input('perPage', 15);
         $checks = Check::query()
             ->filters()
             ->when(auth()->user()->hasAccess('platform.systems.devices.show-department'), function ($query) {
@@ -42,11 +47,11 @@ class CheckListScreen extends Screen
                 }
             })
             ->defaultSort('id', 'asc')
-            ->paginate();
+            ->paginate($perPage);
         $data['checks'] = $checks;
      
         $filters = request()->query('filter', []);
-        // show summary when department and type filters are present (date filter optional)
+        // Summary of departments
         $showSummary = !empty($filters['department']) && isset($filters['type']) && !empty($filters['type']) && isset($filters['created_at']) && !empty($filters['created_at']);
         if ($showSummary) {
             if (!empty($filters['created_at']) && empty($filters['check_day'])) {
@@ -54,10 +59,7 @@ class CheckListScreen extends Screen
                 $inputFilters['check_day'] = $filters['created_at'];
                 request()->merge(['filter' => $inputFilters]);
             }
-
             $query = DeviceDailyCheck::query()->filters();
-
-            // Selección: contar dispositivos distintos (no filas) y reported por tipo
             if (!empty($filters['type']) && $filters['type'] === 'checkin') {
                 $query->select(
                     'department as name',
@@ -76,25 +78,33 @@ class CheckListScreen extends Screen
 
             $query->groupBy('department', 'municipality')
                 ->orderBy('department');
-            $rows = $query->get();
+            $summaryPage = request()->input('summaryPage', 1);
+            $paginated = $query->paginate(15, ['*'], 'summaryPage', $summaryPage);
+            $paginated->appends(request()->except(['summaryPage']));
+            $transformed = $this->buildDepartmentSummary($paginated->getCollection());
+            $paginated->setCollection($transformed);
+            $data['departmentSummary'] = $paginated;
+        }
 
-            $summary = $rows->map(function ($row) {
-                $pending = max(0, $row->total - $row->reported);
-                $pctReported = $row->total > 0 ? round(($row->reported / $row->total) * 100, 2) : 0;
-                $pctPending = 100 - $pctReported;
-                return (object) [
-                    'id'           => $row->id,
-                    'department'   => $row->name,
-                    'municipality' => $row->municipality,
-                    'total'        => (int) $row->total,
-                    'reported'     => (int) $row->reported,
-                    'pending'      => (int) $pending,
-                    'pct_reported' => $pctReported,
-                    'pct_pending'  => $pctPending,
-                ];
-            });
-            $data['departmentSummary'] = $summary;
-        } 
+        //Table of missing devices
+        $showMissing = !empty($filters['department']) && !empty($filters['type']) && !empty($filters['created_at']);
+        if ($showMissing) {
+            $dates = $filters['created_at'];
+            if (is_string($dates)) {
+                $dates = array_filter(array_map('trim', explode(',', $dates)));
+            }
+            $dates = array_unique((array)$dates);
+
+            $type = is_array($filters['type']) ? reset($filters['type']) : $filters['type'];
+            $deptNames = (array)$filters['department'];
+            $missingPage = request()->input('missingPage', 1);
+            $missing = DeviceWithLocation::missingFor($deptNames, $type, $dates)
+                ->paginate(15, ['*'], 'missingPage', $missingPage);
+            $missing->appends(request()->except(['missingPage']));
+            $data['missingDevices'] = $missing;
+            $data['missingType']    = $type;
+            $data['missingDates']   = $dates;
+        }
 
         
         return $data;
@@ -181,12 +191,28 @@ class CheckListScreen extends Screen
      */
     public function layout(): iterable
     {
-        $layout[] = CheckListLayout::class;
+        $layout[] = Layout::rows([
+                Select::make('perPage')
+                    ->id('perPage-select')
+                    ->title(__('Records per page'))
+                    ->options([
+                        15  => '15',
+                        30  => '30',
+                        45  => '45',
+                        60  => '60',
+                    ])
+                    ->value(request()->input('perPage', 50))
+                    ->help(__('Choose how many records to display.')),
+        ]);
+        $layout[] = (new CheckListLayout())->title(__('Reported Devices'));
         $filters = request()->query('filter', []);
         $showSummary = !empty($filters['department']) && isset($filters['type']) && !empty($filters['type']) && isset($filters['created_at']) && !empty($filters['created_at']);
 
         if ($showSummary) {
-            $layout[] = DepartmentSummaryLayout::class;
+            $layout[] = Layout::split([
+                (new DepartmentSummaryLayout())->title(__('Department Summary')),
+                (new MissingDevicesLayout())->title(__('Missing Devices')),
+            ])->ratio('50/50');
         }
         return $layout;
     }
@@ -211,6 +237,31 @@ class CheckListScreen extends Screen
         $device->status = 0;
         $device->save();
         Toast::info(__('Device report was removed'));
+    }
+    
+    /**
+     * Build department summary DTOs from query rows.
+     *
+     * @param \Illuminate\Support\Collection $rows
+     * @return \Illuminate\Support\Collection
+     */
+    protected function buildDepartmentSummary(Collection $rows): Collection
+    {
+        return $rows->map(function ($row) {
+            $pending = max(0, $row->total - $row->reported);
+            $pctReported = $row->total > 0 ? round(($row->reported / $row->total) * 100, 2) : 0;
+            $pctPending = 100 - $pctReported;
+            return (object) [
+                'id'           => $row->id,
+                'department'   => $row->name,
+                'municipality' => $row->municipality,
+                'total'        => (int) $row->total,
+                'reported'     => (int) $row->reported,
+                'pending'      => (int) $pending,
+                'pct_reported' => $pctReported,
+                'pct_pending'  => $pctPending,
+            ];
+        });
     }
     
 }

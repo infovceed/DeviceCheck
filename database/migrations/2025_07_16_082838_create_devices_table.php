@@ -18,7 +18,8 @@ return new class extends Migration
             $table->string('imei')->maxLength(30)->nullable()->comment('Numero de IMEI del dispositivo');
             $table->string('device_key')->maxLength(30)->nullable()->comment('1 para empaque, 2 para simulacro');
             $table->string('sequential')->maxLength(30)->nullable()->comment('Numero CONSECUTIVO del dispositivo');
-            $table->time('report_time')->nullable()->comment('Hora de reporte del dispositivo');
+            $table->time('report_time')->nullable()->comment('Hora de reporte de llegada del dispositivo');
+            $table->time('report_time_departure')->nullable()->comment('Hora de reporte de salida del dispositivo');
             $table->string('latitude')->maxLength(30)->nullable()->comment('Latitud del dispositivo');
             $table->string('longitude')->maxLength(30)->nullable()->comment('Longitud del dispositivo');
             $table->boolean('status')->default(false)->comment('verdadero para reporte exitoso, falso para falta de reporte');

@@ -113,7 +113,7 @@ class CheckListLayout extends Table
                         'color' => $distance<500 ? 'success' : 'danger',
                     ]);
                 })->alignCenter(),
-            TD::make('report_time', __('Report time'))
+            TD::make('report_time', __('Scheduled Time'))
             ->filter(
                 DateTimer::make('report_time')
                     ->noCalendar()
@@ -122,9 +122,35 @@ class CheckListLayout extends Table
                     ->placeholder('00:00:00')
                     ->allowInput()
                     ->multiple()
-            ),
-            TD::make('time', __('Arrival time')),
-            TD::make('time_difference_minutes', __('Time difference (minutes)'))->alignCenter(),
+            )->render(function (Check $check) {
+                if (! $check->report_time) {
+                    return __('Not Scheduled');
+                }
+                $t = is_string($check->report_time)
+                    ? Carbon::createFromFormat('H:i:s', $check->report_time)
+                    : Carbon::parse($check->report_time);
+                return $t->format('h:i:s a');
+            }),
+            TD::make('time', __('Report hour'))
+            ->render(function (Check $check) {
+                $t = is_string($check->time)
+                    ? Carbon::createFromFormat('H:i:s', $check->time)
+                    : Carbon::parse($check->time);
+                return $t->format('h:i:s a');
+            }),
+            TD::make('time_difference_minutes', __('Time difference (minutes)'))->alignCenter()
+                ->render(function(Check $check) {
+                    if($check->type === 'checkout'){
+                        return $this->badge([
+                        'text'  => abs($check->time_difference_minutes),
+                        'color' => $check->time_difference_minutes > 0 ? 'success' : 'danger',
+                        ]);
+                    }
+                    return $this->badge([
+                        'text'  => abs($check->time_difference_minutes),
+                        'color' => $check->time_difference_minutes < 1 ? 'success' : 'danger',
+                    ]);
+                }),
             TD::make('code', __('Position code'))
                 ->filter(TD::FILTER_TEXT)
                 ->alignCenter(),
@@ -145,9 +171,15 @@ class CheckListLayout extends Table
                 ->render(function(Check $check) {
                     return $this->badge([
                         'text'  => $check->type == 'checkin' ? __('Arrival') : __('Departure'),
-                        'color' => $check->type == 'checkin' ? 'success' : 'info',
+                        'color' => $check->type == 'checkin' ? 'info' : 'warning',
                     ]);
                 }),
         ];
     }
+
+    protected function hoverable(): bool
+    {
+        return true;
+    }
+
 }
