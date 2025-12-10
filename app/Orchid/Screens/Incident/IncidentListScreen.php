@@ -129,14 +129,14 @@ class IncidentListScreen extends Screen
 
     public function openIncident(Request $request)
     {
-        $Device = Device::find(request()->route('Device'));
+        $Device = Device::find(request()->route('device'));
         $Device->status_incidents = 1;
         $Device->save();
         Toast::info(__('Incident opened successfully.'));
     }
     public function closeIncident(Request $request)
     {
-        $Device = Device::find(request()->route('Device'));
+        $Device = Device::find(request()->route('device'));
         $Device->status_incidents = 2;
         $Device->save();
         Toast::info(__('Incident closed successfully.'));

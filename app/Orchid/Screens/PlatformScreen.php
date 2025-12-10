@@ -197,7 +197,7 @@ class PlatformScreen extends Screen
                 TD::make('department_name', __('Department')),
                 TD::make('Device_id', __('Write'))
                     ->render(fn($inc) => Link::make('')
-                        ->route('platform.systems.incidents', ['device' => $inc->Device_id])
+                        ->route('platform.systems.incidents', ['device' => $inc->device_id])
                         ->icon('bs.pencil')
                     ),
             ])->title(__('Incidents')),
