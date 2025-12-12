@@ -29,7 +29,6 @@ class ReportDeviceController extends Controller
                 "Departamento: $department",
                 "Municipio: $municipality",
                 "Puesto: $position",
-                __('Report received'),
             ];
 
             return response()->json([

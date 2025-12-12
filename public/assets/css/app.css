@@ -14,3 +14,19 @@
     background-color: #FF8805 !important;
     color: #fff !important;
 }
+.bg-grey {
+    background-color: #DBDBDB !important;
+}
+
+.text-green {
+    color: #92D050 !important;
+}
+.text-primary {
+    color: #002060 !important;
+}
+.text-warning {
+    color: #FF8805 !important;
+}
+.text-grey {
+    color: #DBDBDB !important;
+}

@@ -39,8 +39,8 @@ class PlatformScreen extends Screen
         $totalReportedIn  = array_sum($valuesReported);
         $totalReportedOut = array_sum($reportedCheckout);
         $totalDevicesSum  = array_sum($valuesTotal);
-        $percentageIn     = $totalDevicesSum ? round(($totalReportedIn / $totalDevicesSum) * 100, 2) : 0;
-        $percentageOut    = $totalDevicesSum ? round(($totalReportedOut / $totalDevicesSum) * 100, 2) : 0;
+        $percentageIn     = $totalDevicesSum ? round(($totalReportedIn / $totalDevicesSum) * 100, 1) : 0;
+        $percentageOut    = $totalDevicesSum ? round(($totalReportedOut / $totalDevicesSum) * 100, 1) : 0;
 
         $data = [
             'stats' => [
@@ -67,12 +67,32 @@ class PlatformScreen extends Screen
         $unreportedIn  = max(0, $totalDevices - $reportedIn);
         $unreportedOut = max(0, $totalDevices - $reportedOut);
 
+        $sumIn = $unreportedIn + $reportedIn;
+        $pctPendingIn  = $sumIn ? round(($unreportedIn / $sumIn) * 100, 1) : 0;
+        $pctReportedIn = $sumIn ? round(($reportedIn / $sumIn) * 100, 1) : 0;
         $data['checkinChart'] = [
-            ['labels' => [__('Pending'), __('Reported')], 'name' => __('Arrival'), 'values' => [$unreportedIn, $reportedIn]],
+            [
+                'labels' => [
+                    __('Pending'),
+                    __('Reported'),
+                ],
+                'name'   => __('Arrival'),
+                'values' => [$unreportedIn, $reportedIn],
+            ],
         ];
 
+        $sumOut = $unreportedOut + $reportedOut;
+        $pctPendingOut  = $sumOut ? round(($unreportedOut / $sumOut) * 100, 1) : 0;
+        $pctReportedOut = $sumOut ? round(($reportedOut / $sumOut) * 100, 1) : 0;
         $data['checkoutChart'] = [
-            ['labels' => [__('Pending'), __('Reported')], 'name' => __('Check-out'), 'values' => [$unreportedOut, $reportedOut]],
+            [
+                'labels' => [
+                    __('Pending'),
+                    __('Reported'),
+                ],
+                'name'   => __('Check-out'),
+                'values' => [$unreportedOut, $reportedOut],
+            ],
         ];
 
         if (is_array($departmentID) && count($departmentID) === 1 && $departmentID[0]) {
@@ -116,7 +136,12 @@ class PlatformScreen extends Screen
      */
     public function commandBar(): iterable
     {
-        return [];
+        //boton para recargar la pagina, si hay filtros aplicados, mantenerlos
+        return [
+            Link::make(__('Refresh'))
+                ->icon('bs.arrow-clockwise')
+                ->route('platform.main', request()->query()),
+        ];
     }
 
     /**
@@ -167,7 +192,6 @@ class PlatformScreen extends Screen
             ]),
         ];
         if($showAll) {
-            // Activa auto-aplicación de filtros solo en esta vista
             $layouts[] = Layout::view('partials.auto-filter-enable');
             $chartFilters = new ChartFiltersLayout();
             $layouts[] = $chartFilters;
@@ -176,10 +200,15 @@ class PlatformScreen extends Screen
         $deptLayout = ChartsLayout::make('departmentsChart', 'Reporte por departamento')
             ->description('Comparativa de dispositivos reportados por departamento.');
         $layouts[] = $deptLayout;
+        $reportedInPct  = $data['stats']['percentageIn'] ?? 0;
+        $pendingInPct   = 100 - $reportedInPct;
+        $reportedOutPct = $data['stats']['percentageOut'] ?? 0;
+        $pendingOutPct  = 100 - $reportedOutPct;
+
         $pieIn = PieChartLayout::make('checkinChart', __('Arrival'))
-            ->description(__('Total devices vs reported (Arrival)'));
+            ->description("<div class='d-flex fs-6'><div class='bg-grey mr-2 p-2 rounded-2'>".__('Pending') . ": {$pendingInPct}%</div><div class='bg-success mx-2 p-2 rounded-2'>".__('Reported') . ": {$reportedInPct}%</div></div>");
         $pieOut = PieChartLayout::make('checkoutChart', __('Departure'))
-            ->description(__('Total devices vs reported (Departure)'));
+            ->description("<div class='d-flex fs-6'><div class='bg-grey mr-2 p-2 rounded-2'>".__('Pending') . ": {$pendingOutPct}%</div><div class='bg-success mx-2 p-2 rounded-2'>".__('Reported') . ": {$reportedOutPct}%</div></div>");
 
         $layouts[] = Layout::split([
             $pieIn,
@@ -188,13 +217,16 @@ class PlatformScreen extends Screen
 
         if (isset($data['municipalitiesChart'])) {
             $munLayout = ChartsLayout::make('municipalitiesChart', 'Reporte por municipio')
-                ->description('Totales, check-in y check-out por municipio.');
+                ->description('Totals, check-in and check-out by municipality');
             $layouts[] = $munLayout;
         }
         
          $layouts[] = Layout::split([
             Layout::table('incidents', [
                 TD::make('department_name', __('Department')),
+                TD::make('municipality_name', __('Municipality')),
+                TD::make('position_name', __('Position')),
+                TD::make('tel', __('Mobile')),
                 TD::make('Device_id', __('Write'))
                     ->render(fn($inc) => Link::make('')
                         ->route('platform.systems.incidents', ['device' => $inc->device_id])
@@ -202,7 +234,7 @@ class PlatformScreen extends Screen
                     ),
             ])->title(__('Incidents')),
             Layout::view('components.dashboard.empty'),
-        ])->ratio('30/70');
+        ])->ratio('70/30');
         return $layouts;
     }
 }

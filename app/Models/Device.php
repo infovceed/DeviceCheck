@@ -79,7 +79,11 @@ class Device extends Model
         return self::where('status_incidents', 1)
         ->join('divipoles', 'devices.divipole_id', '=', 'divipoles.id')
         ->join('departments', 'divipoles.department_id', '=', 'departments.id')
-        ->get(['devices.id as device_id', 'departments.name as department_name']);
+        ->join('municipalities', 'divipoles.municipality_id', '=', 'municipalities.id')
+        ->get(['devices.id as device_id', 'departments.name as department_name',
+                'municipalities.name as municipality_name',
+               'divipoles.position_name as position_name',
+               'devices.tel as tel']);
     }
 
     public static function saveReport(array $deviceData)

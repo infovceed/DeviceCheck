@@ -8,14 +8,15 @@ use Orchid\Screen\Screen;
 use Illuminate\Http\Request;
 use App\Exports\ChecksExport;
 use App\Traits\ComponentsTrait;
+use Orchid\Screen\Actions\Link;
 use App\Models\DeviceDailyCheck;
 use Orchid\Screen\Fields\Select;
 use Orchid\Screen\Actions\Button;
 use Orchid\Support\Facades\Alert;
 use Orchid\Support\Facades\Toast;
 use App\Models\DeviceWithLocation;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Orchid\Support\Facades\Layout;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
@@ -147,6 +148,10 @@ class CheckListScreen extends Screen
                 ->method('export', [
                     'filter' => request()->query('filter', []),
                 ]),
+                //boton para recargar la pagina
+                Link::make(__('Refresh'))
+                ->icon('bs.arrow-clockwise')
+                ->route('platform.systems.devices-check'),
         ];
     }
 

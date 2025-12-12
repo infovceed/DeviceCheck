@@ -293,5 +293,7 @@
     "Not Scheduled": "No programado",
     "Missing Devices": "Dispositivos faltantes por reportar",
     "Reported Devices": "Dispositivos Reportados",
-    "Department Summary": "Resumen por Departamento"
+    "Department Summary": "Resumen por Departamento",
+    "Refresh": "Actualizar",
+    "Totals, check-in and check-out by municipality": "Totales, Llegada y salida por municipio."
 }
