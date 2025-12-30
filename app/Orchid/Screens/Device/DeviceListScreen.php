@@ -31,7 +31,7 @@ class DeviceListScreen extends Screen
      */
     public function query(): iterable
     {
-        $Devices = Device::query()
+        $devices = Device::query()
             ->filters(DeviceFiltersLayout::class)
             ->when(!auth()->user()->hasAccess('platform.systems.devices.show-all'), function ($query) {
                 $query->where('updated_by', auth()->user()->id);
@@ -47,7 +47,7 @@ class DeviceListScreen extends Screen
             ->defaultSort('id', 'asc')
             ->paginate();
         return [
-            'devices' => $Devices,
+            'devices' => $devices,
         ];
     }
 
@@ -175,17 +175,19 @@ class DeviceListScreen extends Screen
                             'text'  => __('No Incidents'),
                             'color' => 'info',
                         ]);
-                    })->canSee(auth()->user()->hasAccess('platform.systems.incidents.report')),
+                    })->canSee(config('incidents.enabled') && auth()->user()->hasAccess('platform.systems.incidents.report')),
                 TD::make(__('Actions'))
                 ->align(TD::ALIGN_CENTER)
                 ->width('100px')
                 ->render(fn (Device $Device) => DropDown::make()
                     ->icon('bs.three-dots-vertical')
-                    ->list([
-                        Link::make(__('Incidents'))
-                            ->route('platform.systems.incidents', ['device' => $Device->id])
-                            ->icon('bs.pencil')
-                            ->canSee(auth()->user()->hasAccess('platform.systems.incidents.report')),
+                    ->list(array_filter([
+                        config('incidents.enabled')
+                            ? Link::make(__('Incidents'))
+                                ->route('platform.systems.incidents', ['device' => $Device->id])
+                                ->icon('bs.pencil')
+                                ->canSee(auth()->user()->hasAccess('platform.systems.incidents.report'))
+                            : null,
 
                         Button::make(__('Delete'))
                             ->icon('bs.trash3')
@@ -194,11 +196,14 @@ class DeviceListScreen extends Screen
                                 'id' => $Device->id,
                             ])
                             ->canSee(auth()->user()->hasAccess('platform.systems.devices.delete')),
-                    ]))
+                    ])))
                 ->canSee(
-                    auth()->user()->hasAccess('platform.systems.incidents.report') ||
+                    (
+                        config('incidents.enabled') &&
+                        auth()->user()->hasAccess('platform.systems.incidents.report')
+                    ) ||
                     auth()->user()->hasAccess('platform.systems.devices.delete')
-                    ),
+                ),
                 ]),
             Layout::modal('createDeviceModal', [
                 CreateDeviceModalLayout::class

@@ -25,6 +25,9 @@ class IncidentListScreen extends Screen
      */
     public function query(): iterable
     {
+        if (!config('incidents.enabled')) {
+            abort(404);
+        }
         $incidents = Incident::where('device_id', request()->route('device'))->get();
         $isOpen = Device::find(request()->route('device'))->status_incidents === 1;
         return [
@@ -40,10 +43,12 @@ class IncidentListScreen extends Screen
      */
     public function name(): ?string
     {
+        if (!config('incidents.enabled')) {
+            abort(404);
+        }
         $device = Device::find(request()->route('device'));
         return __('Incidents for :code', ['code' => $device->divipole->code]);
     }
-
     /**
      * The screen's action buttons.
      *
@@ -51,6 +56,9 @@ class IncidentListScreen extends Screen
      */
     public function commandBar(): iterable
     {
+        if (!config('incidents.enabled')) {
+            return [];
+        }
         return [
             ModalToggle::make(__('Add'))
                 ->modal('messageModal')
@@ -77,6 +85,9 @@ class IncidentListScreen extends Screen
      */
     public function layout(): iterable
     {
+        if (!config('incidents.enabled')) {
+            return [];
+        }
         $data     = $this->query();
         $messages = $data['incidents'] ?? [];
         return [
@@ -129,6 +140,9 @@ class IncidentListScreen extends Screen
 
     public function openIncident(Request $request)
     {
+        if (!config('incidents.enabled')) {
+            abort(404);
+        }
         $Device = Device::find(request()->route('device'));
         $Device->status_incidents = 1;
         $Device->save();
@@ -136,6 +150,9 @@ class IncidentListScreen extends Screen
     }
     public function closeIncident(Request $request)
     {
+        if (!config('incidents.enabled')) {
+            abort(404);
+        }
         $Device = Device::find(request()->route('device'));
         $Device->status_incidents = 2;
         $Device->save();

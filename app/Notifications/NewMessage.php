@@ -41,10 +41,14 @@ class NewMessage extends Notification
      */
     public function toDashboard(object $notifiable): DashboardMessage
     {
-           return (new DashboardMessage)
+             $action = config('incidents.enabled')
+                 ? route('platform.systems.incidents', ['device' => $this->device->id])
+                 : route('platform.systems.devices');
+
+             return (new DashboardMessage)
                     ->title(__('New message in device').': '.$this->device->divipole->code)
                     ->message(__('You have a new message in the device. Click to view the message.'))
-                    ->action(route('platform.systems.incidents', ['device' => $this->device->id]));
+                    ->action($action);
     }
 
     /**

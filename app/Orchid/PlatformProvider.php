@@ -111,9 +111,11 @@ class PlatformProvider extends OrchidServiceProvider
                 ->addPermission('platform.systems.user.edit', __('Edit'))
                 ->addPermission('platform.systems.user.show-all', __('Show all users')),
                 //->addPermission('platform.systems.user.delete', __('Delete')),
-            ItemPermission::group(__('Incidents'))
-                ->addPermission('platform.systems.incidents.receive-notification', __('Receive Notification'))
-                ->addPermission('platform.systems.incidents.report', __('Report Incident'))
+            ...(config('incidents.enabled') ? [
+                ItemPermission::group(__('Incidents'))
+                    ->addPermission('platform.systems.incidents.receive-notification', __('Receive Notification'))
+                    ->addPermission('platform.systems.incidents.report', __('Report Incident'))
+            ] : [])
 
         ];
     }

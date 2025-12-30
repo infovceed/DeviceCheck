@@ -141,11 +141,13 @@ Route::group(['prefix' => 'device-checks'], function () {
             ->push(__('Device Checks'), route('platform.systems.devices-check')));
 });
 
-Route::screen('devices/{device}/incidents', IncidentListScreen::class)
-    ->name('platform.systems.incidents')
-    ->breadcrumbs(fn (Trail $trail, $device) => $trail
-        ->parent('platform.systems.devices', $device)
-        ->push($device, route('platform.systems.incidents', ['device' => $device])));
+if (config('incidents.enabled')) {
+    Route::screen('devices/{device}/incidents', IncidentListScreen::class)
+        ->name('platform.systems.incidents')
+        ->breadcrumbs(fn (Trail $trail, $device) => $trail
+            ->parent('platform.systems.devices', $device)
+            ->push($device, route('platform.systems.incidents', ['device' => $device])));
+}
 
 // Override logout to redirect to login page
 Route::post('logout', function (Request $request) {

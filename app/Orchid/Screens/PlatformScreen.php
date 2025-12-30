@@ -221,20 +221,22 @@ class PlatformScreen extends Screen
             $layouts[] = $munLayout;
         }
         
-         $layouts[] = Layout::split([
-            Layout::table('incidents', [
-                TD::make('department_name', __('Department')),
-                TD::make('municipality_name', __('Municipality')),
-                TD::make('position_name', __('Position')),
-                TD::make('tel', __('Mobile')),
-                TD::make('Device_id', __('Write'))
-                    ->render(fn($inc) => Link::make('')
-                        ->route('platform.systems.incidents', ['device' => $inc->device_id])
-                        ->icon('bs.pencil')
-                    ),
-            ])->title(__('Incidents')),
-            Layout::view('components.dashboard.empty'),
-        ])->ratio('70/30');
+        if (config('incidents.enabled')) {
+            $layouts[] = Layout::split([
+                Layout::table('incidents', [
+                    TD::make('department_name', __('Department')),
+                    TD::make('municipality_name', __('Municipality')),
+                    TD::make('position_name', __('Position')),
+                    TD::make('tel', __('Mobile')),
+                    TD::make('Device_id', __('Write'))
+                        ->render(fn($inc) => Link::make('')
+                            ->route('platform.systems.incidents', ['device' => $inc->device_id])
+                            ->icon('bs.pencil')
+                        ),
+                ])->title(__('Incidents')),
+                Layout::view('components.dashboard.empty'),
+            ])->ratio('70/30');
+        }
         return $layouts;
     }
 }
