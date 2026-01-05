@@ -27,6 +27,7 @@ return new class extends Migration
                 divipoles.code,
                 devices.tel,
                 devices.device_key,
+                devices.user_id,
                  CASE
                     WHEN device_checks.type = 'checkin' THEN devices.report_time
                     ELSE devices.report_time_departure

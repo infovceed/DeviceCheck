@@ -2,6 +2,7 @@
 
 namespace App\Orchid\Screens\Check;
 
+use App\Models\User;
 use App\Models\Check;
 use App\Models\Device;
 use Orchid\Screen\Screen;
@@ -9,6 +10,7 @@ use Illuminate\Http\Request;
 use App\Exports\ChecksExport;
 use App\Traits\ComponentsTrait;
 use Orchid\Screen\Actions\Link;
+use Orchid\Screen\Fields\Group;
 use App\Models\DeviceDailyCheck;
 use Orchid\Screen\Fields\Select;
 use Orchid\Screen\Actions\Button;
@@ -17,14 +19,15 @@ use Orchid\Support\Facades\Toast;
 use App\Models\DeviceWithLocation;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Orchid\Screen\Fields\Relation;
 use Orchid\Support\Facades\Layout;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
 use Orchid\Screen\Actions\ModalToggle;
 use App\Jobs\NotifyUserOfCompletedExport;
-use App\Services\DeviceReportQueryBuilder;
 use App\Notifications\DashboardNotification;
 use App\Orchid\Layouts\Check\CheckListLayout;
+use App\Orchid\Layouts\Check\CheckFiltersLayout;
 use App\Orchid\Layouts\Check\MissingDevicesLayout;
 use App\Orchid\Layouts\Check\DepartmentSummaryLayout;
 
@@ -196,21 +199,10 @@ class CheckListScreen extends Screen
      */
     public function layout(): iterable
     {
-        $layout[] = Layout::rows([
-                Select::make('perPage')
-                    ->id('perPage-select')
-                    ->title(__('Records per page'))
-                    ->options([
-                        15  => '15',
-                        30  => '30',
-                        45  => '45',
-                        60  => '60',
-                    ])
-                    ->value(request()->input('perPage', 50))
-                    ->help(__('Choose how many records to display.')),
-        ]);
-        $layout[] = (new CheckListLayout())->title(__('Reported Devices'));
-        $filters = request()->query('filter', []);
+
+        $layout[]  = new CheckFiltersLayout();
+        $layout[]  = (new CheckListLayout())->title(__('Reported Devices'));
+        $filters   = request()->query('filter', []);
         $showSummary = !empty($filters['department']) && isset($filters['type']) && !empty($filters['type']) && isset($filters['created_at']) && !empty($filters['created_at']);
 
         if ($showSummary) {

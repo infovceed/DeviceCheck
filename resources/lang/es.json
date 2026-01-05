@@ -295,5 +295,11 @@
     "Reported Devices": "Dispositivos Reportados",
     "Department Summary": "Resumen por Departamento",
     "Refresh": "Actualizar",
-    "Totals, check-in and check-out by municipality": "Totales, Llegada y salida por municipio."
+    "Totals, check-in and check-out by municipality": "Totales, Llegada y salida por municipio.",
+    "Operative": "Agente",
+    "Select an operative": "Seleccione un agente",
+    "No operative assigned": "Sin agente asignado",
+    "Choose one or more operatives.": "Elige uno o más agentes.",
+    "All Operatives": "Todos los agentes",
+    "Operative assigned": "Asignación agentes"
 }

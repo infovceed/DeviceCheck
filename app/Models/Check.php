@@ -2,18 +2,20 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
+use App\Models\User;
 use App\Models\Device;
 use App\Models\Divipole;
-use Orchid\Filters\Types\Where;
-use Orchid\Filters\Types\WhereIn;
-use App\Filters\Types\WhereDateIn;
-use App\Filters\Types\WhereDistance500;
 use Orchid\Screen\AsSource;
 use Orchid\Filters\Filterable;
 use Orchid\Filters\Types\Like;
+use Orchid\Filters\Types\Where;
+use Orchid\Filters\Types\WhereIn;
+use App\Filters\Types\WhereDateIn;
+use App\Filters\Types\WhereUserIn;
+use App\Filters\Types\WhereDistance500;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Carbon\Carbon;
 
 class Check extends Model
 {
@@ -40,6 +42,7 @@ class Check extends Model
         'department'             => WhereIn::class,
         'municipality'           => WhereIn::class,
         'position_name'          => WhereIn::class,
+        'operative'              => WhereUserIn::class,
         'tel'                    => WhereIn::class,
         'device_key'             => WhereIn::class,
         'type'                   => Like::class,
@@ -121,6 +124,11 @@ class Check extends Model
             }
         }
         return $query;
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 
     public function device()

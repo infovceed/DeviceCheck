@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use App\Models\User;
 use Orchid\Screen\AsSource;
 use Orchid\Filters\Filterable;
 use Orchid\Filters\Types\Where;
 use Orchid\Filters\Types\WhereIn;
+use App\Filters\Types\WhereUserIn;
 use App\Filters\Types\WherePositionIn;
 use Illuminate\Database\Eloquent\Model;
 use App\Filters\Types\WhereDepartmentIn;
@@ -18,6 +20,7 @@ class Device extends Model
 
     protected $fillable = [
         'divipole_id',
+        'user_id',
         'tel',
         'imei',
         'device_key',
@@ -38,6 +41,7 @@ class Device extends Model
         'department'    => WhereDepartmentIn::class,
         'municipality'  => WhereMunicipalityIn::class,
         'position_name' => WherePositionIn::class,
+        'operative'     => WhereUserIn::class,
         'tel'           => Where::class,
         'status'        => Where::class,
         'imei'          => Where::class,
@@ -45,6 +49,10 @@ class Device extends Model
         'sequential'    => Where::class,
         'updated_at'    => Where::class,
     ];
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
     public function divipole()
     {
         return $this->belongsTo(Divipole::class);

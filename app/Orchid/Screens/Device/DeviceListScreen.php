@@ -2,6 +2,7 @@
 
 namespace App\Orchid\Screens\Device;
 
+use App\Models\User;
 use Orchid\Screen\TD;
 use App\Models\Device;
 use App\Models\Divipole;
@@ -131,10 +132,27 @@ class DeviceListScreen extends Screen
                             ->multiple()
                     )->filterValue(function ($value) {
                             if (is_array($value)) {
-                                return implode(', ', array_map(fn($v) => mb_strimwidth($v, 0, 20, '...'), $value));
+                                return implode(', ', array_map(fn($v) => mb_strimwidth($v, 0, 10, '...'), $value));
                             }
                     })
                     ->render(fn(Device $device) => $device->divipole->position_name ?? ''),
+                TD::make('operative', __('Operative'))
+                    ->sort()
+                    ->filter(
+                        Relation::make('operative')
+                            ->fromModel(User::class, 'name')
+                            ->multiple()
+                    )
+                    ->filterValue(function ($value) {
+                        if (is_array($value)) {
+                            $names = User::whereIn('id', $value)->pluck('name')->toArray();
+                            return implode(', ', array_map(fn($v) => mb_strimwidth($v, 0, 10, '...'), $names));
+                        }
+                    })
+                    ->render(fn(Device $device) => $device->user->name ?? $this->badge([
+                        'text'  => __('No operative assigned'),
+                        'color' => 'warning',
+                    ])),
                 TD::make('tel', __('Phone'))
                     ->sort()
                     ->filter(TD::FILTER_TEXT)

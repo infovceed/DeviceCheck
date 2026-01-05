@@ -2,13 +2,14 @@
 
 namespace App\Orchid\Layouts\Check;
 
-use App\Models\Device;
-use App\Models\Divipole;
-use App\Models\Municipality;
 use Carbon\Carbon;
+use App\Models\User;
 use App\Models\Check;
 use Orchid\Screen\TD;
+use App\Models\Device;
+use App\Models\Divipole;
 use App\Models\Department;
+use App\Models\Municipality;
 use App\Traits\ComponentsTrait;
 use Orchid\Screen\Fields\Select;
 use Orchid\Screen\Layouts\Table;
@@ -60,6 +61,30 @@ class CheckListLayout extends Table
                             return implode(', ', array_map(fn($v) => mb_strimwidth($v, 0, 20, '...'), $value));
                         }
                 }),
+            TD::make('operative', __('Operative'))
+                ->sort()
+                ->filter(
+                    Relation::make('operative')
+                        ->fromModel(User::class, 'name')
+                        ->multiple()
+                        ->value(function () {
+                            $operative = request()->query('filter', [])['operative'] ?? null;
+                            if ($operative) {
+                                return is_array($operative) ? $operative : explode(',', $operative);
+                            }
+                            return null;
+                        })
+                )
+                ->filterValue(function ($value) {
+                    if (is_array($value)) {
+                        $names = User::whereIn('id', $value)->pluck('name')->toArray();
+                        return implode(', ', array_map(fn($v) => mb_strimwidth($v, 0, 10, '...'), $names));
+                    }
+                })
+                ->render(fn(Check $check) => $check->device->user->name ?? $this->badge([
+                    'text'  => __('No operative assigned'),
+                    'color' => 'warning',
+                ])),
             TD::make('tel', __('Mobile'))
                 ->filter(
                     Relation::make('tel')

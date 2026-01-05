@@ -40,6 +40,7 @@ class DevicesImport implements ToModel, WithHeadingRow, WithChunkReading, WithBa
             return new Device([
                 'id'                    => $row['id'],
                 'divipole_id'           => $row['divipole_id'],
+                'user_id'               => $row['usuario_asignado'] ?? null,
                 'tel'                   => $row['tel'],
                 'imei'                  => $row['imei'],
                 'device_key'            => $row['llave'],
