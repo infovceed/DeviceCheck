@@ -26,14 +26,14 @@ class PlatformScreen extends Screen
      */
     public function query(): iterable
     {
-        $user    = auth()->user();
-        $departmentID  = $user->hasAccess('platform.systems.dashboard.show-all')
-            ? request('department', [])
-            : [$user->department_id];
+        $user           = auth()->user();
+        $departmentID   = $user->hasAccess('platform.systems.dashboard.show-all')
+                        ? request('department', [])
+                        : [$user->department_id];
         $municipalities = request('municipality', []);
-        $positions = request('position', []);
-        $incidents = Device::getIncidentsOpen();
-        $date = request('chart_date', now()->toDateString());
+        $positions      = request('position', []);
+        $incidents      = Device::getIncidentsOpen();
+        $date           = request('chart_date', now()->toDateString());
         [$labels, $valuesTotal, $valuesReported, $reportedCheckout] = Department::getChartData($date, $departmentID, $municipalities,$positions );
 
         $totalReportedIn  = array_sum($valuesReported);
@@ -67,7 +67,7 @@ class PlatformScreen extends Screen
         $unreportedIn  = max(0, $totalDevices - $reportedIn);
         $unreportedOut = max(0, $totalDevices - $reportedOut);
 
-        $sumIn = $unreportedIn + $reportedIn;
+        $sumIn         = $unreportedIn + $reportedIn;
         $pctPendingIn  = $sumIn ? round(($unreportedIn / $sumIn) * 100, 1) : 0;
         $pctReportedIn = $sumIn ? round(($reportedIn / $sumIn) * 100, 1) : 0;
         $data['checkinChart'] = [
@@ -81,7 +81,7 @@ class PlatformScreen extends Screen
             ],
         ];
 
-        $sumOut = $unreportedOut + $reportedOut;
+        $sumOut         = $unreportedOut + $reportedOut;
         $pctPendingOut  = $sumOut ? round(($unreportedOut / $sumOut) * 100, 1) : 0;
         $pctReportedOut = $sumOut ? round(($reportedOut / $sumOut) * 100, 1) : 0;
         $data['checkoutChart'] = [

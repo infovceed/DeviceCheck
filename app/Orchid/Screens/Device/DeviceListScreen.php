@@ -4,8 +4,10 @@ namespace App\Orchid\Screens\Device;
 
 use Orchid\Screen\TD;
 use App\Models\Device;
+use App\Models\Divipole;
 use Orchid\Screen\Screen;
 use App\Models\Department;
+use App\Models\Municipality;
 use Illuminate\Http\Request;
 use App\Traits\ComponentsTrait;
 use Orchid\Screen\Actions\Link;
@@ -13,6 +15,7 @@ use Orchid\Screen\Fields\Select;
 use Orchid\Screen\Actions\Button;
 use Orchid\Support\Facades\Alert;
 use Orchid\Support\Facades\Toast;
+use Orchid\Screen\Fields\Relation;
 use Orchid\Support\Facades\Layout;
 use Illuminate\Support\Facades\Log;
 use Orchid\Screen\Actions\DropDown;
@@ -32,7 +35,7 @@ class DeviceListScreen extends Screen
     public function query(): iterable
     {
         $devices = Device::query()
-            ->filters(DeviceFiltersLayout::class)
+            ->filters()
             ->when(!auth()->user()->hasAccess('platform.systems.devices.show-all'), function ($query) {
                 $query->where('updated_by', auth()->user()->id);
             })
@@ -100,22 +103,37 @@ class DeviceListScreen extends Screen
     public function layout(): iterable
     {
         return [
-            DeviceFiltersLayout::class,
             Layout::table('devices', [
                 TD::make('id', 'ID')
                     ->sort()
                     ->align(TD::ALIGN_CENTER),
-                TD::make('department.name', __('Department'))
+                TD::make('department', __('Department'))
                     ->sort()
-                    ->filter(TD::FILTER_TEXT)
+                    ->filter(
+                        Relation::make('department')
+                            ->fromModel(Department::class, 'name','name')
+                            ->multiple()
+                    )
                     ->render(fn(Device $device) => $device->divipole->department->name ?? ''),
-                TD::make('municipality.name', __('Municipality'))
+                TD::make('municipality', __('Municipality'))
                     ->sort()
-                    ->filter(TD::FILTER_TEXT)
+                    ->filter(
+                        Relation::make('municipality')
+                            ->fromModel(Municipality::class, 'name','name')
+                            ->multiple()
+                    )
                     ->render(fn(Device $device) => $device->divipole->municipality->name ?? ''),
                 TD::make('position_name', __('Position'))
                     ->sort()
-                    ->filter(TD::FILTER_TEXT)
+                    ->filter(
+                        Relation::make('position_name')
+                            ->fromModel(Divipole::class, 'position_name','position_name')
+                            ->multiple()
+                    )->filterValue(function ($value) {
+                            if (is_array($value)) {
+                                return implode(', ', array_map(fn($v) => mb_strimwidth($v, 0, 20, '...'), $value));
+                            }
+                    })
                     ->render(fn(Device $device) => $device->divipole->position_name ?? ''),
                 TD::make('tel', __('Phone'))
                     ->sort()

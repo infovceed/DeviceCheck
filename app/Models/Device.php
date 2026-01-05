@@ -5,7 +5,11 @@ namespace App\Models;
 use Orchid\Screen\AsSource;
 use Orchid\Filters\Filterable;
 use Orchid\Filters\Types\Where;
+use Orchid\Filters\Types\WhereIn;
+use App\Filters\Types\WherePositionIn;
 use Illuminate\Database\Eloquent\Model;
+use App\Filters\Types\WhereDepartmentIn;
+use App\Filters\Types\WhereMunicipalityIn;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Device extends Model
@@ -31,11 +35,15 @@ class Device extends Model
     ];
 
     protected $allowedFilters = [
-        'status'=> Where::class,
-        'imei'=> Where::class,
-        'device_key'=> Where::class,
-        'sequential'=> Where::class,
-        'updated_at'=> Where::class,
+        'department'    => WhereDepartmentIn::class,
+        'municipality'  => WhereMunicipalityIn::class,
+        'position_name' => WherePositionIn::class,
+        'tel'           => Where::class,
+        'status'        => Where::class,
+        'imei'          => Where::class,
+        'device_key'    => Where::class,
+        'sequential'    => Where::class,
+        'updated_at'    => Where::class,
     ];
     public function divipole()
     {
