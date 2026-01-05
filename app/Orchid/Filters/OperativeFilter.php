@@ -55,6 +55,7 @@ class OperativeFilter extends Filter
         return [
             Relation::make('filter[operative]')
                     ->fromModel(User::class, 'name')
+                    ->applyScope('agents')
                     ->title(__('Operative assigned'))
                     ->multiple()
                     ->value(function () {

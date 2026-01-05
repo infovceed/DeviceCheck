@@ -112,4 +112,15 @@ class User extends Authenticatable implements UserInterface
     {
         return $this->belongsTo(Department::class);
     }
+
+    /**
+     * Scope: only users with AGENTE role.
+     */
+    public function scopeAgents($query)
+    {
+        return $query->whereHas('roles', function ($q) {
+            $q->whereIn('slug', ['agente', 'agent'])
+              ->orWhere('name', 'AGENTE');
+        });
+    }
 }

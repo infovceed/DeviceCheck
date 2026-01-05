@@ -66,6 +66,7 @@ class CheckListLayout extends Table
                 ->filter(
                     Relation::make('operative')
                         ->fromModel(User::class, 'name')
+                        ->applyScope('agents')
                         ->multiple()
                         ->value(function () {
                             $operative = request()->query('filter', [])['operative'] ?? null;
