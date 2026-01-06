@@ -301,5 +301,15 @@
     "No operative assigned": "Sin agente asignado",
     "Choose one or more operatives.": "Elige uno o más agentes.",
     "All Operatives": "Todos los agentes",
-    "Operative assigned": "Asignación agentes"
+    "Operative assigned": "Asignación agentes",
+    "Edit devices": "Editar dispositivos",
+    "Edit Devices": "Editar dispositivos",
+    "Edit device": "Editar dispositivo",
+    "Device edited successfully.": "Dispositivo editado con éxito.",
+    "There was an error editing the device. Please try again.": "Hubo un error al editar el dispositivo. Por favor, inténtalo de nuevo.",
+    "Report longitude": "Longitud de reporte",
+    "Report latitude": "Latitud de reporte",
+    "Invalid device payload.": "Carga útil de dispositivo no válida.",
+    "Without operative": "Sin agente",
+    "There was an error updating the Device report. Please try again.": "Hubo un error al actualizar el informe del dispositivo. Por favor, inténtalo de nuevo."
 }

@@ -22,8 +22,7 @@ use Illuminate\Support\Facades\Log;
 use Orchid\Screen\Actions\DropDown;
 use Orchid\Screen\Actions\ModalToggle;
 use App\Services\DeviceReportQueryBuilder;
-use App\Orchid\Layouts\Device\DeviceFiltersLayout;
-use App\Orchid\Layouts\Device\Modal\CreateDeviceModalLayout;
+use App\Orchid\Layouts\Device\Modal\EditDeviceModalLayout;
 
 class DeviceListScreen extends Screen
 {
@@ -81,11 +80,6 @@ class DeviceListScreen extends Screen
     public function commandBar(): iterable
     {
         return [
-            ModalToggle::make(__('Add'))
-                ->modal('createDeviceModal')
-                ->icon('plus')
-                ->method('create')
-                ->canSee(auth()->user()->hasAccess('platform.systems.devices.create')),
             Button::make(__('Export'))
                 ->icon('download')
                 ->canSee(auth()->user()->hasAccess('platform.systems.devices.export'))
@@ -107,7 +101,13 @@ class DeviceListScreen extends Screen
             Layout::table('devices', [
                 TD::make('id', 'ID')
                     ->sort()
-                    ->align(TD::ALIGN_CENTER),
+                    ->align(TD::ALIGN_CENTER)
+                    ->render(fn(Device $device) =>
+                        ModalToggle::make((string)$device->id)
+                            ->modal('editDeviceModal')
+                            ->method('update', ['device' => $device->id])
+                            ->asyncParameters(['device' => $device->id])
+                    ),
                 TD::make('department', __('Department'))
                     ->sort()
                     ->filter(
@@ -215,35 +215,38 @@ class DeviceListScreen extends Screen
                 TD::make(__('Actions'))
                 ->align(TD::ALIGN_CENTER)
                 ->width('100px')
-                ->render(fn (Device $Device) => DropDown::make()
+                ->render(fn (Device $device) => DropDown::make()
                     ->icon('bs.three-dots-vertical')
                     ->list(array_filter([
                         config('incidents.enabled')
                             ? Link::make(__('Incidents'))
-                                ->route('platform.systems.incidents', ['device' => $Device->id])
+                                ->route('platform.systems.incidents', ['device' => $device->id])
                                 ->icon('bs.pencil')
-                                ->canSee(auth()->user()->hasAccess('platform.systems.incidents.report'))
+                                ->canSee(auth()->user()->hasAccess('platform.systems.incidents.report')&&config('incidents.enabled'))
                             : null,
 
-                        Button::make(__('Delete'))
-                            ->icon('bs.trash3')
-                            ->confirm(__('Once the account is deleted, all of its resources and data will be permanently deleted. Before deleting your account, please download any data or information that you wish to retain.'))
-                            ->method('remove', [
-                                'id' => $Device->id,
+                        ModalToggle::make(__('Edit'))
+                            ->icon('bs.pencil')
+                            ->modal('editDeviceModal')
+                            ->method('update', ['device' => $device->id])
+                            ->asyncParameters([
+                                'device' => $device->id,
                             ])
-                            ->canSee(auth()->user()->hasAccess('platform.systems.devices.delete')),
+                            ->canSee(auth()->user()->hasAccess('platform.systems.devices.edit')),
                     ])))
-                ->canSee(
-                    (
+                ->canSee((
                         config('incidents.enabled') &&
                         auth()->user()->hasAccess('platform.systems.incidents.report')
                     ) ||
-                    auth()->user()->hasAccess('platform.systems.devices.delete')
+                    auth()->user()->hasAccess('platform.systems.devices.edit')
                 ),
                 ]),
-            Layout::modal('createDeviceModal', [
-                CreateDeviceModalLayout::class
-            ])->title(__('Register packaging'))
+            Layout::modal('editDeviceModal', [
+                EditDeviceModalLayout::class
+            ])->title(__('Edit device'))
+              ->applyButton(__('Save'))
+              ->closeButton(__('Cancel'))
+              ->async('asyncGetDevice')
         ];
     }
 
@@ -256,6 +259,61 @@ class DeviceListScreen extends Screen
         } catch (\Exception $e) {
             Log::error($e);
             Alert::error(__('There was an error creating the Device report. Please try again.'));
+            return;
+        }
+
+    }
+    public function asyncGetDevice(Device $device)
+    {
+        return [
+            'payload' => [
+                'tel'                   => $device->tel,
+                'imei'                  => $device->imei,
+                'device_key'            => $device->device_key,
+                'sequential'            => $device->sequential,
+                'user_id'               => $device->user_id,
+                'latitude'              => $device->latitude,
+                'longitude'             => $device->longitude,
+                'report_time'           => $device->report_time,
+                'report_time_departure' => $device->report_time_departure,
+            ],
+        ];
+    }
+
+    public function update(Device $device, Request $request): void
+    {
+        try {
+            $data = $request->get('payload', []);
+
+            if (!is_array($data)) {
+                $data = [];
+            }
+
+            $fillable = [
+                'tel',
+                'imei',
+                'device_key',
+                'sequential',
+                'user_id',
+                'latitude',
+                'longitude',
+                'report_time',
+                'report_time_departure',
+            ];
+
+            foreach ($fillable as $field) {
+                if (array_key_exists($field, $data)) {
+                    $device->{$field} = $data[$field] !== '' ? $data[$field] : null;
+                }
+            }
+
+            $device->updated_by = auth()->id();
+            $device->save();
+
+            Toast::info(__('Device edited successfully.'));
+        } catch (\Exception $e) {
+            Log::error($e);
+            Alert::error(__('There was an error updating the Device report. Please try again.'));
             return;
         }
 
@@ -294,9 +352,9 @@ class DeviceListScreen extends Screen
 
         if ($status !== 0 || ! file_exists($csvPath)) {
             Log::error('Error ejecutando exportExcel.sh', [
-                'status' => $status,
-                'output' => $output,
-                'script' => $script,
+                'status'  => $status,
+                'output'  => $output,
+                'script'  => $script,
                 'sqlPath' => $sqlPath,
                 'csvPath' => $csvPath,
             ]);
