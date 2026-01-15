@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Orchid\Screen\Actions\Link;
 use Orchid\Screen\Fields\Input;
-use Orchid\Platform\Models\User;
+use App\Models\User;
 use Orchid\Support\Facades\Toast;
 use Orchid\Support\Facades\Layout;
 use App\Actions\Import\UserFileAction;
@@ -29,7 +29,7 @@ class UserListScreen extends Screen
     public function query(): iterable
     {
         return [
-            'users' => User::with('roles')
+            'users' => User::with(['roles', 'department'])
                 ->filters(UserFiltersLayout::class)
                 ->when(!auth()->user()->hasAccess("platform.systems.user.show-all"),
                     function($q){

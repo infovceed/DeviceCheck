@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Reports;
 
 use App\Models\Device;
+use App\Models\Divipole;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
@@ -25,8 +26,8 @@ class ReportDeviceRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'puesto' => ['bail','required', 'string', 'max:10'],
-            'imei'   => ['bail','required', 'string', 'max:50'],
+            'puesto' => ['bail','required', 'string', 'max:20','exists:divipoles,code'],
+            'imei'   => ['bail','required', 'string', 'max:50','exists:devices,imei'],
             'lat'    => ['bail','required', 'string', 'max:30'],
             'lon'    => ['bail','required', 'string', 'max:30'],
             'tipo'   => ['bail','required', 'in:checkin,checkout'],
@@ -37,9 +38,11 @@ class ReportDeviceRequest extends FormRequest
     {
         return [
             'puesto.required' => __('The position field is required.'),
+            'puesto.exists'   => __('Invalid QR code.'),
             'imei.required'   => __('The IMEI field is required.'),
             'imei.string'     => __('The IMEI field must be a string.'),
             'imei.max'        => __('The IMEI field may not be greater than 50 characters.'),
+            'imei.exists'     => __('Invalid QR code.'),
             'lat.required'    => __('The latitude field is required.'),
             'lat.string'      => __('The latitude field must be a string.'),
             'lat.max'         => __('The latitude field may not be greater than 30 characters.'),
@@ -70,9 +73,6 @@ class ReportDeviceRequest extends FormRequest
         logger($imei);
         $position = $this->input('puesto');
         $device = Device::where('imei', $imei)->first();
-        if (!$device && !isset($device->imei)) {
-            $this->responseMessage(1);
-        }
         if ($position != $device->divipole->code) {
             $this->responseMessage(2);
         }
@@ -99,7 +99,7 @@ class ReportDeviceRequest extends FormRequest
     protected function responseMessage(int $type)
     {
         $message = match ($type) {
-            1 => __('Device identifier not found.'),
+            1 => __('Invalid QR code.'),
             2 => __('Device assigned to another polling station.'),
             3 => __('Device already reported.'),
             4 => __('You must check in before checking out.'),

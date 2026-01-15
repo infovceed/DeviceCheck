@@ -228,7 +228,7 @@
     "The longitude field is required.": "El campo longitud es obligatorio.",
     "The longitude field must be a string.": "El campo longitud debe ser una cadena de texto.",
     "The longitude field may not be greater than 30 characters.": "El campo longitud no debe exceder los 30 caracteres.",
-    "Device identifier not found.": "Dispositivo no encontrado en la base de datos.",
+    "Invalid QR code.": "Código QR no válido.",
     "Device already reported.": "Dispositivo ya reportado.",
     "The reported device does not match the assigned position.": "El dispositivo reportado no coincide con la posición asignada.",
     "Validation error.": "Error de validación.",
@@ -311,5 +311,11 @@
     "Report latitude": "Latitud de reporte",
     "Invalid device payload.": "Carga útil de dispositivo no válida.",
     "Without operative": "Sin agente",
-    "There was an error updating the Device report. Please try again.": "Hubo un error al actualizar el informe del dispositivo. Por favor, inténtalo de nuevo."
+    "There was an error updating the Device report. Please try again.": "Hubo un error al actualizar el informe del dispositivo. Por favor, inténtalo de nuevo.",
+    "Create User": "Crear Usuario",
+    "Upload": "Cargar",
+    "File": "Archivo",
+    "File uploaded": "Archivo cargado",
+    "file uploaded": "Archivo cargado"
+
 }

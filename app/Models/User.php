@@ -78,7 +78,7 @@ class User extends Authenticatable implements UserInterface
         'id',
         'name',
         'document',
-        'user.department.name',
+        'department_id',
         'email',
         'updated_at',
         'created_at',

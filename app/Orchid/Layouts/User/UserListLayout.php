@@ -3,13 +3,15 @@
 declare(strict_types=1);
 namespace App\Orchid\Layouts\User;
 
+use App\Models\User;
 use Orchid\Screen\TD;
 use App\Traits\DateTrait;
+use App\Models\Department;
 use Orchid\Screen\Actions\Link;
 use Orchid\Screen\Fields\Input;
-use Orchid\Platform\Models\User;
 use Orchid\Screen\Layouts\Table;
 use Orchid\Screen\Actions\Button;
+use Orchid\Screen\Fields\Relation;
 use Orchid\Screen\Layouts\Persona;
 use Orchid\Screen\Actions\DropDown;
 use Orchid\Screen\Actions\ModalToggle;
@@ -49,7 +51,19 @@ class UserListLayout extends Table
                     ->asyncParameters([
                         'user' => $user->id,
                     ])),
-
+            TD::make('department_id', __('Department'))
+                ->filter(
+                    Relation::make('department')
+                    ->fromModel(Department::class, 'name')
+                    ->empty(),
+                )
+                ->filterValue(function ($value) {
+                    return Department::where('id', $value)->first()?->name;
+                })
+                ->render(function (User $user){
+                    $department =$user->department;
+                    return $department?->name ?? __('N/A');
+                }),
             TD::make('created_at', __('Created'))
                 ->align(TD::ALIGN_RIGHT)
                 ->defaultHidden()
