@@ -26,19 +26,28 @@ class UsersImport implements ToModel, WithHeadingRow, WithChunkReading, WithBatc
     public function model(array $row)
     {
         try {
+            if($row['id'] == null || $row['id'] == ''|| $row['id'] == 1) {
+                Log::warning('Skipping row with missing ID', ['row' => $row]);
+                return null;
+            }
             $departmentId = Department::where('id', $row['departamento'])->first()->id;
-            $newUser=[
+            // Construye datos sin el id para evitar que Eloquent ignore el PK en create
+            $newUser = [
                 'name'           => $row['nombre'],
                 'document'       => $row['documento'],
                 'department_id'  => $departmentId,
                 'email'          => $row['email'],
                 'password'       => bcrypt($row['documento']),
             ];
-            $user= User::where('document', $row['documento'])->first();
+
+            // Si el usuario con ese ID existe, actualizar; si no, crear forzando el ID
+            $user = User::find($row['id']);
             if ($user) {
-                $user->update($newUser);
+                $user->fill($newUser)->save();
             } else {
-                $user= new User($newUser);
+                $user = new User($newUser);
+                // Forzar el ID explícito del Excel
+                $user->id = (int) $row['id'];
                 $user->save();
             }
             if (!$row['rol']) {
@@ -72,6 +81,7 @@ class UsersImport implements ToModel, WithHeadingRow, WithChunkReading, WithBatc
     {
         $array = User::$rules;
         $renameMap = [
+            'user.id'              => 'id',
             'user.name'            => 'nombre',
             'user.document'        => 'documento',
             'user.department_id'   => 'departamento',

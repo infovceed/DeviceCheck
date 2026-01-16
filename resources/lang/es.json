@@ -316,6 +316,9 @@
     "Upload": "Cargar",
     "File": "Archivo",
     "File uploaded": "Archivo cargado",
-    "file uploaded": "Archivo cargado"
+    "file uploaded": "Archivo cargado",
+    "Users import started": "Importación de usuarios iniciada",
+    "Users import completed": "Importación de usuarios completada",
+    "Users import has been completed successfully.": "La importación de usuarios se ha completado con éxito."
 
 }

@@ -84,6 +84,7 @@ class User extends Authenticatable implements UserInterface
         'created_at',
     ];
     public static $rules = [
+        'user.id'       => ['required'],
         'user.email' => [
             'nullable',
             'email',
