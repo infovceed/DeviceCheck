@@ -61,7 +61,9 @@ class SystemSettingsEditScreen extends Screen
                 ->icon('bs.arrow-counterclockwise')
                 ->method('clearCache'),
             Button::make(__('Clear database'))
+                ->type(Color::PRIMARY())
                 ->icon('bs.database')
+                ->confirm(__('This action will truncate incidents, Devices, divipoles, departments and municipalities tables. Do you want to proceed?'))
                 ->method('clearDatabase'),
         ];
     }
