@@ -20,6 +20,8 @@ class Municipality extends Model
         'name',
     ];
 
+    protected $appends = ['label'];
+
 
     //sort
     protected $allowedSorts = [
@@ -39,5 +41,11 @@ class Municipality extends Model
     public function scopeMyMunicipality(Builder $query): Builder
     {
         return $query;
+    }
+
+    // Accesor para mostrar "code - name" en selectores
+    public function getLabelAttribute(): string
+    {
+        return trim(($this->code ?? '') . ' - ' . ($this->name ?? ''));
     }
 }

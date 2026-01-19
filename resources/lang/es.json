@@ -299,6 +299,7 @@
     "Operative": "Agente",
     "Select an operative": "Seleccione un agente",
     "No operative assigned": "Sin agente asignado",
+    "Municipality does not belong to department": "El municipio seleccionado no pertenece al departamento seleccionado",
     "Choose one or more operatives.": "Elige uno o más agentes.",
     "All Operatives": "Todos los agentes",
     "Operative assigned": "Asignación agentes",
@@ -325,6 +326,8 @@
     "Is Backup": "Dispositivo Respaldo",
     "Yes": "Sí",
     "No": "No",
-    "This action will truncate incidents, Devices, divipoles, departments and municipalities tables. Do you want to proceed?": "Esta acción limpiará las tablas de dispositivos, divipoles, departamentos y municipios. ¿Desea continuar?"
-
+    "This action will truncate incidents, Devices, divipoles, departments and municipalities tables. Do you want to proceed?": "Esta acción limpiará las tablas de dispositivos, divipoles, departamentos y municipios. ¿Desea continuar?",
+    "Edit Divipoles": "Editar Divipoles",
+    "Divipole updated": "Divipole actualizado",
+    "Edit Divipole": "Editar Divipole"
 }
