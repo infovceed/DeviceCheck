@@ -6,12 +6,11 @@ use App\Models\User;
 use Orchid\Screen\AsSource;
 use Orchid\Filters\Filterable;
 use Orchid\Filters\Types\Where;
-use Orchid\Filters\Types\WhereIn;
-use App\Filters\Types\WhereUserIn;
 use App\Filters\Types\WherePositionIn;
 use Illuminate\Database\Eloquent\Model;
 use App\Filters\Types\WhereDepartmentIn;
 use App\Filters\Types\WhereMunicipalityIn;
+use App\Filters\Types\WhereDeviceDivipoleUserIn;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Device extends Model
@@ -20,7 +19,7 @@ class Device extends Model
 
     protected $fillable = [
         'divipole_id',
-        'user_id',
+        'is_backup',
         'tel',
         'imei',
         'device_key',
@@ -41,13 +40,14 @@ class Device extends Model
         'department'    => WhereDepartmentIn::class,
         'municipality'  => WhereMunicipalityIn::class,
         'position_name' => WherePositionIn::class,
-        'operative'     => WhereUserIn::class,
+        'operative'     => WhereDeviceDivipoleUserIn::class,
         'tel'           => Where::class,
         'status'        => Where::class,
         'imei'          => Where::class,
         'device_key'    => Where::class,
         'sequential'    => Where::class,
         'updated_at'    => Where::class,
+        'is_backup'     => Where::class,
     ];
     public function user()
     {

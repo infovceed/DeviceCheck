@@ -2,14 +2,18 @@
 
 namespace App\Orchid\Screens\Divipole;
 
+use App\Models\User;
 use Orchid\Screen\TD;
 use App\Models\Divipole;
 use Orchid\Screen\Screen;
+use App\Traits\ComponentsTrait;
+use Orchid\Screen\Fields\Relation;
 use Orchid\Support\Facades\Layout;
 use App\Orchid\Filters\TerritoryFilter;
 
 class DivipoleListScreen extends Screen
 {
+    use ComponentsTrait;
     /**
      * Fetch data to be displayed on the screen.
      *
@@ -21,7 +25,7 @@ class DivipoleListScreen extends Screen
         $divipoles = Divipole::query()
                 ->filters([TerritoryFilter::class])
                 ->defaultSort('id', 'asc')
-                ->with(['department', 'municipality'])
+                ->with(['department', 'municipality', 'users'])
                 ->paginate();
 
         return [
@@ -81,6 +85,24 @@ class DivipoleListScreen extends Screen
                 TD::make('position_name', __('Position'))
                     ->sort()
                     ->filter(TD::FILTER_TEXT),
+                TD::make('operative', __('Operative'))
+                    ->sort()
+                    ->filter(
+                        Relation::make('operative')
+                            ->fromModel(User::class, 'name')
+                            ->applyScope('agents')
+                            ->multiple()
+                    )
+                    ->filterValue(function ($value) {
+                        if (is_array($value)) {
+                            $names = User::whereIn('id', $value)->pluck('name')->toArray();
+                            return implode(', ', array_map(fn($v) => mb_strimwidth($v, 0, 10, '...'), $names));
+                        }
+                    })
+                    ->render(fn(Divipole $divipole) => $divipole->users->pluck('name')->join(', ') ?: $this->badge([
+                        'text'  => __('No operative assigned'),
+                        'color' => 'warning',
+                    ])),
                 TD::make('position_address', __('Address'))
                     ->sort()
                     ->filter(TD::FILTER_TEXT),

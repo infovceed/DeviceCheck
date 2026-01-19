@@ -121,7 +121,7 @@ class SystemSettingsEditScreen extends Screen
                     ->horizontal(),
                 Link::make('Download Template')
                     ->icon('download')
-                    ->href('/templates/divipole.csv')
+                    ->href('/templates/divipole.xlsx')
             ]))
                 ->title(__('Upload divipole'))
                 ->description(__('If you upload this file, the divipoles table will be reset, and the new data will be imported. You must make sure that the configurations for departments, municipalities, and corporations have been previously uploaded.'))

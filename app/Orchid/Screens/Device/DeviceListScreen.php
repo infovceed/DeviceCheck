@@ -141,6 +141,7 @@ class DeviceListScreen extends Screen
                     ->filter(
                         Relation::make('operative')
                             ->fromModel(User::class, 'name')
+                            ->applyScope('agents')
                             ->multiple()
                     )
                     ->filterValue(function ($value) {
@@ -149,7 +150,7 @@ class DeviceListScreen extends Screen
                             return implode(', ', array_map(fn($v) => mb_strimwidth($v, 0, 10, '...'), $names));
                         }
                     })
-                    ->render(fn(Device $device) => $device->user->name ?? $this->badge([
+                    ->render(fn(Device $device) => $device->divipole->users->pluck('name')->join(', ') ?: $this->badge([
                         'text'  => __('No operative assigned'),
                         'color' => 'warning',
                     ])),
@@ -175,6 +176,36 @@ class DeviceListScreen extends Screen
                     ->render(fn(Device $device) => $device->report_time ?? __('Not Reported')),
                 TD::make('report_time_departure', __('Report time (Departure)'))
                     ->render(fn(Device $device) => $device->report_time_departure ?? __('Not Reported')),
+                TD::make('is_backup', __('Is Backup'))
+                    ->sort()
+                    ->filter(
+                        Select::make('is_backup')
+                            ->options([
+                                1 => __('Yes'),
+                                0 => __('No'),
+                            ])
+                            ->empty(__('All'))
+                            ->title(__('Is Backup'))
+                    )
+                    ->filterValue(function ($value) {
+                        if ($value == 1) {
+                            return __('Yes');
+                        }
+                        return __('No');
+                    })
+                    ->render(function (Device $device) {
+                        $value = $device->is_backup;
+                        if ($value == 1) {
+                            return $this->badge([
+                                'text'  => __('Yes'),
+                                'color' => 'success',
+                            ]);
+                        } 
+                        return $this->badge([
+                                'text'  => __('No'),
+                                'color' => 'secondary',
+                            ]);
+                    }),
                 TD::make('status_incidents', __('Incidents'))
                     ->sort()
                     ->filter(
@@ -271,7 +302,6 @@ class DeviceListScreen extends Screen
                 'imei'                  => $device->imei,
                 'device_key'            => $device->device_key,
                 'sequential'            => $device->sequential,
-                'user_id'               => $device->user_id,
                 'latitude'              => $device->latitude,
                 'longitude'             => $device->longitude,
                 'report_time'           => $device->report_time,
@@ -294,7 +324,6 @@ class DeviceListScreen extends Screen
                 'imei',
                 'device_key',
                 'sequential',
-                'user_id',
                 'latitude',
                 'longitude',
                 'report_time',

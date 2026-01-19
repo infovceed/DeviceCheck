@@ -82,10 +82,10 @@ class CheckListLayout extends Table
                         return implode(', ', array_map(fn($v) => mb_strimwidth($v, 0, 10, '...'), $names));
                     }
                 })
-                ->render(fn(Check $check) => $check->device->user->name ?? $this->badge([
-                    'text'  => __('No operative assigned'),
-                    'color' => 'warning',
-                ])),
+                ->render(fn(Check $check) => $check->device->divipole->users->pluck('name')->join(', ') ?: $this->badge([
+                        'text'  => __('No operative assigned'),
+                        'color' => 'warning',
+                    ])),
             TD::make('tel', __('Mobile'))
                 ->filter(
                     Relation::make('tel')

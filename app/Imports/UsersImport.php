@@ -31,7 +31,6 @@ class UsersImport implements ToModel, WithHeadingRow, WithChunkReading, WithBatc
                 return null;
             }
             $departmentId = Department::where('id', $row['departamento'])->first()->id;
-            // Construye datos sin el id para evitar que Eloquent ignore el PK en create
             $newUser = [
                 'name'           => $row['nombre'],
                 'document'       => $row['documento'],
@@ -39,14 +38,11 @@ class UsersImport implements ToModel, WithHeadingRow, WithChunkReading, WithBatc
                 'email'          => $row['email'],
                 'password'       => bcrypt($row['documento']),
             ];
-
-            // Si el usuario con ese ID existe, actualizar; si no, crear forzando el ID
             $user = User::find($row['id']);
             if ($user) {
                 $user->fill($newUser)->save();
             } else {
                 $user = new User($newUser);
-                // Forzar el ID explícito del Excel
                 $user->id = (int) $row['id'];
                 $user->save();
             }

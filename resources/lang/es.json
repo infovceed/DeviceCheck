@@ -319,6 +319,11 @@
     "file uploaded": "Archivo cargado",
     "Users import started": "Importación de usuarios iniciada",
     "Users import completed": "Importación de usuarios completada",
-    "Users import has been completed successfully.": "La importación de usuarios se ha completado con éxito."
+    "Users import has been completed successfully.": "La importación de usuarios se ha completado con éxito.",
+    "File format for Devices .xlsx": "Formato de archivo para Dispositivos .xlsx",
+    "Some user IDs from usuario_asignado do not exist": "Algunos IDs de usuario de usuario_asignado no existen",
+    "Is Backup": "Dispositivo Respaldo",
+    "Yes": "Sí",
+    "No": "No"
 
 }

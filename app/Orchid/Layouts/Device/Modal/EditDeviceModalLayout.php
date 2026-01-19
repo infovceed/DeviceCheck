@@ -50,14 +50,6 @@ class EditDeviceModalLayout extends Rows
                     ->title(__('Consecutivo'))
                     ->required(),
             ]),
-
-            Group::make([
-                Select::make('payload.user_id')
-                    ->title(__('Operative'))
-                    ->fromModel(User::class, 'name', 'id')
-                    ->empty(__('Without operative')),
-            ]),
-
             Group::make([
                 Input::make('payload.latitude')
                     ->title(__('Latitud'))

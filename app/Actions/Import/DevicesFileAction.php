@@ -14,10 +14,6 @@ class DevicesFileAction
 {
     use AsAction;
     private $model;
-    public function __construct()
-    {
-        $this->model = new DevicesImport();
-    }
     public function handle(array $arguments)
     {
         $configuration = Configuration::first();
@@ -33,6 +29,7 @@ class DevicesFileAction
         }
         $user = User::find($arguments['userId']);
         $user->notify(new DashboardNotification(__('Devices import started'), __('The import has started. You will be notified when it is completed.')));
+        $this->model = new DevicesImport($user);
         $this->model->queue($file)->chain([
             new NotifyUserOfCompletedImport(
                 $user,

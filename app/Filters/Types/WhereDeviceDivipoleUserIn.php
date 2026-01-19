@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 use Orchid\Filters\BaseHttpEloquentFilter;
 
-class WhereUserIn extends BaseHttpEloquentFilter
+class WhereDeviceDivipoleUserIn extends BaseHttpEloquentFilter
 {
     /**
      * Apply the filter to the Eloquent query builder.
@@ -25,8 +25,7 @@ class WhereUserIn extends BaseHttpEloquentFilter
         if ($values->isEmpty()) {
             return $builder;
         }
-        // Filtra divipoles que tengan en el pivot `divipoles_users` alguno de los IDs solicitados
-        return $builder->whereHas('users', function ($q) use ($values) {
+        return $builder->whereHas('divipole.users', function ($q) use ($values) {
             $q->whereIn('users.id', $values->map(fn($v) => (int) $v));
         });
     }

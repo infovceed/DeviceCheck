@@ -14,10 +14,6 @@ class DivipoleFileAction
 {
     use AsAction;
     private $model;
-    public function __construct()
-    {
-        $this->model = new DivipoleImport();
-    }
     public function handle(array $arguments)
     {
         $configuration = Configuration::first();
@@ -33,6 +29,7 @@ class DivipoleFileAction
         }
         $user = User::find($arguments['userId']);
         $user->notify(new DashboardNotification(__('Divipoles import started'), __('The import has started. You will be notified when it is completed.')));
+        $this->model = new DivipoleImport($user);
         $this->model->queue($file)->chain([
             new NotifyUserOfCompletedImport(
                 $user,
