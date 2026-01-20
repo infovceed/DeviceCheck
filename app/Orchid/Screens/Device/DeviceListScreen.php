@@ -23,6 +23,9 @@ use Orchid\Screen\Actions\DropDown;
 use Orchid\Screen\Actions\ModalToggle;
 use App\Services\DeviceReportQueryBuilder;
 use App\Orchid\Layouts\Device\Modal\EditDeviceModalLayout;
+use App\Orchid\Layouts\Device\Modal\BulkUpdateByExcelModalLayout;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use App\Jobs\DeviceBulkUpdateJob;
 
 class DeviceListScreen extends Screen
 {
@@ -87,6 +90,11 @@ class DeviceListScreen extends Screen
                 ->method('export',[
                     'filter' => request()->query('filter', []),
                 ]),
+            ModalToggle::make(__('Actualizar por Excel'))
+                ->icon('cloud-upload')
+                ->modal('bulkUpdateByExcelModal')
+                ->method('bulkUpdateFromExcel')
+                ->canSee(auth()->user()->hasAccess('platform.systems.devices.edit')),
         ];
     }
 
@@ -278,6 +286,12 @@ class DeviceListScreen extends Screen
               ->applyButton(__('Save'))
               ->closeButton(__('Cancel'))
               ->async('asyncGetDevice')
+                        ,
+                        Layout::modal('bulkUpdateByExcelModal', [
+                                BulkUpdateByExcelModalLayout::class,
+                        ])->title(__('Actualizar tel/IMEI por Excel'))
+                            ->applyButton(__('Actualizar'))
+                            ->closeButton(__('Cancelar'))
         ];
     }
 
@@ -399,5 +413,34 @@ class DeviceListScreen extends Screen
                 'Content-Type' => 'text/csv'
             ])
             ->deleteFileAfterSend(true);
+    }
+
+    public function bulkUpdateFromExcel(Request $request): void
+    {
+        try {
+            $file = $request->file('payload.file');
+            if (!$file) {
+                Alert::error(__('Debe adjuntar un archivo.'));
+                return;
+            }
+
+            $ext = strtolower($file->getClientOriginalExtension());
+            if (!in_array($ext, ['xlsx','xls','csv'])) {
+                Alert::error(__('Formato no soportado. Use .xlsx, .xls o .csv'));
+                return;
+            }
+
+            $dir = 'imports/devices-bulk';
+            $name = 'bulk_'.date('Ymd_His').'_'.uniqid().'.'.$ext;
+            $stored = $file->storeAs($dir, $name);
+            $storedPath = storage_path('app/'.$stored);
+
+            DeviceBulkUpdateJob::dispatch($storedPath, auth()->user());
+            Toast::info(__('Archivo encolado para procesamiento. Recibirás una notificación al terminar.'));
+        } catch (\Throwable $e) {
+            Log::error('bulkUpdateFromExcel enqueue error: '.$e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            Alert::error(__('Ocurrió un error encolando el archivo.'));
+            return;
+        }
     }
 }
