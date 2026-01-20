@@ -66,4 +66,12 @@ class Divipole extends Model
                 ->count()
         );
     }
+
+    public function getLabelAttribute(): string
+    {
+        $department  = $this->department->name ?? '';
+        $municipality = $this->municipality->name ?? '';
+        $position     = $this->position_name ?? '';
+        return "{$this->code} - {$department} - {$municipality} - {$position}";
+    }
 }

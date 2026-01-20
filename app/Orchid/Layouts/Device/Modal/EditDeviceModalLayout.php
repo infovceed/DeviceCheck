@@ -2,11 +2,13 @@
 
 namespace App\Orchid\Layouts\Device\Modal;
 
+use App\Models\Divipole;
 use App\Models\User;
 use Orchid\Screen\Field;
 use Orchid\Screen\Fields\Group;
 use Orchid\Screen\Fields\Input;
 use Orchid\Screen\Fields\Label;
+use Orchid\Screen\Fields\Relation;
 use Orchid\Screen\Layouts\Rows;
 use Orchid\Screen\Fields\Select;
 use Orchid\Screen\Fields\DateTimer;
@@ -28,6 +30,15 @@ class EditDeviceModalLayout extends Rows
     protected function fields(): iterable
     {
         return [
+
+            Group::make([
+                Relation::make('payload.divipole_id')
+                    ->title(__('DIVIPOLE (por código)'))
+                    ->fromModel(Divipole::class, 'code', 'id')
+                    ->empty(__('Select a divipole'))
+                    ->displayAppend('label')
+                    ->required(),
+            ]),
 
             Group::make([
                 Input::make('payload.tel')

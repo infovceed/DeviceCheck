@@ -298,6 +298,7 @@ class DeviceListScreen extends Screen
     {
         return [
             'payload' => [
+                'divipole_id'           => $device->divipole_id,
                 'tel'                   => $device->tel,
                 'imei'                  => $device->imei,
                 'device_key'            => $device->device_key,
@@ -320,6 +321,7 @@ class DeviceListScreen extends Screen
             }
 
             $fillable = [
+                'divipole_id',
                 'tel',
                 'imei',
                 'device_key',

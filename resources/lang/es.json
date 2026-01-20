@@ -329,5 +329,6 @@
     "This action will truncate incidents, Devices, divipoles, departments and municipalities tables. Do you want to proceed?": "Esta acción limpiará las tablas de dispositivos, divipoles, departamentos y municipios. ¿Desea continuar?",
     "Edit Divipoles": "Editar Divipoles",
     "Divipole updated": "Divipole actualizado",
-    "Edit Divipole": "Editar Divipole"
+    "Edit Divipole": "Editar Divipole",
+    "Select a divipole": "Seleccione un divipole"
 }
