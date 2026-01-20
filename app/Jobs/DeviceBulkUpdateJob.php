@@ -49,7 +49,7 @@ class DeviceBulkUpdateJob implements ShouldQueue
                 }
             }
 
-            foreach (['id_dispositivo_cambio','telefono','imei'] as $required) {
+            foreach (['id_dispositivo_cambio','telefono','imei','llave'] as $required) {
                 if (!isset($headerMap[$required])) {
                     dispatch(new NotifyUserOfImportError(
                         $this->user,
@@ -69,12 +69,18 @@ class DeviceBulkUpdateJob implements ShouldQueue
                 $idCell = $row[$headerMap['id_dispositivo_cambio']] ?? null;
                 $telCell = $row[$headerMap['telefono']] ?? null;
                 $imeiCell = $row[$headerMap['imei']] ?? null;
+                $keyCell = $row[$headerMap['llave']] ?? null;
 
                 $id = is_numeric($idCell) ? (int)$idCell : (int)trim((string)$idCell);
                 $tel = $telCell !== null ? trim((string)$telCell) : null;
                 $imei = $imeiCell !== null ? trim((string)$imeiCell) : null;
+                $key  = $keyCell !== null ? trim((string)$keyCell) : null;
 
-                if (!$id || ($tel === null && $imei === null)) {
+                $hasTel  = $tel !== null && $tel !== '';
+                $hasImei = $imei !== null && $imei !== '';
+                $hasKey  = $key !== null && $key !== '';
+
+                if (!$id || !$hasKey) {
                     $skipped++;
                     continue;
                 }
@@ -85,11 +91,14 @@ class DeviceBulkUpdateJob implements ShouldQueue
                     continue;
                 }
 
-                if ($tel !== null && $tel !== '') {
+                if ($hasTel) {
                     $device->tel = $tel;
                 }
-                if ($imei !== null && $imei !== '') {
+                if ($hasImei) {
                     $device->imei = $imei;
+                }
+                if ($hasKey) {
+                    $device->device_key = $key;
                 }
                 $device->updated_by = $this->user->id;
                 $device->save();
