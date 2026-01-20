@@ -68,7 +68,6 @@ class DeviceCheck extends Model
     {
         $device = Device::query()
                     ->where('imei', $deviceData['imei'])
-                    ->whereHas('divipole', fn($query) => $query->where('code', $deviceData['puesto']))
                 ->first(['id']);
         if (!$device) {
             throw new \Exception("Device not found", 1);

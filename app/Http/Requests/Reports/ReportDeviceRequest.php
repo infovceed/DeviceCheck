@@ -73,10 +73,9 @@ class ReportDeviceRequest extends FormRequest
         logger($imei);
         $position = $this->input('puesto');
         $device = Device::where('imei', $imei)->first();
-        if ($position != $device->divipole->code) {
+        if (! $device->is_backup && ($device->divipole?->code !== $position)) {
             $this->responseMessage(2);
         }
-        // Evitar checkout sin un checkin previo en el mismo día
         if ($this->input('tipo') === 'checkout') {
             $hasCheckinToday = $device->deviceChecks()
                 ->whereDate('created_at', now()->toDateString())
