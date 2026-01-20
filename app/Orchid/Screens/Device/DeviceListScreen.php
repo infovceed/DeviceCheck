@@ -90,7 +90,7 @@ class DeviceListScreen extends Screen
                 ->method('export',[
                     'filter' => request()->query('filter', []),
                 ]),
-            ModalToggle::make(__('Actualizar por Excel'))
+            ModalToggle::make(__('Bulk Update by Excel'))
                 ->icon('cloud-upload')
                 ->modal('bulkUpdateByExcelModal')
                 ->method('bulkUpdateFromExcel')
@@ -289,9 +289,9 @@ class DeviceListScreen extends Screen
                         ,
                         Layout::modal('bulkUpdateByExcelModal', [
                                 BulkUpdateByExcelModalLayout::class,
-                        ])->title(__('Actualizar tel/IMEI por Excel'))
-                            ->applyButton(__('Actualizar'))
-                            ->closeButton(__('Cancelar'))
+                        ])->title(__('Update tel/IMEI via Excel'))
+                            ->applyButton(__('Update'))
+                            ->closeButton(__('Cancel'))
         ];
     }
 
@@ -420,13 +420,13 @@ class DeviceListScreen extends Screen
         try {
             $file = $request->file('payload.file');
             if (!$file) {
-                Alert::error(__('Debe adjuntar un archivo.'));
+                Alert::error(__('You must attach a file.'));
                 return;
             }
 
             $ext = strtolower($file->getClientOriginalExtension());
             if (!in_array($ext, ['xlsx','xls','csv'])) {
-                Alert::error(__('Formato no soportado. Use .xlsx, .xls o .csv'));
+                Alert::error(__('Unsupported format. Use .xlsx, .xls or .csv'));
                 return;
             }
 
@@ -436,10 +436,10 @@ class DeviceListScreen extends Screen
             $storedPath = storage_path('app/'.$stored);
 
             DeviceBulkUpdateJob::dispatch($storedPath, auth()->user());
-            Toast::info(__('Archivo encolado para procesamiento. Recibirás una notificación al terminar.'));
+            Toast::info(__('File enqueued for processing. You will be notified when it finishes.'));
         } catch (\Throwable $e) {
             Log::error('bulkUpdateFromExcel enqueue error: '.$e->getMessage(), ['trace' => $e->getTraceAsString()]);
-            Alert::error(__('Ocurrió un error encolando el archivo.'));
+            Alert::error(__('An error occurred while enqueuing the file.'));
             return;
         }
     }

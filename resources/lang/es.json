@@ -331,4 +331,21 @@
     "Divipole updated": "Divipole actualizado",
     "Edit Divipole": "Editar Divipole",
     "Select a divipole": "Seleccione un divipole"
+    ,
+    "Bulk Update by Excel": "Actualizar por Excel",
+    "Update tel/IMEI via Excel": "Actualizar tel/IMEI por Excel",
+    "Update": "Actualizar",
+    "Cancel": "Cancelar",
+    "Excel File": "Archivo Excel",
+    "Required columns: id_dispositivo_cambio, telefono, imei": "Columnas requeridas: id_dispositivo_cambio, telefono, imei",
+    "You must attach a file.": "Debe adjuntar un archivo.",
+    "Unsupported format. Use .xlsx, .xls or .csv": "Formato no soportado. Use .xlsx, .xls o .csv",
+    "File enqueued for processing. You will be notified when it finishes.": "Archivo encolado para procesamiento. Recibirás una notificación al terminar.",
+    "An error occurred while enqueuing the file.": "Ocurrió un error encolando el archivo.",
+    "Excel bulk update error": "Error en actualización por Excel",
+    "The file is empty.": "El archivo está vacío.",
+    "Missing required column: :col": "Falta la columna requerida: :col",
+    "Devices bulk update completed": "Actualización de dispositivos completada",
+    "Updated: :u, Not found: :n, Skipped: :s": "Actualizados: :u, No encontrados: :n, Omitidos: :s",
+    "An error occurred while processing the file.": "Ocurrió un error procesando el archivo."
 }

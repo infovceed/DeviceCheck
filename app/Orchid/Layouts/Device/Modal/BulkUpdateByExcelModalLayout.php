@@ -15,8 +15,8 @@ class BulkUpdateByExcelModalLayout extends Rows
             Group::make([
                 Input::make('payload.file')
                     ->type('file')
-                    ->title(__('Archivo Excel'))
-                    ->help(__('Columnas requeridas: id_dispositivo_cambio, telefono, imei'))
+                    ->title(__('Excel File'))
+                    ->help(__('Required columns: id_dispositivo_cambio, telefono, imei'))
                     ->accept('.xlsx,.xls,.csv')
                     ->required(),
             ]),

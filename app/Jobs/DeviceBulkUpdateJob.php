@@ -33,8 +33,8 @@ class DeviceBulkUpdateJob implements ShouldQueue
             if (empty($rows)) {
                 dispatch(new NotifyUserOfImportError(
                     $this->user,
-                    'Error en actualización por Excel',
-                    'El archivo está vacío.'
+                    'Excel bulk update error',
+                    'The file is empty.'
                 ));
                 return;
             }
@@ -53,8 +53,8 @@ class DeviceBulkUpdateJob implements ShouldQueue
                 if (!isset($headerMap[$required])) {
                     dispatch(new NotifyUserOfImportError(
                         $this->user,
-                        'Error en actualización por Excel',
-                        "Falta la columna requerida: {$required}"
+                        'Excel bulk update error',
+                        __('Missing required column: :col', ['col' => $required])
                     ));
                     return;
                 }
@@ -98,8 +98,8 @@ class DeviceBulkUpdateJob implements ShouldQueue
 
             dispatch(new NotifyUserOfCompletedImport(
                 $this->user,
-                'Actualización de dispositivos completada',
-                __('Actualizados: :u, No encontrados: :n, Omitidos: :s', [
+                'Devices bulk update completed',
+                __('Updated: :u, Not found: :n, Skipped: :s', [
                     'u' => $updated,
                     'n' => $notFound,
                     's' => $skipped,
@@ -109,8 +109,8 @@ class DeviceBulkUpdateJob implements ShouldQueue
             Log::error('DeviceBulkUpdateJob error: '.$e->getMessage(), ['trace' => $e->getTraceAsString()]);
             dispatch(new NotifyUserOfImportError(
                 $this->user,
-                'Error en actualización por Excel',
-                'Ocurrió un error procesando el archivo.'
+                'Excel bulk update error',
+                'An error occurred while processing the file.'
             ));
         }
     }
