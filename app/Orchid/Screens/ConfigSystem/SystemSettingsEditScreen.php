@@ -34,7 +34,7 @@ class SystemSettingsEditScreen extends Screen
             'department_attachment'   => $configuration?->attachment()->where('attachments.id', $configuration->department_file)->get(),
             'municipality_attachment' => $configuration?->attachment()->where('attachments.id', $configuration->municipality_file)->get(),
             'divipole_attachment'     => $configuration?->attachment()->where('attachments.id', $configuration->divipole_file)->get(),
-            'Devices_attachment'     => $configuration?->attachment()->where('attachments.id', $configuration->Devices_file)->get(),
+            'Devices_attachment'      => $configuration?->attachment()->where('attachments.id', $configuration->Devices_file)->get(),
         ];
     }
 
@@ -292,8 +292,8 @@ class SystemSettingsEditScreen extends Screen
     public function clearDeviceTable(): void
     {
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-        DB::table('Devices')->truncate();
-        DB::statement('ALTER TABLE Devices AUTO_INCREMENT = 1;');
+        DB::table('devices')->truncate();
+        DB::statement('ALTER TABLE devices AUTO_INCREMENT = 1;');
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
     }
     public function clearIncidentsTable(): void

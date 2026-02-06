@@ -27,6 +27,7 @@ class DepartmentFileAction
             throw new FileNotFoundException('Attachment not found.');
         }
         $path="app\\public\\".str_replace('/','\\',$attachment[0]->path);
+        //en linux usar:$path = "app/public/" . $attachment[0]->path; 
         $file=storage_path($path.$attachment[0]->name.'.'.$attachment[0]->extension);
         if(!file_exists($file)){
             throw new FileNotFoundException();

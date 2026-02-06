@@ -136,11 +136,11 @@ class PlatformScreen extends Screen
      */
     public function commandBar(): iterable
     {
-        //boton para recargar la pagina, si hay filtros aplicados, mantenerlos
         return [
             Link::make(__('Refresh'))
                 ->icon('bs.arrow-clockwise')
-                ->route('platform.main', request()->query()),
+                ->route('platform.main', request()->query())
+                ->attributes(['data-turbo' => 'false']),
         ];
     }
 

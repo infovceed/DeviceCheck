@@ -57,11 +57,7 @@ class DeviceWithLocation extends Model
             ->leftJoin('device_checks as c', function($join) use ($type, $dates) {
                 $join->on('c.device_id', '=', 'devices_with_locations.id')
                      ->where('c.type', '=', $type)
-                     ->where(function ($q) use ($dates) {
-                         foreach ($dates as $d) {
-                             $q->orWhereDate('c.created_at', $d);
-                         }
-                     });
+                     ->whereIn('c.created_on', $dates);
             })
             ->whereNull('c.id')
             ->orderBy('department')

@@ -158,7 +158,7 @@ class DivipoleImport implements ToModel, WithHeadingRow, WithChunkReading, WithB
 
             dispatch(new NotifyUserOfImportError(
                 $this->user,
-                'Error en importación de dispositivos',
+                'Error en importación de divipoles',
                 "Fila {$row}: Campo '{$attribute}' - {$errors}"
             ));
         }
