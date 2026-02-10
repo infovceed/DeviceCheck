@@ -11,6 +11,7 @@ use Orchid\Filters\Types\Like;
 use Orchid\Filters\Types\Where;
 use Orchid\Filters\Types\WhereIn;
 use App\Filters\Types\WhereDateIn;
+use App\Filters\Types\WhereCreatedOnIn;
 use App\Filters\Types\WhereDistance500;
 use Illuminate\Database\Eloquent\Model;
 use App\Filters\Types\WhereCheckDeviceDivipoleUserIn;
@@ -44,9 +45,9 @@ class Check extends Model
         'operative'              => WhereCheckDeviceDivipoleUserIn::class,
         'tel'                    => WhereIn::class,
         'device_key'             => WhereIn::class,
-        'type'                   => Like::class,
+        'type'                   => Where::class,
         'code'                   => Where::class,
-        'created_at'             => WhereDateIn::class,
+        'created_at'             => WhereCreatedOnIn::class,
         'distance'               => WhereDistance500::class,
         'report_time'            => Where::class,
         'report_time_departure'  => Where::class,

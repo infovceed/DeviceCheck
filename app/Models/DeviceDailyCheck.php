@@ -15,6 +15,6 @@ class DeviceDailyCheck extends Model
     protected $allowedFilters = [
         'department'    => WhereIn::class,
         'municipality'  => WhereIn::class,
-        'check_day'     => WhereDateIn::class,
+        'check_day'     => WhereIn::class,
     ];
 }

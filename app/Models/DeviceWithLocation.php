@@ -54,12 +54,13 @@ class DeviceWithLocation extends Model
                 'municipality',
             ])
             ->whereIn('department', $deptNames)
-            ->leftJoin('device_checks as c', function($join) use ($type, $dates) {
-                $join->on('c.device_id', '=', 'devices_with_locations.id')
-                     ->where('c.type', '=', $type)
-                     ->whereIn('c.created_on', $dates);
+            ->whereNotExists(function ($sub) use ($type, $dates) {
+                $sub->select(DB::raw(1))
+                    ->from('device_checks as c')
+                    ->whereColumn('c.device_id', 'devices_with_locations.id')
+                    ->where('c.type', '=', $type)
+                    ->whereIn('c.created_on', $dates);
             })
-            ->whereNull('c.id')
             ->orderBy('department')
             ->orderBy('municipality')
             ->orderBy('position_name');
