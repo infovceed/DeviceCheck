@@ -28,5 +28,4 @@ class ChartsLayout extends Chart
         '#002060', // Reportados (Azul oscuro)
         '#FF8805', // Checkout (naranja)
     ];
-
 }

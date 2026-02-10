@@ -30,4 +30,11 @@ class PieChartLayout extends Chart
         '#DBDBDB', // Pending / No reportado (gris)
         '#92D050', // Reported / Reportado (verde)
     ];
+
+    //set colors fluently
+    public function colors(array $colors): self
+    {
+        $this->colors = $colors;
+        return $this;
+    }
 }

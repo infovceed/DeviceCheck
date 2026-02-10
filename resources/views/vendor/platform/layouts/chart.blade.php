@@ -16,7 +16,7 @@
     <div class="bg-white rounded shadow-sm mb-3 pt-3 overflow-auto">
 
         @php($labelsCount = count(json_decode($labels, true) ?? []))
-        @php($minWidth = ($type === 'bar') ? max(800, $labelsCount * 80) : null)
+        @php($minWidth = ($type === 'bar') ? max(800, $labelsCount * 90) : null)
         <div class="d-flex px-3 align-items-center">
             <legend class="text-black px-2 mt-2 mb-0">
                 <div @if($minWidth) style="min-width: {{ $minWidth }}px" @endif class="d-flex align-items-center">

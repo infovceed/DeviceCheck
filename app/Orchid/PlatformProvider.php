@@ -109,6 +109,7 @@ class PlatformProvider extends OrchidServiceProvider
                 ->addPermission('platform.systems.devices.edit', __('Edit Devices')),
             ItemPermission::group(__('Dashboard'))
                 ->addPermission('platform.systems.dashboard', __('Dashboard'))
+                ->addPermission('platform.systems.dashboard.realtime', __('Real-time Data'))
                 ->addPermission('platform.systems.dashboard.show-all', __('Show all')),
             ItemPermission::group(__('Users'))
                 ->addPermission('platform.systems.user.create', __('Create'))

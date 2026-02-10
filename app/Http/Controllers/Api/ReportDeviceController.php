@@ -7,6 +7,8 @@ use App\Models\DeviceCheck;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Reports\ReportDeviceRequest;
+use Illuminate\Support\Facades\Http;
+use App\Jobs\NotifyWebSocketClients;
 
 class ReportDeviceController extends Controller
 {
@@ -30,6 +32,12 @@ class ReportDeviceController extends Controller
                 "Municipio: $municipality",
                 "Puesto: $position",
             ];
+            try {
+                $paths = ['/ws/stats', '/ws/departments', '/ws/municipalities'];
+                dispatch(new NotifyWebSocketClients($paths));
+            } catch (\Throwable $notifyErr) {
+                logger()->info('Queue dispatch for WS notify failed: ' . $notifyErr->getMessage());
+            }
 
             return response()->json([
                 'status'  => 'ok',

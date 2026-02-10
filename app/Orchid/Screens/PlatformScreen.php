@@ -7,10 +7,8 @@ namespace App\Orchid\Screens;
 
 use Orchid\Screen\TD;
 use App\Models\Device;
-use App\Models\Incident;
 use Orchid\Screen\Screen;
-use App\Models\Department;  
-use Orchid\Screen\Repository;
+use App\Models\Department;
 use Orchid\Screen\Actions\Link;
 use Orchid\Support\Facades\Layout;
 use App\Orchid\Layouts\Dashboard\ChartsLayout;
@@ -24,6 +22,7 @@ class PlatformScreen extends Screen
      *
      * @return array
      */
+    private array $viewData = [];
     public function query(): iterable
     {
         $user           = auth()->user();
@@ -66,10 +65,6 @@ class PlatformScreen extends Screen
         $reportedOut   = array_sum($reportedCheckout) ?? 0;
         $unreportedIn  = max(0, $totalDevices - $reportedIn);
         $unreportedOut = max(0, $totalDevices - $reportedOut);
-
-        $sumIn         = $unreportedIn + $reportedIn;
-        $pctPendingIn  = $sumIn ? round(($unreportedIn / $sumIn) * 100, 1) : 0;
-        $pctReportedIn = $sumIn ? round(($reportedIn / $sumIn) * 100, 1) : 0;
         $data['checkinChart'] = [
             [
                 'labels' => [
@@ -80,10 +75,6 @@ class PlatformScreen extends Screen
                 'values' => [$unreportedIn, $reportedIn],
             ],
         ];
-
-        $sumOut         = $unreportedOut + $reportedOut;
-        $pctPendingOut  = $sumOut ? round(($unreportedOut / $sumOut) * 100, 1) : 0;
-        $pctReportedOut = $sumOut ? round(($reportedOut / $sumOut) * 100, 1) : 0;
         $data['checkoutChart'] = [
             [
                 'labels' => [
@@ -109,7 +100,7 @@ class PlatformScreen extends Screen
                 ['labels' => $mlabels, 'name' => __('Check-out'),  'values' => $mcheckout],
             ];
         }
-        
+        $this->viewData = $data;
         return $data;
     }
 
@@ -151,78 +142,224 @@ class PlatformScreen extends Screen
      */
     public function layout(): iterable
     {
-        $user=auth()->user();
-        if(!$user->hasAccess('platform.systems.dashboard')) {
+        $user = auth()->user();
+        if (!$user->hasAccess('platform.systems.dashboard')) {
             return [Layout::view('platform.welcome_collaborator')];
         }
-        $showAll=$user->hasAccess('platform.systems.dashboard.show-all');
-        $data    = $this->query();
-        $layouts = [
-            Layout::columns([
-                Layout::view('components.dashboard.stats',[
-                    'title' => $data['stats']['totalRecords'] ?? 0,
-                    'subtitle' =>__('Total Devices'),
-                    'icon' => 'bs.phone',
-                    'iconColor' => '#92D050',
-                ]),
-                Layout::view('components.dashboard.stats',[
-                    'title' => "{$data['stats']['percentageIn']}%",
-                    'subtitle' => __('Devices Reported (Arrival)'),
-                    'icon' => 'bs.phone-vibrate',
-                    'iconColor' => '#002060',
-                ]),
-                Layout::view('components.dashboard.stats',[
-                    'title' => "{$data['stats']['percentageOut']}%",
-                    'subtitle' => __('Devices Reported (Departure)'),
-                    'icon' => 'bs.phone-vibrate',
-                    'iconColor' => '#FF8805',
-                ]),
-                Layout::view('components.dashboard.stats',[
-                    'title' => $data['stats']['totalReportedIn'],
-                    'subtitle' => __('Total Reported (Arrival)'),
-                    'icon' => 'bs.phone-vibrate-fill',
-                    'iconColor' => '#002060',
-                ]),
-                Layout::view('components.dashboard.stats',[
-                    'title' => $data['stats']['totalReportedOut'],
-                    'subtitle' => __('Total Reported (Departure)'),
-                    'icon' => 'bs.phone-vibrate-fill',
-                    'iconColor' => '#FF8805',
-                ]),
-            ]),
-        ];
-        if($showAll) {
-            $layouts[] = Layout::view('partials.auto-filter-enable');
-            $chartFilters = new ChartFiltersLayout();
-            $layouts[] = $chartFilters;
+
+        $showAll = $user->hasAccess('platform.systems.dashboard.show-all');
+        $showRealTime = $user->hasAccess('platform.systems.dashboard.realtime');
+        $data = $this->viewData;
+
+        if (!$showRealTime) {
+            return $this->buildStaticLayouts($data, $showAll);
         }
-        
-        $deptLayout = ChartsLayout::make('departmentsChart', 'Reporte por departamento')
+
+        return $this->buildRealtimeLayouts($data, $showAll);
+    }
+
+    protected function buildStaticLayouts(array $data, bool $showAll): array
+    {
+        $layouts = [
+            $this->buildStatsColumns($data['stats'] ?? []),
+        ];
+
+        if ($showAll) {
+            $layouts = array_merge($layouts, $this->buildChartFilters());
+        }
+
+        $layouts[] = ChartsLayout::make('departmentsChart', 'Reporte por departamento')
             ->description('Comparativa de dispositivos reportados por departamento.');
-        $layouts[] = $deptLayout;
-        $reportedInPct  = $data['stats']['percentageIn'] ?? 0;
-        $pendingInPct   = 100 - $reportedInPct;
-        $reportedOutPct = $data['stats']['percentageOut'] ?? 0;
-        $pendingOutPct  = 100 - $reportedOutPct;
+
+        $layouts[] = $this->buildStaticPies($data['stats'] ?? []);
+
+        if (isset($data['municipalitiesChart'])) {
+            $layouts[] = ChartsLayout::make('municipalitiesChart', 'Reporte por municipio')
+                ->description('Totals, check-in and check-out by municipality')
+                ->min(1000);
+        }
+
+        $layouts = array_merge($layouts, $this->buildIncidentsSection());
+
+        return $layouts;
+    }
+
+    protected function buildRealtimeLayouts(array $data, bool $showAll): array
+    {
+        $wsUrl = $this->getWsUrl();
+
+        $layouts = [
+            $this->buildRealtimeStatsColumns($data['stats'] ?? [], $wsUrl),
+        ];
+
+        if ($showAll) {
+            $layouts = array_merge($layouts, $this->buildChartFilters());
+        }
+
+        $layouts[] = Layout::view('components.dashboard.departments-realtime', [
+            'initial' => $data['departmentsChart'] ?? [],
+            'wsUrl' => $wsUrl,
+        ]);
+
+        $layouts[] = $this->buildRealtimePies($data['stats'] ?? [], $wsUrl);
+
+        if (isset($data['municipalitiesChart'])) {
+            $layouts[] = Layout::view('components.dashboard.municipalities-realtime', [
+                'initial' => $data['municipalitiesChart'] ?? [],
+                'wsUrl' => $wsUrl,
+            ]);
+        }
+
+        return $layouts;
+    }
+
+    protected function buildStatsColumns(array $stats)
+    {
+        return Layout::columns([
+            Layout::view('components.dashboard.stats', [
+                'title' => $stats['totalRecords'] ?? 0,
+                'subtitle' => __('Total Devices'),
+                'icon' => 'bs.phone',
+                'iconColor' => '#92D050',
+            ]),
+            Layout::view('components.dashboard.stats', [
+                'title' => ($stats['percentageIn'] ?? 0) . '%',
+                'subtitle' => __('Devices Reported (Arrival)'),
+                'icon' => 'bs.phone-vibrate',
+                'iconColor' => '#002060',
+            ]),
+            Layout::view('components.dashboard.stats', [
+                'title' => ($stats['percentageOut'] ?? 0) . '%',
+                'subtitle' => __('Devices Reported (Departure)'),
+                'icon' => 'bs.phone-vibrate',
+                'iconColor' => '#FF8805',
+            ]),
+            Layout::view('components.dashboard.stats', [
+                'title' => $stats['totalReportedIn'] ?? 0,
+                'subtitle' => __('Total Reported (Arrival)'),
+                'icon' => 'bs.phone-vibrate-fill',
+                'iconColor' => '#002060',
+            ]),
+            Layout::view('components.dashboard.stats', [
+                'title' => $stats['totalReportedOut'] ?? 0,
+                'subtitle' => __('Total Reported (Departure)'),
+                'icon' => 'bs.phone-vibrate-fill',
+                'iconColor' => '#FF8805',
+            ]),
+        ]);
+    }
+
+    protected function buildChartFilters(): array
+    {
+        return [
+            Layout::view('partials.auto-filter-enable'),
+            new ChartFiltersLayout(),
+        ];
+    }
+
+    protected function buildStaticPies(array $stats)
+    {
+        $reportedInPct = $stats['percentageIn'] ?? 0;
+        $pendingInPct = 100 - $reportedInPct;
+        $reportedOutPct = $stats['percentageOut'] ?? 0;
+        $pendingOutPct = 100 - $reportedOutPct;
 
         $pieIn = PieChartLayout::make('checkinChart', __('Arrival'))
-            ->description("<div class='d-flex fs-6'><div class='bg-grey mr-2 p-2 rounded-2'>".__('Pending') . ": {$pendingInPct}%</div><div class='bg-success mx-2 p-2 rounded-2'>".__('Reported') . ": {$reportedInPct}%</div></div>");
-        $pieOut = PieChartLayout::make('checkoutChart', __('Departure'))
-            ->description("<div class='d-flex fs-6'><div class='bg-grey mr-2 p-2 rounded-2'>".__('Pending') . ": {$pendingOutPct}%</div><div class='bg-success mx-2 p-2 rounded-2'>".__('Reported') . ": {$reportedOutPct}%</div></div>");
+            ->colors(['#DBDBDB', '#002060'])
+            ->description("<div class='d-flex fs-6'><div class='bg-grey mr-2 p-2 rounded-2'>" . __('Pending') . ": {$pendingInPct}%</div><div class='bg-primary mx-2 p-2 rounded-2'>" . __('Reported') . ": {$reportedInPct}%</div></div>");
 
-        $layouts[] = Layout::split([
+        $pieOut = PieChartLayout::make('checkoutChart', __('Departure'))
+            ->colors(['#DBDBDB', '#FF8805'])
+            ->description("<div class='d-flex fs-6'><div class='bg-grey mr-2 p-2 rounded-2'>" . __('Pending') . ": {$pendingOutPct}%</div><div class='bg-warning mx-2 p-2 rounded-2'>" . __('Reported') . ": {$reportedOutPct}%</div></div>");
+
+        return Layout::split([
             $pieIn,
             $pieOut,
         ])->ratio('50/50');
+    }
 
-        if (isset($data['municipalitiesChart'])) {
-            $munLayout = ChartsLayout::make('municipalitiesChart', 'Reporte por municipio')
-                ->description('Totals, check-in and check-out by municipality');
-            $layouts[] = $munLayout;
+    protected function buildRealtimeStatsColumns(array $stats, ?string $wsUrl)
+    {
+        return Layout::columns([
+            Layout::view('components.dashboard.realtime-stats-card', [
+                'metric' => 'totalRecords',
+                'value' => $stats['totalRecords'] ?? 0,
+                'subtitle' => __('Total Devices'),
+                'icon' => 'phone',
+                'iconColor' => '#92D050',
+                'wsUrl' => $wsUrl,
+            ]),
+            Layout::view('components.dashboard.realtime-stats-card', [
+                'metric' => 'percentageIn',
+                'value' => $stats['percentageIn'] ?? 0,
+                'subtitle' => __('Devices Reported (Arrival)'),
+                'icon' => 'phone-vibrate',
+                'iconColor' => '#002060',
+                'wsUrl' => $wsUrl,
+            ]),
+            Layout::view('components.dashboard.realtime-stats-card', [
+                'metric' => 'percentageOut',
+                'value' => $stats['percentageOut'] ?? 0,
+                'subtitle' => __('Devices Reported (Departure)'),
+                'icon' => 'phone-vibrate',
+                'iconColor' => '#FF8805',
+                'wsUrl' => $wsUrl,
+            ]),
+            Layout::view('components.dashboard.realtime-stats-card', [
+                'metric' => 'totalReportedIn',
+                'value' => $stats['totalReportedIn'] ?? 0,
+                'subtitle' => __('Total Reported (Arrival)'),
+                'icon' => 'phone-vibrate-fill',
+                'iconColor' => '#002060',
+                'wsUrl' => $wsUrl,
+            ]),
+            Layout::view('components.dashboard.realtime-stats-card', [
+                'metric' => 'totalReportedOut',
+                'value' => $stats['totalReportedOut'] ?? 0,
+                'subtitle' => __('Total Reported (Departure)'),
+                'icon' => 'phone-vibrate-fill',
+                'iconColor' => '#FF8805',
+                'wsUrl' => $wsUrl,
+            ]),
+        ]);
+    }
+
+    protected function buildRealtimePies(array $stats, ?string $wsUrl)
+    {
+        $initialIn = [
+            'pending' => max(0, ($stats['totalRecords'] ?? 0) - ($stats['totalReportedIn'] ?? 0)),
+            'reported' => $stats['totalReportedIn'] ?? 0,
+        ];
+
+        $initialOut = [
+            'pending' => max(0, ($stats['totalRecords'] ?? 0) - ($stats['totalReportedOut'] ?? 0)),
+            'reported' => $stats['totalReportedOut'] ?? 0,
+        ];
+
+        return Layout::split([
+            Layout::view('components.dashboard.pie-realtime', [
+                'mode' => 'arrival',
+                'title' => __('Arrival'),
+                'wsUrl' => $wsUrl,
+                'initial' => $initialIn,
+            ]),
+            Layout::view('components.dashboard.pie-realtime', [
+                'mode' => 'departure',
+                'title' => __('Departure'),
+                'wsUrl' => $wsUrl,
+                'initial' => $initialOut,
+            ]),
+        ])->ratio('50/50');
+    }
+
+    protected function buildIncidentsSection(): array
+    {
+        if (!config('incidents.enabled')) {
+            return [];
         }
-        
-        if (config('incidents.enabled')) {
-            $layouts[] = Layout::split([
+
+        return [
+            Layout::split([
                 Layout::table('incidents', [
                     TD::make('department_name', __('Department')),
                     TD::make('municipality_name', __('Municipality')),
@@ -235,8 +372,12 @@ class PlatformScreen extends Screen
                         ),
                 ])->title(__('Incidents')),
                 Layout::view('components.dashboard.empty'),
-            ])->ratio('70/30');
-        }
-        return $layouts;
+            ])->ratio('70/30'),
+        ];
+    }
+
+    protected function getWsUrl(): ?string
+    {
+        return config('services.websocket.url') ?? null;
     }
 }

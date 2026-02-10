@@ -38,5 +38,10 @@ return [
     'device' => [
         'api_key' => env('DEVICE_API_KEY'),
     ],
+    'websocket' => [
+        // Permite definir una URL de WebSocket dedicada (dev/prod)
+        'url' => env('WEBSOCKET_URL', env('APP_URL')),
+        'api_key' => env('WEBSOCKET_API_KEY'),
+    ],
 
 ];
