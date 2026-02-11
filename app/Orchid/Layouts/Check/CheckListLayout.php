@@ -52,6 +52,7 @@ class CheckListLayout extends Table
                         ->multiple()
                 ),
             TD::make('position_name', __('Position'))
+                ->width('220px')
                 ->filter(
                     Relation::make('position_name')
                         ->fromModel(Divipole::class, 'position_name','position_name')
@@ -87,6 +88,7 @@ class CheckListLayout extends Table
                         'color' => 'warning',
                     ])),
             TD::make('tel', __('Mobile'))
+                ->width('120px')
                 ->filter(
                     Relation::make('tel')
                         ->fromModel(Device::class, 'tel','tel')
@@ -99,6 +101,7 @@ class CheckListLayout extends Table
                         ->multiple()
                 ),
             TD::make('created_at', __('Report date'))
+                ->width('160px')
                 ->filter(
                     // Use 'created_at' as filter key so model filters are applied
                     DateTimer::make('created_at')

@@ -134,6 +134,7 @@ class DeviceListScreen extends Screen
                     ->render(fn(Device $device) => $device->divipole->municipality->name ?? ''),
                 TD::make('position_name', __('Position'))
                     ->sort()
+                    ->width('220px')
                     ->filter(
                         Relation::make('position_name')
                             ->fromModel(Divipole::class, 'position_name','position_name')
@@ -165,26 +166,34 @@ class DeviceListScreen extends Screen
                 TD::make('tel', __('Phone'))
                     ->sort()
                     ->filter(TD::FILTER_TEXT)
+                    ->width('120px')
                     ->render(fn(Device $device) => $device->tel ?? ''),
                 TD::make('imei', __('IMEI'))
                     ->sort()
                     ->filter(TD::FILTER_TEXT)
+                    ->width('180px')
                     ->render(fn(Device $device) => $device->imei ?? ''),
                 TD::make('device_key', __('Key'))
                     ->filter(TD::FILTER_TEXT)
+                    ->width('160px')
                     ->render(fn(Device $device) => $device->device_key ?? ''),
                 TD::make('sequential', __('Consecutivo'))
                     ->filter(TD::FILTER_TEXT)
+                    ->width('160px')
                     ->render(fn(Device $device) => $device->sequential ?? ''),
                 TD::make('latitude', __('Latitud'))
+                    ->width('120px')
                     ->render(fn(Device $device) => $device->latitude ?? '(N/A)'),
                 TD::make('longitude', __('Longitud'))
+                    ->width('120px')                
                     ->render(fn(Device $device) => $device->longitude ?? '(N/A)'),
                 TD::make('report_time', __('Report time (Arrival)'))
+                    ->width('120px')
                     ->render(fn(Device $device) => $device->report_time ?? __('Not Reported')),
                 TD::make('report_time_departure', __('Report time (Departure)'))
+                    ->width('150px')
                     ->render(fn(Device $device) => $device->report_time_departure ?? __('Not Reported')),
-                TD::make('is_backup', __('Is Backup'))
+                /*TD::make('is_backup', __('Is Backup'))
                     ->sort()
                     ->filter(
                         Select::make('is_backup')
@@ -213,7 +222,7 @@ class DeviceListScreen extends Screen
                                 'text'  => __('No'),
                                 'color' => 'secondary',
                             ]);
-                    }),
+                    }),*/
                 TD::make('status_incidents', __('Incidents'))
                     ->sort()
                     ->filter(

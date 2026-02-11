@@ -8,7 +8,7 @@ const PATHS = {
   stats: '/ws/stats',
   municipalities: '/ws/municipalities',
 };
-const LARAVEL_URL = process.env.LARAVEL_URL || 'http://localhost:8000';
+const LARAVEL_URL = process.env.LARAVEL_URL || process.env.APP_URL || 'http://localhost:8000';
 const WEBSOCKET_API_KEY = process.env.WEBSOCKET_API_KEY || '';
 const API_ENDPOINTS = {
   [PATHS.departments]: `${LARAVEL_URL.replace(/\/$/, '')}/api/departments/chart`,
@@ -116,9 +116,11 @@ wss.on('connection', (ws) => {
   let intervalId = null;
 
   async function pollAndSend() {
+    let targetUrl = null;
     try {
       const endpoint = API_ENDPOINTS[path] || API_ENDPOINTS[PATHS.departments];
       const url = new URL(endpoint);
+      targetUrl = url;
       // Adjuntar filtros del cliente como query params
       Object.entries(filters).forEach(([k, v]) => {
         if (Array.isArray(v)) v.forEach((item) => url.searchParams.append(k, item));
@@ -135,7 +137,12 @@ wss.on('connection', (ws) => {
       const payload = JSON.stringify(json);
       if (ws.readyState === 1) ws.send(payload);
     } catch (err) {
-      console.error('[WS] poll error:', err.message || err);
+      const message = err?.message || String(err);
+      const cause = err?.cause?.message || err?.cause;
+      const url = targetUrl ? String(targetUrl) : undefined;
+      console.error('[WS] poll error:', { message, url, cause });
+      // Importante: re-lanzar para que /notify pueda reportar fallos reales
+      throw err;
     }
   }
   ws._pollAndSend = pollAndSend;

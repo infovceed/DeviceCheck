@@ -151,7 +151,6 @@ class CheckListScreen extends Screen
                 ->method('export', [
                     'filter' => request()->query('filter', []),
                 ]),
-                //boton para recargar la pagina
                 Link::make(__('Refresh'))
                 ->icon('bs.arrow-clockwise')
                 ->route('platform.systems.devices-check'),

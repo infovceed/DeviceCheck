@@ -12,12 +12,22 @@ class WebSocketNotifier
      */
     public function notify(array $paths = ['/ws/stats']): bool
     {
-        $wsUrl = config('services.websocket.url') ?? env('WEBSOCKET_URL');
-        $notifyBase = env('WEBSOCKET_NOTIFY_URL');
+        $wsUrl = trim((string) config('services.websocket.url', ''));
+        if ($wsUrl === '') {
+            $wsUrl = trim((string) env('WEBSOCKET_URL', ''));
+        }
+
+        $notifyBase = trim((string) env('WEBSOCKET_NOTIFY_URL', ''));
+        if ($notifyBase === '') {
+            $notifyBase = null;
+        }
 
         $base = $this->resolveNotifyBaseUrl($notifyBase, $wsUrl);
         if (!$base) {
-            logger()->info('WS notify skipped: no base URL');
+            logger()->info('WS notify skipped: no base URL', [
+                'notify_base' => $notifyBase,
+                'ws_url' => $wsUrl,
+            ]);
             return false;
         }
         if (!$this->isRelayHealthy($base)) {
@@ -54,9 +64,20 @@ class WebSocketNotifier
 
     private function resolveNotifyBaseUrl(?string $notifyBase, ?string $wsUrl): ?string
     {
-        if ($notifyBase){ return rtrim($notifyBase); }
-        if (!$wsUrl) {return null;}
-        $parts = parse_url($wsUrl);
+        if ($notifyBase) {
+            return rtrim($notifyBase);
+        }
+
+        $wsUrl = trim((string) $wsUrl);
+        if ($wsUrl === '') {
+            return null;
+        }
+
+        // Si viene sin esquema (ej: "54.197.2.159:8001"), parse_url no detecta host.
+        // Prefijamos con ws:// solo para poder extraer host/puerto.
+        $toParse = preg_match('/^[a-z][a-z0-9+.-]*:\/\//i', $wsUrl) ? $wsUrl : ('ws://' . $wsUrl);
+
+        $parts = parse_url($toParse);
         $scheme = $parts['scheme'] ?? 'ws';
         $httpScheme = $scheme === 'wss' ? 'https' : ($scheme === 'https' ? 'https' : 'http');
         $host = $parts['host'] ?? null;
