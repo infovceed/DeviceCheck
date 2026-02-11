@@ -175,8 +175,7 @@ class PlatformScreen extends Screen
 
         if (isset($data['municipalitiesChart'])) {
             $layouts[] = ChartsLayout::make('municipalitiesChart', 'Reporte por municipio')
-                ->description('Totals, check-in and check-out by municipality')
-                ->min(1000);
+                ->description('Totals, check-in and check-out by municipality');
         }
 
         $layouts = array_merge($layouts, $this->buildIncidentsSection());

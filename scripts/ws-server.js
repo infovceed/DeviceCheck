@@ -1,9 +1,4 @@
-// Simple WebSocket relay server for departments chart
-// Usage: node scripts/ws-server.js
-
-// Cargar variables desde .env cuando se ejecute vía Node
 import 'dotenv/config';
-
 import http from 'node:http';
 import { WebSocketServer } from 'ws';
 
