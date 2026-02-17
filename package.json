@@ -3,7 +3,8 @@
     "type": "module",
     "scripts": {
         "dev": "vite",
-        "build": "vite build",
+        "build": "vite build && npm run build:auto-filter",
+        "build:auto-filter": "terser public/js/auto-filter.js --compress --mangle --format comments=false --output public/js/auto-filter.min.js",
         "ws": "node scripts/ws-server.js"
     },
     "dependencies": {
@@ -20,6 +21,7 @@
         "@vitejs/plugin-react": "^4.2.0",
         "axios": "^1.6.4",
         "laravel-vite-plugin": "^1.0",
+        "terser": "^5.43.1",
         "typescript": "^5.9.3",
         "vite": "^5.0"
     }

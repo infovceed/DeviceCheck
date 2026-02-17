@@ -128,7 +128,7 @@ return [
     'resource' => [
         'stylesheets' => [],
         'scripts'     => [
-            '/js/auto-filter.js',
+            '/js/auto-filter.min.js',
         ],
     ],
 
