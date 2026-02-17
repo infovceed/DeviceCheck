@@ -1,5 +1,7 @@
 import 'dotenv/config';
 import http from 'node:http';
+import https from 'node:https';
+import tls from 'node:tls';
 import { WebSocketServer } from 'ws';
 
 const PORT = Number(process.env.WEBSOCKET_PORT || 8001);
@@ -9,16 +11,110 @@ const PATHS = {
   municipalities: '/ws/municipalities',
 };
 const LARAVEL_URL = process.env.LARAVEL_URL || process.env.APP_URL || 'http://localhost:8000';
+// Permite usar un origen interno para las consultas (por ejemplo, IP privada o 127.0.0.1)
+// cuando el servidor no puede conectarse a la URL pública (Cloudflare/firewall/hairpin NAT).
+const LARAVEL_FETCH_URL = process.env.LARAVEL_FETCH_URL || LARAVEL_URL;
+// Opcional: fuerza el header Host (por ejemplo, "qrcontrol.co") si el backend enruta por vhost.
+const LARAVEL_FETCH_HOST = process.env.LARAVEL_FETCH_HOST || '';
+// Opcional: fuerza que el host de LARAVEL_FETCH_URL resuelva a una IP local.
+// Útil cuando el servidor no puede salir a Internet/Cloudflare pero Apache/Laravel están en el mismo host.
+// Ejemplo: LARAVEL_FETCH_FORCE_ADDRESS=127.0.0.1
+const LARAVEL_FETCH_FORCE_ADDRESS = process.env.LARAVEL_FETCH_FORCE_ADDRESS || '';
 const WEBSOCKET_API_KEY = process.env.WEBSOCKET_API_KEY || '';
+const DEBUG_WS = /^(1|true|yes)$/i.test(String(process.env.DEBUG_WS || ''));
+
+let FORCED_FETCH_HOSTNAME = '';
+try {
+  FORCED_FETCH_HOSTNAME = new URL(LARAVEL_FETCH_URL).hostname;
+} catch {}
+
+function withTimeoutAbort(controller, ms) {
+  const tm = setTimeout(() => controller.abort(), ms);
+  return () => clearTimeout(tm);
+}
+
+async function fetchJson(url, { headers, timeoutMs }) {
+  // Ruta "forzada": conecta a una IP local pero mantiene SNI/validación por hostname.
+  if (LARAVEL_FETCH_FORCE_ADDRESS && FORCED_FETCH_HOSTNAME && url.hostname === FORCED_FETCH_HOSTNAME) {
+    const isHttps = url.protocol === 'https:';
+    const port = url.port ? Number(url.port) : (isHttps ? 443 : 80);
+    const requestHeaders = { ...(headers || {}) };
+    if (!requestHeaders.Host && !requestHeaders.host) {
+      requestHeaders.Host = LARAVEL_FETCH_HOST || url.host;
+    }
+
+    const requestModule = isHttps ? https : http;
+    const reqOptions = {
+      protocol: url.protocol,
+      hostname: LARAVEL_FETCH_FORCE_ADDRESS,
+      port,
+      method: 'GET',
+      path: `${url.pathname}${url.search}`,
+      headers: requestHeaders,
+      timeout: timeoutMs,
+      ...(isHttps
+        ? {
+            servername: url.hostname,
+            rejectUnauthorized: true,
+            checkServerIdentity: (_host, cert) => tls.checkServerIdentity(url.hostname, cert),
+          }
+        : {}),
+    };
+
+    if (DEBUG_WS) {
+      console.log('[WS] fetch forced connect', {
+        url: url.toString(),
+        connectTo: `${LARAVEL_FETCH_FORCE_ADDRESS}:${port}`,
+        sni: isHttps ? url.hostname : undefined,
+      });
+    }
+
+    return await new Promise((resolve, reject) => {
+      const req = requestModule.request(reqOptions, (res) => {
+        const status = res.statusCode || 0;
+        const chunks = [];
+        res.on('data', (c) => chunks.push(c));
+        res.on('end', () => {
+          const raw = Buffer.concat(chunks).toString('utf8');
+          if (status < 200 || status >= 300) {
+            reject(new Error(`HTTP ${status}`));
+            return;
+          }
+          try {
+            resolve(JSON.parse(raw));
+          } catch (e) {
+            reject(e);
+          }
+        });
+      });
+      req.on('timeout', () => req.destroy(new Error('Connect/Read Timeout')));
+      req.on('error', reject);
+      req.end();
+    });
+  }
+
+  // Ruta normal: fetch estándar con AbortController
+  const controller = new AbortController();
+  const clear = withTimeoutAbort(controller, timeoutMs);
+  try {
+    const res = await fetch(url, { signal: controller.signal, headers: headers || {} });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  } finally {
+    clear();
+  }
+}
 const API_ENDPOINTS = {
-  [PATHS.departments]: `${LARAVEL_URL.replace(/\/$/, '')}/api/departments/chart`,
-  [PATHS.stats]: `${LARAVEL_URL.replace(/\/$/, '')}/api/stats`,
-  [PATHS.municipalities]: `${LARAVEL_URL.replace(/\/$/, '')}/api/municipalities/chart`,
+  [PATHS.departments]: `${LARAVEL_FETCH_URL.replace(/\/$/, '')}/api/departments/chart`,
+  [PATHS.stats]: `${LARAVEL_FETCH_URL.replace(/\/$/, '')}/api/stats`,
+  [PATHS.municipalities]: `${LARAVEL_FETCH_URL.replace(/\/$/, '')}/api/municipalities/chart`,
 };
 // Por defecto sin polling; solo push vía /notify
 const POLL_MS = Number(process.env.POLL_MS || 0);
 // Timeout para requests al backend Laravel durante el push
-const FETCH_TIMEOUT_MS = Number(process.env.FETCH_TIMEOUT_MS || 4000);
+// Nota: en producción algunos endpoints pueden tardar >4s.
+// Sube este valor si ves "This operation was aborted" en el log.
+const FETCH_TIMEOUT_MS = Number(process.env.FETCH_TIMEOUT_MS || 15000);
 
 const server = http.createServer(async (req, res) => {
   // Basic health check endpoint
@@ -127,20 +223,28 @@ wss.on('connection', (ws) => {
         else if (typeof v === 'string' && v !== '') url.searchParams.append(k, v);
       });
       // Timeout controlado para evitar colgar el notify
-      const controller = new AbortController();
-      const tm = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
       const headers = WEBSOCKET_API_KEY ? { 'X-WS-KEY': WEBSOCKET_API_KEY } : {};
-      const res = await fetch(url, { signal: controller.signal, headers });
-      clearTimeout(tm);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = await res.json();
+      if (LARAVEL_FETCH_HOST) headers.Host = LARAVEL_FETCH_HOST;
+      const startedAt = Date.now();
+      const json = await fetchJson(url, { headers, timeoutMs: FETCH_TIMEOUT_MS });
+      if (DEBUG_WS) {
+        console.log('[WS] fetch ok', {
+          url: url.toString(),
+          ms: Date.now() - startedAt,
+        });
+      }
       const payload = JSON.stringify(json);
       if (ws.readyState === 1) ws.send(payload);
     } catch (err) {
-      const message = err?.message || String(err);
+      const message = String(err?.message || err || '');
       const cause = err?.cause?.message || err?.cause;
       const url = targetUrl ? String(targetUrl) : undefined;
-      console.error('[WS] poll error:', { message, url, cause });
+      const isAbort = err?.name === 'AbortError' || /aborted/i.test(message);
+      if (isAbort) {
+        console.error('[WS] poll timeout (aborted):', { message, url, cause, timeoutMs: FETCH_TIMEOUT_MS });
+      } else {
+        console.error('[WS] poll error:', { message, url, cause });
+      }
       // Importante: re-lanzar para que /notify pueda reportar fallos reales
       throw err;
     }

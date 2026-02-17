@@ -303,6 +303,13 @@ class SystemSettingsEditScreen extends Screen
         DB::statement('ALTER TABLE incidents AUTO_INCREMENT = 1;');
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
     }
+    public function clearDeviceChecksTable(): void
+    {
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        DB::table('device_checks')->truncate();
+        DB::statement('ALTER TABLE device_checks AUTO_INCREMENT = 1;');
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+    }
     /**
      * Clear the database tables related to the import
      *
@@ -313,6 +320,7 @@ class SystemSettingsEditScreen extends Screen
     {
 
         $this->clearIncidentsTable();
+        $this->clearDeviceChecksTable();
         $this->clearDeviceTable();
         $this->clearDivipoleTable();
         $this->clearDepartmentsTable();

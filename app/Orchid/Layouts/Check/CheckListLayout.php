@@ -39,44 +39,17 @@ class CheckListLayout extends Table
         return [
             TD::make('id', 'ID')
                     ->align(TD::ALIGN_CENTER),
-            TD::make('department', __('Department'))
-                ->filter(
-                    Relation::make('department')
-                        ->fromModel(Department::class, 'name','name')
-                        ->multiple()
-                ),
-            TD::make('municipality', __('Municipality'))
-                ->filter(
-                    Relation::make('municipality')
-                        ->fromModel(Municipality::class, 'name','name')
-                        ->multiple()
-                ),
+            TD::make('department', __('Department')),
+            TD::make('municipality', __('Municipality')),
             TD::make('position_name', __('Position'))
                 ->width('220px')
-                ->filter(
-                    Relation::make('position_name')
-                        ->fromModel(Divipole::class, 'position_name','position_name')
-                        ->multiple()
-                )->filterValue(function ($value) {
+                ->filterValue(function ($value) {
                         if (is_array($value)) {
                             return implode(', ', array_map(fn($v) => mb_strimwidth($v, 0, 20, '...'), $value));
                         }
                 }),
             TD::make('operative', __('Operative'))
                 ->sort()
-                ->filter(
-                    Relation::make('operative')
-                        ->fromModel(User::class, 'name')
-                        ->applyScope('agents')
-                        ->multiple()
-                        ->value(function () {
-                            $operative = request()->query('filter', [])['operative'] ?? null;
-                            if ($operative) {
-                                return is_array($operative) ? $operative : explode(',', $operative);
-                            }
-                            return null;
-                        })
-                )
                 ->filterValue(function ($value) {
                     if (is_array($value)) {
                         $names = User::whereIn('id', $value)->pluck('name')->toArray();
@@ -101,13 +74,7 @@ class CheckListLayout extends Table
                         ->multiple()
                 ),
             TD::make('created_at', __('Report date'))
-                ->width('160px')
-                ->filter(
-                    // Use 'created_at' as filter key so model filters are applied
-                    DateTimer::make('created_at')
-                        ->format('Y-m-d')
-                        ->multiple()
-                )
+                ->width('230px')
                 ->render(function(Check $check) {
                     if (! $check->created_at) {
                         return null;
@@ -119,9 +86,12 @@ class CheckListLayout extends Table
                     $first = mb_substr($formatted, 0, 1, 'UTF-8');
                     $rest  = mb_substr($formatted, 1, null, 'UTF-8');
 
-                    return mb_strtoupper($first, 'UTF-8') . $rest;
+                    $text = mb_strtoupper($first, 'UTF-8') . $rest;
+
+                    return '<span class="no-word-cut">' . e($text) . '</span>';
                 }),
             TD::make('distance', __('Distance').' (m)')
+            ->width('160px')
             ->filter(
                 Select::make()
                     ->options([
@@ -143,6 +113,7 @@ class CheckListLayout extends Table
                     ]);
                 })->alignCenter(),
             TD::make('report_time', __('Scheduled Time'))
+            ->width('160px')
             ->filter(
                 DateTimer::make('report_time')
                     ->noCalendar()
@@ -161,13 +132,16 @@ class CheckListLayout extends Table
                 return $t->format('h:i:s a');
             }),
             TD::make('time', __('Report hour'))
+            ->width('160px')
             ->render(function (Check $check) {
                 $t = is_string($check->time)
                     ? Carbon::createFromFormat('H:i:s', $check->time)
                     : Carbon::parse($check->time);
                 return $t->format('h:i:s a');
             }),
-            TD::make('time_difference_minutes', __('Time difference (minutes)'))->alignCenter()
+            TD::make('time_difference_minutes', __('Time difference (minutes)'))
+                ->alignCenter()
+                ->width('160px')
                 ->render(function(Check $check) {
                     if($check->type === 'checkout'){
                         return $this->badge([
@@ -182,16 +156,10 @@ class CheckListLayout extends Table
                 }),
             TD::make('code', __('Position code'))
                 ->filter(TD::FILTER_TEXT)
+                ->width('160px')
                 ->alignCenter(),
             TD::make('type', __('Report type'))
-                ->filter(
-                    Select::make()
-                        ->options([
-                            'checkin'  => __('Arrival'),
-                            'checkout' => __('Departure'),
-                        ])
-                        ->empty(__('All'))
-                )
+                ->width('160px')
                 ->filterValue(fn($value) => match ($value) {
                     'checkin' => __('Arrival'),
                     'checkout' => __('Departure'),

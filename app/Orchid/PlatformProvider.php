@@ -106,7 +106,8 @@ class PlatformProvider extends OrchidServiceProvider
             ItemPermission::group(__('Divipole'))
                 ->addPermission('platform.systems.divipoles.edit', __('Edit Divipoles')),
             ItemPermission::group(__('Devices'))
-                ->addPermission('platform.systems.devices.edit', __('Edit Devices')),
+                ->addPermission('platform.systems.devices.edit', __('Edit Devices'))
+                ->addPermission('platform.systems.devices.show-all', __('Show all Devices')),
             ItemPermission::group(__('Dashboard'))
                 ->addPermission('platform.systems.dashboard', __('Dashboard'))
                 ->addPermission('platform.systems.dashboard.realtime', __('Real-time Data'))

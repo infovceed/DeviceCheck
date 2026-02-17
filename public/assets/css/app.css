@@ -30,3 +30,8 @@
 .text-grey {
     color: #DBDBDB !important;
 }
+.no-word-cut {
+    word-break: normal !important;
+    overflow-wrap: normal !important;
+    white-space: normal !important;
+}

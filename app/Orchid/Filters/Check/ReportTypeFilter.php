@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Orchid\Filters;
+namespace App\Orchid\Filters\Check;
 
 use Orchid\Screen\Field;
 use Orchid\Filters\Filter;
 use Orchid\Screen\Fields\Select;
 use Illuminate\Database\Eloquent\Builder;
 
-class PageFilter extends Filter
+class ReportTypeFilter extends Filter
 {
     /**
      * The displayable name of the filter.
@@ -16,7 +16,7 @@ class PageFilter extends Filter
      */
     public function name(): string
     {
-        return 'Page Filter';
+        return 'Report Type';
     }
 
     /**
@@ -27,7 +27,7 @@ class PageFilter extends Filter
     public function parameters(): ?array
     {
         return [
-            'filter.page',
+            'filter.type',
         ];
     }
 
@@ -52,16 +52,14 @@ class PageFilter extends Filter
     public function display(): iterable
     {
         return [
-            Select::make('perPage')
-                    ->id('perPage-select')
-                    ->title(__('Records per page'))
-                    ->options([
-                        15  => '15',
-                        30  => '30',
-                        45  => '45',
-                        60  => '60',
-                    ])
-                    ->value(request()->input('perPage', 50))
+            Select::make('filter[type]')
+                ->title(__('Report Type'))
+                ->options([
+                    'checkin'  => __('Arrival'),
+                    'checkout' => __('Departure'),
+                ])
+                ->empty(__('All'))
+                ->value($this->request->input('filter.type')),
         ];
     }
 }

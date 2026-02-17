@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Orchid\Filters;
+namespace App\Orchid\Filters\Check;
 
 use App\Models\User;
 use Orchid\Screen\Field;
@@ -65,7 +65,6 @@ class OperativeFilter extends Filter
                         }
                         return null;
                     })
-                    ->help(__('Choose one or more operatives.'))
         ];
     }
 }

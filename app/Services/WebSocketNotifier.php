@@ -30,13 +30,20 @@ class WebSocketNotifier
             ]);
             return false;
         }
-        if (!$this->isRelayHealthy($base)) {
+        $healthyBase = $this->firstHealthyBase([
+            $base,
+            $this->localRelayBaseUrl(),
+        ]);
+        if (!$healthyBase) {
             return false;
         }
+        $base = $healthyBase;
+
         $ok = false;
         foreach ($paths as $p) {
             try {
-                $res = Http::timeout(2)->get(rtrim($base, '/') . '/notify', ['path' => $p]);
+                $res = Http::connectTimeout(1)->timeout(3)
+                    ->get(rtrim($base, '/') . '/notify', ['path' => $p]);
                 if ($res->ok()) {
                     $ok = true;
                 }
@@ -47,43 +54,75 @@ class WebSocketNotifier
         return $ok;
     }
 
-    private function isRelayHealthy(string $base): bool
+    private function localRelayBaseUrl(): ?string
     {
-        try {
-            $health = Http::timeout(1)->get(rtrim($base, '/') . '/health');
-            if (!$health->ok()) {
-                logger()->info('WS notify skipped: relay unhealthy');
-                return false;
-            }
-        } catch (\Throwable $e) {
-            logger()->info('WS notify skipped: relay unreachable (' . $e->getMessage() . ')');
-            return false;
+        $port = (int) env('WEBSOCKET_PORT', 8001);
+        if ($port <= 0) {
+            return null;
         }
-        return true;
+        return 'http://127.0.0.1:' . $port;
+    }
+
+    /**
+     * @param array<int,?string> $bases
+     */
+    private function firstHealthyBase(array $bases): ?string
+    {
+        $lastError = null;
+        foreach ($bases as $base) {
+            $base = trim((string) $base);
+            if ($base === '') {
+                continue;
+            }
+            try {
+                $health = Http::connectTimeout(1)->timeout(2)
+                    ->get(rtrim($base, '/') . '/health');
+                if ($health->ok()) {
+                    return $base;
+                }
+                $lastError = 'HTTP ' . $health->status();
+            } catch (\Throwable $e) {
+                $lastError = $e->getMessage();
+            }
+        }
+
+        logger()->info('WS notify skipped: relay unreachable (' . ($lastError ?? 'unknown') . ')');
+        return null;
     }
 
     private function resolveNotifyBaseUrl(?string $notifyBase, ?string $wsUrl): ?string
     {
-        if ($notifyBase) {
-            return rtrim($notifyBase);
+        $base = null;
+
+        $notifyBase = trim((string) $notifyBase);
+        if ($notifyBase !== '') {
+            $base = rtrim($notifyBase, '/');
+        } else {
+            $wsUrl = trim((string) $wsUrl);
+            if ($wsUrl !== '') {
+                // Si viene sin esquema (ej: "54.197.2.159:8001"), parse_url no detecta host.
+                // Prefijamos con ws:// solo para poder extraer host/puerto.
+                $toParse = preg_match('/^[a-z][a-z0-9+.-]*:\/\//i', $wsUrl) ? $wsUrl : ('ws://' . $wsUrl);
+                $parts = parse_url($toParse);
+
+                $scheme = $parts['scheme'] ?? 'ws';
+                $httpScheme = 'http';
+                if ($scheme === 'wss' || $scheme === 'https') {
+                    $httpScheme = 'https';
+                }
+
+                $host = $parts['host'] ?? null;
+                if ($host === 'localhost') {
+                    $host = '127.0.0.1';
+                }
+                $port = isset($parts['port']) ? (":" . $parts['port']) : '';
+
+                if ($host) {
+                    $base = $httpScheme . '://' . $host . $port;
+                }
+            }
         }
 
-        $wsUrl = trim((string) $wsUrl);
-        if ($wsUrl === '') {
-            return null;
-        }
-
-        // Si viene sin esquema (ej: "54.197.2.159:8001"), parse_url no detecta host.
-        // Prefijamos con ws:// solo para poder extraer host/puerto.
-        $toParse = preg_match('/^[a-z][a-z0-9+.-]*:\/\//i', $wsUrl) ? $wsUrl : ('ws://' . $wsUrl);
-
-        $parts = parse_url($toParse);
-        $scheme = $parts['scheme'] ?? 'ws';
-        $httpScheme = $scheme === 'wss' ? 'https' : ($scheme === 'https' ? 'https' : 'http');
-        $host = $parts['host'] ?? null;
-        if ($host === 'localhost') {$host = '127.0.0.1';}
-        $port = isset($parts['port']) ? (":" . $parts['port']) : '';
-        if (!$host) {return null;}
-        return $httpScheme . '://' . $host . $port;
+        return $base;
     }
 }
