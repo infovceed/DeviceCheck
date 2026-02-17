@@ -198,7 +198,7 @@ class CheckListScreen extends Screen
      */
     public function layout(): iterable
     {
-
+        $layout[]  = Layout::view('partials.auto-filter-enable');
         $layout[]  = new CheckFiltersLayout();
         $layout[]  = (new CheckListLayout())->title(__('Reported Devices'));
         $filters   = request()->query('filter', []);

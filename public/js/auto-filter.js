@@ -84,22 +84,3 @@
     initAutoFilter();
   }
 })();
-
-document.addEventListener("DOMContentLoaded", () => {
-    initPerPageSelect();
-});
-document.addEventListener("turbo:load", () => {
-    initPerPageSelect();
-});
-
-function initPerPageSelect() {
-    const perPageSelect = document.getElementById('perPage-select');
-    if (perPageSelect && !perPageSelect.dataset.listenerAttached) {
-        perPageSelect.addEventListener('change', function() {
-            let currentUrl = new URL(window.location.href);
-            currentUrl.searchParams.set('perPage', this.value);
-            Turbo.visit(currentUrl.toString(), { action: "replace" });
-        });
-        perPageSelect.dataset.listenerAttached = true;
-    }
-}
