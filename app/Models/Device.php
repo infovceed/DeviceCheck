@@ -49,6 +49,11 @@ class Device extends Model
         'updated_at'    => Where::class,
         'is_backup'     => Where::class,
     ];
+
+    protected $allowedSorts = [
+        'report_time',
+        'report_time_departure',
+    ];
     public function user()
     {
         return $this->belongsTo(User::class);

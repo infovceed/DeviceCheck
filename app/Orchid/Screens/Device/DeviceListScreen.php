@@ -188,9 +188,11 @@ class DeviceListScreen extends Screen
                     ->width('120px')                
                     ->render(fn(Device $device) => $device->longitude ?? '(N/A)'),
                 TD::make('report_time', __('Report time (Arrival)'))
+                    ->sort()
                     ->width('120px')
                     ->render(fn(Device $device) => $device->report_time ?? __('Not Reported')),
                 TD::make('report_time_departure', __('Report time (Departure)'))
+                    ->sort()
                     ->width('150px')
                     ->render(fn(Device $device) => $device->report_time_departure ?? __('Not Reported')),
                 /*TD::make('is_backup', __('Is Backup'))
