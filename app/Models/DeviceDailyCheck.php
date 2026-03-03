@@ -5,7 +5,6 @@ namespace App\Models;
 use Orchid\Screen\AsSource;
 use Orchid\Filters\Filterable;
 use Orchid\Filters\Types\WhereIn;
-use App\Filters\Types\WhereDateIn;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 

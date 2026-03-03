@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Orchid\Screen\AsSource;
 use Orchid\Filters\Filterable;
+use Orchid\Filters\Types\Where;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
@@ -24,10 +25,9 @@ class DeviceWithLocation extends Model
         'report_time'           => 'datetime:H:i:s',
         'report_time_departure' => 'datetime:H:i:s',
     ];
-
-    protected $fillable = [
-        'id', 'tel', 'device_key', 'report_time', 'report_time_departure',
-        'position_name', 'code', 'department', 'municipality'
+    protected $allowedFilters = [
+        'report_time'           => Where::class,
+        'report_time_departure' => Where::class,
     ];
 
     /**

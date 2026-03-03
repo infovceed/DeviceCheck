@@ -32,6 +32,7 @@ class CheckDateFilter extends Filter
     {
         return [
             DateTimer::make('filter[created_at]')
+                ->multiple()
                 ->format('Y-m-d')
                 ->value(request('filter.created_at', now()->toDateString()))
                 ->title($this->name()),

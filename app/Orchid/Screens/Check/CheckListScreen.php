@@ -2,34 +2,32 @@
 
 namespace App\Orchid\Screens\Check;
 
-use App\Models\User;
-use App\Models\Check;
-use App\Models\Device;
-use Orchid\Screen\Screen;
-use Illuminate\Http\Request;
 use App\Exports\ChecksExport;
-use App\Traits\ComponentsTrait;
-use Orchid\Screen\Actions\Link;
-use Orchid\Screen\Fields\Group;
+use App\Jobs\NotifyUserOfCompletedExport;
+use App\Models\Check;
+use App\Models\Department;
+use App\Models\Device;
 use App\Models\DeviceDailyCheck;
-use Orchid\Screen\Fields\Select;
-use Orchid\Screen\Actions\Button;
-use Orchid\Support\Facades\Alert;
-use Orchid\Support\Facades\Toast;
 use App\Models\DeviceWithLocation;
+use App\Notifications\DashboardNotification;
+use App\Orchid\Layouts\Check\CheckFiltersLayout;
+use App\Orchid\Layouts\Check\CheckListLayout;
+use App\Orchid\Layouts\Check\DepartmentSummaryLayout;
+use App\Orchid\Layouts\Check\MissingDevicesLayout;
+use App\Traits\ComponentsTrait;
+use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Orchid\Screen\Fields\Relation;
-use Orchid\Support\Facades\Layout;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\URL;
 use Maatwebsite\Excel\Facades\Excel;
+use Orchid\Screen\Actions\Button;
+use Orchid\Screen\Actions\Link;
 use Orchid\Screen\Actions\ModalToggle;
-use App\Jobs\NotifyUserOfCompletedExport;
-use App\Notifications\DashboardNotification;
-use App\Orchid\Layouts\Check\CheckListLayout;
-use App\Orchid\Layouts\Check\CheckFiltersLayout;
-use App\Orchid\Layouts\Check\MissingDevicesLayout;
-use App\Orchid\Layouts\Check\DepartmentSummaryLayout;
+use Orchid\Screen\Screen;
+use Orchid\Support\Facades\Alert;
+use Orchid\Support\Facades\Layout;
+use Orchid\Support\Facades\Toast;
 
 class CheckListScreen extends Screen
 {
@@ -56,8 +54,20 @@ class CheckListScreen extends Screen
      
         $filters = request()->query('filter', []);
         // Summary of departments
-        $showSummary = !empty($filters['department']) && isset($filters['type']) && !empty($filters['type']) && isset($filters['created_at']) && !empty($filters['created_at']);
+        $showSummary = isset($filters['type']) && !empty($filters['type']) && isset($filters['created_at']) && !empty($filters['created_at']);
         if ($showSummary) {
+            if (empty($filters['department'])) {
+                $departments = Department::query()
+                    ->when(auth()->user()->hasAccess('platform.systems.devices.show-department'), function ($query) {
+                        $departmentId = auth()->user()->department_id;
+                        if ($departmentId) {
+                            $query->where('id', $departmentId);
+                        }
+                    })
+                    ->pluck('name')
+                    ->toArray();
+                $filters['department'] = $departments;
+            }
             if (!empty($filters['created_at']) && empty($filters['check_day'])) {
                 $inputFilters = request()->input('filter', $filters);
                 $inputFilters['check_day'] = $filters['created_at'];
@@ -83,7 +93,7 @@ class CheckListScreen extends Screen
             $query->groupBy('department', 'municipality')
                 ->orderBy('department');
             $summaryPage = request()->input('summaryPage', 1);
-            $paginated = $query->paginate(15, ['*'], 'summaryPage', $summaryPage);
+            $paginated = $query->paginate(40, ['*'], 'summaryPage', $summaryPage);
             $paginated->appends(request()->except(['summaryPage']));
             $transformed = $this->buildDepartmentSummary($paginated->getCollection());
             $paginated->setCollection($transformed);
@@ -103,6 +113,7 @@ class CheckListScreen extends Screen
             $deptNames = (array)$filters['department'];
             $missingPage = request()->input('missingPage', 1);
             $missing = DeviceWithLocation::missingFor($deptNames, $type, $dates)
+                ->filters()
                 ->paginate(15, ['*'], 'missingPage', $missingPage);
             $missing->appends(request()->except(['missingPage']));
             $data['missingDevices'] = $missing;
@@ -178,7 +189,7 @@ class CheckListScreen extends Screen
         $path      = "exports/{$fileName}";
 
         $ttl = (int) config('export.signed_url_ttl', 60 * 24);
-        $downloadUrl = \Illuminate\Support\Facades\URL::temporarySignedRoute(
+        $downloadUrl = URL::temporarySignedRoute(
             'exports.download',
             now()->addMinutes($ttl),
             ['path' => $path]
@@ -202,7 +213,7 @@ class CheckListScreen extends Screen
         $layout[]  = new CheckFiltersLayout();
         $layout[]  = (new CheckListLayout())->title(__('Reported Devices'));
         $filters   = request()->query('filter', []);
-        $showSummary = !empty($filters['department']) && isset($filters['type']) && !empty($filters['type']) && isset($filters['created_at']) && !empty($filters['created_at']);
+        $showSummary = isset($filters['type']) && !empty($filters['type']) && isset($filters['created_at']) && !empty($filters['created_at']);
 
         if ($showSummary) {
             $layout[] = Layout::split([
@@ -246,7 +257,7 @@ class CheckListScreen extends Screen
         return $rows->map(function ($row) {
             $pending = max(0, $row->total - $row->reported);
             $pctReported = $row->total > 0 ? round(($row->reported / $row->total) * 100, 2) : 0;
-            $pctPending = 100 - $pctReported;
+            $pctPending = round(100 - $pctReported, 2);
             return (object) [
                 'id'           => $row->id,
                 'department'   => $row->name,

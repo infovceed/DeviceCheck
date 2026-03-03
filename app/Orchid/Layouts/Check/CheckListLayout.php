@@ -38,7 +38,7 @@ class CheckListLayout extends Table
     {
         return [
             TD::make('id', 'ID')
-                    ->align(TD::ALIGN_CENTER),
+                    ->align(TD::ALIGN_CENTER)->width('100px'),
             TD::make('department', __('Department')),
             TD::make('municipality', __('Municipality')),
             TD::make('position_name', __('Position'))
@@ -50,6 +50,7 @@ class CheckListLayout extends Table
                 }),
             TD::make('operative', __('Operative'))
                 ->sort()
+                ->width('120px')
                 ->filterValue(function ($value) {
                     if (is_array($value)) {
                         $names = User::whereIn('id', $value)->pluck('name')->toArray();

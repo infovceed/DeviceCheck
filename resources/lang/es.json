@@ -349,5 +349,6 @@
     "An error occurred while processing the file.": "Ocurrió un error procesando el archivo.",
     "Real-time Data": "Datos en tiempo real",
     "Select Department and Municipality first": "Seleccione primero Departamento y Municipio",
-    "Report Type": "Tipo de reporte"
+    "Report Type": "Tipo de reporte",
+    "departments": "departamentos"
 }
