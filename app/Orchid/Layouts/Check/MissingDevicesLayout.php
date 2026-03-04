@@ -18,10 +18,10 @@ class MissingDevicesLayout extends Table
             TD::make('code', __('Position code'))->width('150px'),
             TD::make('tel', __('Mobile'))->width('120px'),
             TD::make('device_key', __('Key'))->width('100px'),
-            TD::make('report_time', __('Report time (Arrival)'))
+            TD::make('report_time_arrival', __('Report time (Arrival)'))
                 ->width('180px')
                 ->render(function ($row) {
-                    return $row->report_time ? \Carbon\Carbon::parse($row->report_time)->format('H:i:s') : null;
+                    return $row->report_time_arrival ? \Carbon\Carbon::parse($row->report_time_arrival)->format('H:i:s') : null;
                 }),
             TD::make('report_time_departure', __('Report time (Departure)'))
                 ->width('180px')

@@ -2,11 +2,12 @@
 
 namespace App\Models;
 
-use Orchid\Screen\AsSource;
-use Orchid\Filters\Filterable;
-use Orchid\Filters\Types\WhereIn;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Orchid\Filters\Filterable;
+use Orchid\Filters\Types\Where;
+use Orchid\Filters\Types\WhereIn;
+use Orchid\Screen\AsSource;
 
 class DeviceDailyCheck extends Model
 {
@@ -15,5 +16,7 @@ class DeviceDailyCheck extends Model
         'department'    => WhereIn::class,
         'municipality'  => WhereIn::class,
         'check_day'     => WhereIn::class,
+        'report_time_arrival'   => Where::class,
+        'report_time_departure' => Where::class,
     ];
 }

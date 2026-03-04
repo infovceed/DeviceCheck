@@ -53,6 +53,15 @@ class CheckListScreen extends Screen
         $data['checks'] = $checks;
      
         $filters = request()->query('filter', []);
+        if(isset($filters['type']) && $filters['type']=='checkin' && !empty($filters['report_time'])) {
+            $addFilters['report_time_arrival'] = $filters['report_time'];
+            $addFilters= array_merge($filters, $addFilters);
+            request()->merge(['filter' => $addFilters]);
+        } elseif (isset($filters['type']) && $filters['type']=='checkout' && !empty($filters['report_time'])) {
+            $addFilters['report_time_departure'] = $filters['report_time'];
+            $addFilters = array_merge($filters, $addFilters);
+            request()->merge(['filter' => $addFilters]);
+        }
         // Summary of departments
         $showSummary = isset($filters['type']) && !empty($filters['type']) && isset($filters['created_at']) && !empty($filters['created_at']);
         if ($showSummary) {
@@ -112,8 +121,7 @@ class CheckListScreen extends Screen
             $type = is_array($filters['type']) ? reset($filters['type']) : $filters['type'];
             $deptNames = (array)$filters['department'];
             $missingPage = request()->input('missingPage', 1);
-            $missing = DeviceWithLocation::missingFor($deptNames, $type, $dates)
-                ->filters()
+            $missing = DeviceWithLocation::missingFor($deptNames, $type, $dates, $filters)
                 ->paginate(15, ['*'], 'missingPage', $missingPage);
             $missing->appends(request()->except(['missingPage']));
             $data['missingDevices'] = $missing;

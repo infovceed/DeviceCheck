@@ -12,6 +12,8 @@ return new class extends Migration {
             SELECT
                 d.id AS device_id,
                 d.tel,
+                d.report_time AS report_time_arrival,
+                d.report_time_departure AS report_time_departure,
                 dpt.name AS department,
                 m.name AS municipality,
                 cd.date_value AS check_day,
@@ -25,7 +27,7 @@ return new class extends Migration {
             LEFT JOIN divipoles dv ON dv.id = d.divipole_id
             LEFT JOIN departments dpt ON dpt.id = dv.department_id
             LEFT JOIN municipalities m ON m.id = dv.municipality_id
-            GROUP BY d.id, d.tel, dpt.name, m.name, cd.date_value
+            GROUP BY d.id, d.tel,d.report_time , d.report_time_departure , dpt.name, m.name, cd.date_value
         SQL);
     }
 
