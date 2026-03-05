@@ -5,7 +5,7 @@ use App\Http\Middleware\AuthenticateStorage;
 use App\Http\Controllers\ExportController;
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route(auth()->check() ? config('platform.index') : 'platform.login');
 });
 Route::get('/storage/{any}',function ($any) {
     return $any;
