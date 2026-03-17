@@ -144,15 +144,22 @@ class CheckListLayout extends Table
                 ->alignCenter()
                 ->width('160px')
                 ->render(function(Check $check) {
+                    if (is_string($check->time_difference_minutes)) {
+                        $minutes = floatval($check->time_difference_minutes);
+                    } elseif (is_numeric($check->time_difference_minutes)) {
+                        $minutes = floatval($check->time_difference_minutes);
+                    } else {
+                        return $check->time_difference_minutes;
+                    }
                     if($check->type === 'checkout'){
                         return $this->badge([
-                        'text'  => abs($check->time_difference_minutes),
-                        'color' => $check->time_difference_minutes > 0 ? 'success' : 'danger',
+                        'text'  => abs($minutes),
+                        'color' => $minutes > 0 ? 'success' : 'danger',
                         ]);
                     }
                     return $this->badge([
-                        'text'  => abs($check->time_difference_minutes),
-                        'color' => $check->time_difference_minutes < 1 ? 'success' : 'danger',
+                        'text'  => abs($minutes),
+                        'color' => $minutes < 1 ? 'success' : 'danger',
                     ]);
                 }),
             TD::make('code', __('Position code'))

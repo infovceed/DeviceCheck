@@ -3,6 +3,7 @@
 namespace App\Orchid\Screens\Check;
 
 use App\Exports\ChecksExport;
+use App\Jobs\RunReportDeviceDailyExport;
 use App\Jobs\NotifyUserOfCompletedExport;
 use App\Models\Check;
 use App\Models\Department;
@@ -15,8 +16,10 @@ use App\Orchid\Layouts\Check\CheckListLayout;
 use App\Orchid\Layouts\Check\DepartmentSummaryLayout;
 use App\Orchid\Layouts\Check\MissingDevicesLayout;
 use App\Traits\ComponentsTrait;
+use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
@@ -170,6 +173,12 @@ class CheckListScreen extends Screen
                 ->method('export', [
                     'filter' => request()->query('filter', []),
                 ]),
+            Button::make(__('Export totals'))
+                ->icon('download')
+                ->canSee(auth()->user()->hasAccess('platform.systems.report-download'))
+                ->method('exportTotals', [
+                    'filter' => request()->query('filter', []),
+                ]),
                 Link::make(__('Refresh'))
                 ->icon('bs.arrow-clockwise')
                 ->route('platform.systems.devices-check'),
@@ -206,6 +215,75 @@ class CheckListScreen extends Screen
             ->chain([
                 new NotifyUserOfCompletedExport($user, $downloadUrl, $fileName),
             ]);
+
+        Toast::info(__('Your export has started. We will notify you when it finishes.'));
+    }
+
+    public function exportTotals(Request $request)
+    {
+        $user = auth()->user();
+        if (! $user->hasAccess('platform.systems.report-download')) {
+            Alert::error('You do not have permission to export.');
+            return;
+        }
+
+        $filters = $request->input('filter', $request->query('filter', []));
+        $dates = $filters['created_at'] ?? null;
+
+        if (is_string($dates)) {
+            $dates = array_filter(array_map('trim', explode(',', $dates)));
+        }
+
+        $dates = array_values(array_filter((array) $dates, static fn ($d) => is_string($d) && trim($d) !== ''));
+
+        if (empty($dates)) {
+            Alert::error(__('Select one or more report dates to export totals.'));
+            return;
+        }
+
+        $parsed = [];
+        foreach ($dates as $date) {
+            try {
+                $parsed[] = \Carbon\Carbon::createFromFormat('Y-m-d', $date);
+            } catch (\Throwable $e) {
+                logger()->error('Invalid date format for export totals: '.$date, ['exception' => $e]);
+            }
+        }
+
+        if (empty($parsed)) {
+            Alert::error(__('Invalid report date selection.'));
+            return;
+        }
+
+        $sorted = collect($parsed)
+            ->sortBy(static fn (\Carbon\Carbon $date) => $date->timestamp)
+            ->values();
+
+        $start = $sorted->first()->copy()->startOfDay();
+        $end = $sorted->last()->copy()->endOfDay();
+
+        $user->notify(new DashboardNotification(
+            __('Excel export started'),
+            __('We are generating your Excel file. You will be notified when it is ready.'),
+        ));
+
+        $timestamp = now()->format('Ymd_His');
+        $dateRange = $start->format('Ymd').'_'.$end->format('Ymd');
+        $fileName  = "device_daily_report_{$dateRange}_{$timestamp}.xlsx";
+        $disk      = 'public';
+        $path      = "exports/device_report/{$fileName}";
+
+        $ttl = (int) config('export.signed_url_ttl', 60 * 24);
+        $downloadUrl = URL::temporarySignedRoute(
+            'exports.download',
+            now()->addMinutes($ttl),
+            ['path' => $path]
+        );
+
+        Bus::chain([
+            new RunReportDeviceDailyExport($start->toDateString(), $end->toDateString(), $disk, $path),
+            new NotifyUserOfCompletedExport($user, $downloadUrl, $fileName),
+        ])->dispatch();
 
         Toast::info(__('Your export has started. We will notify you when it finishes.'));
     }

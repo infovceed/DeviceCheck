@@ -122,6 +122,23 @@ class Check extends Model
                 }
                 continue;
             }
+
+            if ($filterClass === WhereCreatedOnIn::class) {
+                // Reutiliza lógica similar a la clase de filtro custom (OR por fecha)
+                $dates = $valueParts->map(fn($d) => trim($d))
+                    ->filter(fn($d) => preg_match('/^\d{4}-\d{2}-\d{2}$/', $d))
+                    ->unique();
+                if ($dates->isNotEmpty()) {
+                    // Asume que el view/tabla expone una columna created_on (DATE indexable)
+                    $query->where(function($q) use ($dates) {
+                        foreach ($dates as $d) {
+                            $q->orWhereDate('created_on', $d);
+                        }
+                    });
+                }
+                continue;
+            }
+
         }
         return $query;
     }
