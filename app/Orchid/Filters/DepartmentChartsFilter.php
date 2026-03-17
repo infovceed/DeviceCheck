@@ -77,10 +77,10 @@ class DepartmentChartsFilter extends Filter
      */
     public function value(): string
     {
-        $departments=Department::whereIn('id', (array)$this->request->get('department'))
+        $departments = Department::whereIn('id', (array)$this->request->get('department'))
             ->orderBy('name', 'asc')
             ->pluck('name')
             ->join(', ');
-        return $this->name().': '.$departments;
+        return $this->name() . ': ' . $departments;
     }
 }

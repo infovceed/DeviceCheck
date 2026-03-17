@@ -90,9 +90,9 @@ class MunicipalityCheckFilter extends Filter
         $selected = (array) $this->request->input('filter.municipality');
         $selected = array_values(array_unique(array_filter(array_map('trim', $selected))));
         if (empty($selected)) {
-            return $this->name().': '.__('All');
+            return $this->name() . ': ' . __('All');
         }
 
-        return $this->name().': '.implode(', ', $selected);
+        return $this->name() . ': ' . implode(', ', $selected);
     }
 }

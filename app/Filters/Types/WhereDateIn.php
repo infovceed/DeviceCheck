@@ -27,8 +27,7 @@ class WhereDateIn extends BaseHttpEloquentFilter
         }
         return $builder->where(function ($q) use ($values) {
             $values->each(fn($value) =>
-                $q->orWhereDate($this->column, $value)
-            );
+                $q->orWhereDate($this->column, $value));
         });
     }
 }

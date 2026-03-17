@@ -10,7 +10,9 @@ use Carbon\Carbon;
 
 class DeviceCheck extends Model
 {
-    use HasFactory,Filterable,AsSource;
+    use HasFactory;
+    use Filterable;
+    use AsSource;
 
     /**
      * Automatically set the "time" column to the HH:MM:SS of creation.
@@ -64,14 +66,13 @@ class DeviceCheck extends Model
         return $this->belongsTo(Divipole::class);
     }
 
-    public static function saveReport(array $deviceData):Device
+    public static function saveReport(array $deviceData): Device
     {
         $device = Device::query()
                     ->where('imei', $deviceData['imei'])
                 ->first(['id']);
         if (!$device) {
             throw new \Exception("Device not found", 1);
-            
         }
         self::create([
             'device_id' => $device->id,

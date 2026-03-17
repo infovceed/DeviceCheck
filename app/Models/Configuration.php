@@ -18,7 +18,4 @@ class Configuration extends Model
         'Devices_file',
 
     ];
-
-
-
 }

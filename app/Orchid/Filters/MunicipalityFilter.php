@@ -59,7 +59,7 @@ class MunicipalityFilter extends Filter
     public function display(): array
     {
         $departmentID = (array) $this->request->get('department');
-        if(count($departmentID) === 0){
+        if (count($departmentID) === 0) {
             return [
                 Select::make('municipality')
                     ->options(['' => __('Select Department first')])
@@ -95,8 +95,8 @@ class MunicipalityFilter extends Filter
     {
         $selected = (array) $this->request->get('municipality');
         if (empty($selected)) {
-            return $this->name().': All';
+            return $this->name() . ': All';
         }
-        return $this->name().': '.implode(', ', $selected);
+        return $this->name() . ': ' . implode(', ', $selected);
     }
 }

@@ -12,16 +12,18 @@ use App\Notifications\DashboardNotification;
 
 class NotifyUserOfCompletedImport implements ShouldQueue
 {
-    use Queueable, SerializesModels;
+    use Queueable;
+    use SerializesModels;
 
     /**
      * Create a new job instance.
      */
     public function __construct(
         private User $user,
-        private string $title='Import completed',
-        private string $message='The import has been completed successfully.'
-    ){}
+        private string $title = 'Import completed',
+        private string $message = 'The import has been completed successfully.'
+    ) {
+    }
 
     /**
      * Execute the job.

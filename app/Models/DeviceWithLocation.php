@@ -9,7 +9,9 @@ use Orchid\Screen\AsSource;
 
 class DeviceWithLocation extends Model
 {
-    use Filterable,AsSource;
+    use Filterable;
+    use AsSource;
+
     protected $table = 'devices_with_locations';
 
     public $timestamps = false;
@@ -56,10 +58,10 @@ class DeviceWithLocation extends Model
                     ->where('c.type', '=', $type)
                     ->whereIn('c.created_on', $dates);
             })
-            ->when($type=='checkin'&& isset($filters['report_time']), function ($query) use ($filters) {
+            ->when($type == 'checkin' && isset($filters['report_time']), function ($query) use ($filters) {
                 $query->where('report_time', $filters['report_time']);
             })
-            ->when($type=='checkout' && isset($filters['report_time']), function ($query) use ($filters) {
+            ->when($type == 'checkout' && isset($filters['report_time']), function ($query) use ($filters) {
                 $query->where('report_time_departure', $filters['report_time']);
             })
             ->when(isset($filters['municipality']), function ($query) use ($filters) {

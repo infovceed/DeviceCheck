@@ -41,6 +41,6 @@ class ChartDateFilter extends Filter
     public function value(): string
     {
         $v = $this->request->get('chart_date');
-        return $v ? $this->name().': '.$v : '';
+        return $v ? $this->name() . ': ' . $v : '';
     }
 }

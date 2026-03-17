@@ -46,13 +46,14 @@ class DeviceFilter extends Filter
     {
         $f = $this->request->input('filter');
         return $builder
-        ->when($f['municipality.name'] ?? null,
+        ->when(
+            $f['municipality.name'] ?? null,
             fn($q, $v) => $q->whereHas('divipole.municipality', fn($q) => $q->where('name', 'like', "%{$v}%"))
         )
-        ->when($f['department.name'] ?? null,
+        ->when(
+            $f['department.name'] ?? null,
             fn($q, $v) => $q->whereHas('divipole.department', fn($q) => $q->where('name', 'like', "%{$v}%"))
-    );
-
+        );
     }
 
     /**

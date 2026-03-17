@@ -14,7 +14,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Department extends Model
 {
-    use HasFactory,AsSource, Filterable;
+    use HasFactory;
+    use AsSource;
+    use Filterable;
 
     protected $fillable = [
         'id',
@@ -57,7 +59,7 @@ class Department extends Model
      * @param float $minutes cache duration
      * @return array [labels, totals, reporteds]
      */
-    public static function getChartData(string $date,array $departmentID = [],array $municipality = [],array $position = [], float $minutes = 1): array
+    public static function getChartData(string $date, array $departmentID = [], array $municipality = [], array $position = [], float $minutes = 1): array
     {
          $query = DB::table('departments')
                     ->leftJoin('divipoles', 'departments.id', '=', 'divipoles.department_id')
@@ -142,6 +144,4 @@ class Department extends Model
             $rows->pluck('reported_checkout')->toArray(),
         ];
     }
-
-
 }

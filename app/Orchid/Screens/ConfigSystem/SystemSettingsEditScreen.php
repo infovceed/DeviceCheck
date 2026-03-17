@@ -178,13 +178,13 @@ class SystemSettingsEditScreen extends Screen
      * @return \Illuminate\Http\RedirectResponse
      */
 
-    public function saveConfig(Request $request,$fill): void
+    public function saveConfig(Request $request, $fill): void
     {
         DB::beginTransaction();
             $configuration = Configuration::first();
-            if (!$configuration) {
-                $configuration = new Configuration();
-            }
+        if (!$configuration) {
+            $configuration = new Configuration();
+        }
             $configuration->fill($fill);
             $configuration->save();
             $attachments = $this->getAttachments($request);
@@ -201,11 +201,10 @@ class SystemSettingsEditScreen extends Screen
             'department_file' => $request->input('department_attachment.0'),
         ]);
         $this->clearDepartmentsTable();
-        $data=$request->all();
-        $data['userId']=$request->user()->id;
+        $data = $request->all();
+        $data['userId'] = $request->user()->id;
         DepartmentFileAction::dispatch($data);
         Toast::info(__('Configuration saved'));
-
     }
     public function clearDepartmentsTable()
     {
@@ -224,8 +223,8 @@ class SystemSettingsEditScreen extends Screen
             'municipality_file' => $request->input('municipality_attachment.0'),
         ]);
         $this->clearMunicipalitiesTable();
-        $data=$request->all();
-        $data['userId']=$request->user()->id;
+        $data = $request->all();
+        $data['userId'] = $request->user()->id;
         MunicipalityFileAction::dispatch($data);
         Toast::info(__('Configuration saved'));
     }
@@ -250,13 +249,12 @@ class SystemSettingsEditScreen extends Screen
             'municipality_file' => $request->input('municipality_attachment.0'),
         ]) ;
         $this->clearDivipoleTable();
-        $data=$request->all();
-        $data['route']=$request->route()->getName();
-        $data['file']=$request->file('file');
-        $data['userId']=$request->user()->id;
+        $data = $request->all();
+        $data['route'] = $request->route()->getName();
+        $data['file'] = $request->file('file');
+        $data['userId'] = $request->user()->id;
         DivipoleFileAction::dispatch($data);
         Toast::info(__('Configuration saved'));
-
     }
     public function clearDivipoleTable(): void
     {
@@ -281,13 +279,12 @@ class SystemSettingsEditScreen extends Screen
             'Devices_file'     => $request->input('Devices_attachment.0'),
         ]) ;
         $this->clearDeviceTable();
-        $data=$request->all();
-        $data['route']=$request->route()->getName();
-        $data['file']=$request->file('file');
-        $data['userId']=$request->user()->id;
+        $data = $request->all();
+        $data['route'] = $request->route()->getName();
+        $data['file'] = $request->file('file');
+        $data['userId'] = $request->user()->id;
         DevicesFileAction::dispatch($data);
         Toast::info(__('Configuration saved'));
-
     }
     public function clearDeviceTable(): void
     {
@@ -330,12 +327,11 @@ class SystemSettingsEditScreen extends Screen
     public function getAttachments($request): array
     {
         return array_merge(
-                $request->input('attachment', []),
-                $request->input('department_attachment', []),
-                $request->input('municipality_attachment', []),
-                $request->input('divipole_attachment', []),
-                $request->input('Devices_attachment', []),
-
+            $request->input('attachment', []),
+            $request->input('department_attachment', []),
+            $request->input('municipality_attachment', []),
+            $request->input('divipole_attachment', []),
+            $request->input('Devices_attachment', []),
         );
     }
 }

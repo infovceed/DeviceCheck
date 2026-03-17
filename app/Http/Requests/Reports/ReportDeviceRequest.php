@@ -109,5 +109,4 @@ class ReportDeviceRequest extends FormRequest
             'message' => $message,
         ], 422));
     }
-
 }

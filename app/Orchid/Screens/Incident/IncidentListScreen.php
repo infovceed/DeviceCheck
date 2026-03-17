@@ -120,7 +120,7 @@ class IncidentListScreen extends Screen
             $messageDevice->save();
             $messageDevice->attachment()->sync($request->input('device.attachments', []));
             $myUser = auth()->user();
-            $superUser=User::where('id',1)->first();
+            $superUser = User::where('id', 1)->first();
             $superUser->notify(new NewMessage($device));
 
             $users = User::where('department_id', $myUser->department_id)
@@ -129,12 +129,12 @@ class IncidentListScreen extends Screen
                     $query->where('name', 'COORDINADOR');
                 })
                 ->get();
-            foreach ($users as $user) {
-                if(!$user->hasAccess('platform.systems.incidents.receive-notification')) {
-                    continue;
-                }
-                $user->notify(new NewMessage($device));
+        foreach ($users as $user) {
+            if (!$user->hasAccess('platform.systems.incidents.receive-notification')) {
+                continue;
             }
+            $user->notify(new NewMessage($device));
+        }
         DB::commit();
     }
 

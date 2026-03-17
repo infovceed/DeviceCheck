@@ -2,7 +2,6 @@
 
 namespace App\Imports;
 
-
 use App\Models\Municipality;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\ToModel;
@@ -12,9 +11,10 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithBatchInserts;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 
-class MunicipalityImport implements ToModel, WithHeadingRow, WithChunkReading, WithBatchInserts,ShouldQueue
+class MunicipalityImport implements ToModel, WithHeadingRow, WithChunkReading, WithBatchInserts, ShouldQueue
 {
     use Importable;
+
     /**
     * @param array $row
     *
@@ -27,7 +27,7 @@ class MunicipalityImport implements ToModel, WithHeadingRow, WithChunkReading, W
                 Log::info('Invalid row: ' . json_encode($row));
                 return null;
             }
-    
+
             return new Municipality([
                 'id'   => $row['id'],
                 'code' => $row['cod_mpio'],

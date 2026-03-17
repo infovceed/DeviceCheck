@@ -30,6 +30,7 @@ use App\Jobs\DeviceBulkUpdateJob;
 class DeviceListScreen extends Screen
 {
     use ComponentsTrait;
+
     /**
      * Fetch data to be displayed on the screen.
      *
@@ -87,7 +88,7 @@ class DeviceListScreen extends Screen
                 ->icon('download')
                 ->canSee(auth()->user()->hasAccess('platform.systems.devices.export'))
                 ->download()
-                ->method('export',[
+                ->method('export', [
                     'filter' => request()->query('filter', []),
                 ]),
             ModalToggle::make(__('Bulk Update by Excel'))
@@ -114,13 +115,12 @@ class DeviceListScreen extends Screen
                         ModalToggle::make((string)$device->id)
                             ->modal('editDeviceModal')
                             ->method('update', ['device' => $device->id])
-                            ->asyncParameters(['device' => $device->id])
-                    ),
+                            ->asyncParameters(['device' => $device->id])),
                 TD::make('department', __('Department'))
                     ->sort()
                     ->filter(
                         Relation::make('department')
-                            ->fromModel(Department::class, 'name','name')
+                            ->fromModel(Department::class, 'name', 'name')
                             ->multiple()
                     )
                     ->render(fn(Device $device) => $device->divipole->department->name ?? ''),
@@ -128,7 +128,7 @@ class DeviceListScreen extends Screen
                     ->sort()
                     ->filter(
                         Relation::make('municipality')
-                            ->fromModel(Municipality::class, 'name','name')
+                            ->fromModel(Municipality::class, 'name', 'name')
                             ->multiple()
                     )
                     ->render(fn(Device $device) => $device->divipole->municipality->name ?? ''),
@@ -137,12 +137,12 @@ class DeviceListScreen extends Screen
                     ->width('220px')
                     ->filter(
                         Relation::make('position_name')
-                            ->fromModel(Divipole::class, 'position_name','position_name')
+                            ->fromModel(Divipole::class, 'position_name', 'position_name')
                             ->multiple()
                     )->filterValue(function ($value) {
-                            if (is_array($value)) {
-                                return implode(', ', array_map(fn($v) => mb_strimwidth($v, 0, 10, '...'), $value));
-                            }
+                        if (is_array($value)) {
+                            return implode(', ', array_map(fn($v) => mb_strimwidth($v, 0, 10, '...'), $value));
+                        }
                     })
                     ->render(fn(Device $device) => $device->divipole->position_name ?? ''),
                 TD::make('operative', __('Operative'))
@@ -185,7 +185,7 @@ class DeviceListScreen extends Screen
                     ->width('120px')
                     ->render(fn(Device $device) => $device->latitude ?? '(N/A)'),
                 TD::make('longitude', __('Longitud'))
-                    ->width('120px')                
+                    ->width('120px')
                     ->render(fn(Device $device) => $device->longitude ?? '(N/A)'),
                 TD::make('report_time', __('Report time (Arrival)'))
                     ->sort()
@@ -219,7 +219,7 @@ class DeviceListScreen extends Screen
                                 'text'  => __('Yes'),
                                 'color' => 'success',
                             ]);
-                        } 
+                        }
                         return $this->badge([
                                 'text'  => __('No'),
                                 'color' => 'secondary',
@@ -272,7 +272,7 @@ class DeviceListScreen extends Screen
                             ? Link::make(__('Incidents'))
                                 ->route('platform.systems.incidents', ['device' => $device->id])
                                 ->icon('bs.pencil')
-                                ->canSee(auth()->user()->hasAccess('platform.systems.incidents.report')&&config('incidents.enabled'))
+                                ->canSee(auth()->user()->hasAccess('platform.systems.incidents.report') && config('incidents.enabled'))
                             : null,
 
                         ModalToggle::make(__('Edit'))
@@ -288,8 +288,7 @@ class DeviceListScreen extends Screen
                         config('incidents.enabled') &&
                         auth()->user()->hasAccess('platform.systems.incidents.report')
                     ) ||
-                    auth()->user()->hasAccess('platform.systems.devices.edit')
-                ),
+                    auth()->user()->hasAccess('platform.systems.devices.edit')),
                 ]),
             Layout::modal('editDeviceModal', [
                 EditDeviceModalLayout::class
@@ -310,14 +309,12 @@ class DeviceListScreen extends Screen
     public function create(Request $request): void
     {
         try {
-
             Toast::info(__('Device report was created successfully.'));
         } catch (\Exception $e) {
             Log::error($e);
             Alert::error(__('There was an error creating the Device report. Please try again.'));
             return;
         }
-
     }
     public function asyncGetDevice(Device $device)
     {
@@ -372,18 +369,17 @@ class DeviceListScreen extends Screen
             Alert::error(__('There was an error updating the Device report. Please try again.'));
             return;
         }
-
     }
     public function remove(Request $request): void
     {
         $device = Device::find($request->input('id'));
-        $device->updated_by=null;
+        $device->updated_by = null;
         $device->status = 0;
         $device->save();
         Toast::info(__('Device report was removed'));
     }
 
-    public function export(Request $request, array $filter = [] )
+    public function export(Request $request, array $filter = [])
     {
         $exportDir = storage_path('app/exports/Device_report');
         if (! file_exists($exportDir)) {
@@ -442,14 +438,14 @@ class DeviceListScreen extends Screen
             }
 
             $dir = 'imports/devices-bulk';
-            $name = 'bulk_'.date('Ymd_His').'_'.uniqid().'.'.$ext;
+            $name = 'bulk_' . date('Ymd_His') . '_' . uniqid() . '.' . $ext;
             $stored = $file->storeAs($dir, $name);
-            $storedPath = storage_path('app/'.$stored);
+            $storedPath = storage_path('app/' . $stored);
 
             DeviceBulkUpdateJob::dispatch($storedPath, auth()->user());
             Toast::info(__('File enqueued for processing. You will be notified when it finishes.'));
         } catch (\Throwable $e) {
-            Log::error('bulkUpdateFromExcel enqueue error: '.$e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            Log::error('bulkUpdateFromExcel enqueue error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             Alert::error(__('An error occurred while enqueuing the file.'));
             return;
         }

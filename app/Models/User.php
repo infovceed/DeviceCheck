@@ -18,7 +18,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class User extends Authenticatable implements UserInterface
 {
-    use AsSource, Chartable, Filterable, HasFactory, Notifiable, UserAccess;
+    use AsSource;
+    use Chartable;
+    use Filterable;
+    use HasFactory;
+    use Notifiable;
+    use UserAccess;
 
     /**
      * The attributes that are mass assignable.

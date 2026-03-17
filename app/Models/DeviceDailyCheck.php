@@ -11,7 +11,10 @@ use Orchid\Screen\AsSource;
 
 class DeviceDailyCheck extends Model
 {
-    use HasFactory,AsSource, Filterable;
+    use HasFactory;
+    use AsSource;
+    use Filterable;
+
     protected $allowedFilters = [
         'department'    => WhereIn::class,
         'municipality'  => WhereIn::class,

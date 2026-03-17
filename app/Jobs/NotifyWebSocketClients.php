@@ -11,7 +11,10 @@ use Illuminate\Queue\SerializesModels;
 
 class NotifyWebSocketClients implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable;
+    use InteractsWithQueue;
+    use Queueable;
+    use SerializesModels;
 
     /** @var array<int,string> */
     public array $paths;

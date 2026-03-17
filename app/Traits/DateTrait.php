@@ -7,8 +7,8 @@ use DateTimeZone;
 
 trait DateTrait
 {
-    
-    public function setTimezone($updated_at, $timezone) {
+    public function setTimezone($updated_at, $timezone)
+    {
         $date = new DateTime($updated_at);
         $date->setTimezone(new DateTimeZone($timezone));
         return $date;

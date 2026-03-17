@@ -12,7 +12,9 @@ use Illuminate\Database\Eloquent\Builder;
 
 class Municipality extends Model
 {
-    use HasFactory,AsSource, Filterable;
+    use HasFactory;
+    use AsSource;
+    use Filterable;
 
     protected $fillable = [
         'id',

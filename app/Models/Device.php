@@ -15,7 +15,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Device extends Model
 {
-    use HasFactory,Filterable,AsSource;
+    use HasFactory;
+    use Filterable;
+    use AsSource;
 
     protected $fillable = [
         'divipole_id',
@@ -122,5 +124,4 @@ class Device extends Model
         $device->status = true;
         $device->save();
     }
-
 }

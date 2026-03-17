@@ -13,6 +13,7 @@ class Incident extends Model
     use HasFactory;
     use Attachable;
     use Filterable;
+
     /**
      * The attributes for which you can use sorting in url.
      * @var array
@@ -50,4 +51,3 @@ class Incident extends Model
         return $this->message;
     }
 }
-

@@ -11,9 +11,10 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithBatchInserts;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 
-class DepartmentImport implements ToModel, WithHeadingRow, WithChunkReading, WithBatchInserts,ShouldQueue
+class DepartmentImport implements ToModel, WithHeadingRow, WithChunkReading, WithBatchInserts, ShouldQueue
 {
     use Importable;
+
     /**
     * @param array $row
     *
@@ -26,7 +27,7 @@ class DepartmentImport implements ToModel, WithHeadingRow, WithChunkReading, Wit
                 Log::info('Invalid row: ' . json_encode($row));
                 return null;
             }
-    
+
             return new Department([
                 'id' => $row['id'],
                 'code' => $row['cod_depto'],

@@ -74,13 +74,13 @@ class ReportDeviceDailyCommand extends Command
             $rows = $service->buildRows($startDate, $endDate);
 
             $this->info('Reporte diario de dispositivos');
-            $this->line('Rango: '.$startDate->format('d-m-Y').' a '.$endDate->format('d-m-Y'));
+            $this->line('Rango: ' . $startDate->format('d-m-Y') . ' a ' . $endDate->format('d-m-Y'));
 
             if ($output === 'table') {
                 $this->table($this->deviceReportHeaders(), $rows);
             } else {
                 $filePath = $this->exportDeviceReport($rows, $output, $startDate, $endDate, $disk ?? 'local', $path);
-                $this->line('Archivo generado: '.$filePath);
+                $this->line('Archivo generado: ' . $filePath);
             }
         }
 
@@ -182,9 +182,8 @@ class ReportDeviceDailyCommand extends Command
         Carbon $endDate,
         string $disk,
         ?string $path
-    ): string
-    {
-        $dateRange = $startDate->format('Ymd').'_'.$endDate->format('Ymd');
+    ): string {
+        $dateRange = $startDate->format('Ymd') . '_' . $endDate->format('Ymd');
         $timestamp = now()->format('His');
         $extension = $output === 'csv' ? 'csv' : 'xlsx';
 
@@ -205,7 +204,7 @@ class ReportDeviceDailyCommand extends Command
         if ($output === 'csv') {
             $file = fopen($filePath, 'w');
             if ($file === false) {
-                throw new RuntimeException('No fue posible crear el archivo CSV: '.$filePath);
+                throw new RuntimeException('No fue posible crear el archivo CSV: ' . $filePath);
             }
 
             fputcsv($file, $this->deviceReportHeaders());

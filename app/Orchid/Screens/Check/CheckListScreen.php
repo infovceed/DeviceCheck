@@ -35,6 +35,7 @@ use Orchid\Support\Facades\Toast;
 class CheckListScreen extends Screen
 {
     use ComponentsTrait;
+
     /**
      * Fetch data to be displayed on the screen.
      *
@@ -54,13 +55,13 @@ class CheckListScreen extends Screen
             ->defaultSort('id', 'asc')
             ->paginate($perPage);
         $data['checks'] = $checks;
-     
+
         $filters = request()->query('filter', []);
-        if(isset($filters['type']) && $filters['type']=='checkin' && !empty($filters['report_time'])) {
+        if (isset($filters['type']) && $filters['type'] == 'checkin' && !empty($filters['report_time'])) {
             $addFilters['report_time_arrival'] = $filters['report_time'];
-            $addFilters= array_merge($filters, $addFilters);
+            $addFilters = array_merge($filters, $addFilters);
             request()->merge(['filter' => $addFilters]);
-        } elseif (isset($filters['type']) && $filters['type']=='checkout' && !empty($filters['report_time'])) {
+        } elseif (isset($filters['type']) && $filters['type'] == 'checkout' && !empty($filters['report_time'])) {
             $addFilters['report_time_departure'] = $filters['report_time'];
             $addFilters = array_merge($filters, $addFilters);
             request()->merge(['filter' => $addFilters]);
@@ -132,7 +133,7 @@ class CheckListScreen extends Screen
             $data['missingDates']   = $dates;
         }
 
-        
+
         return $data;
     }
 
@@ -246,7 +247,7 @@ class CheckListScreen extends Screen
             try {
                 $parsed[] = \Carbon\Carbon::createFromFormat('Y-m-d', $date);
             } catch (\Throwable $e) {
-                logger()->error('Invalid date format for export totals: '.$date, ['exception' => $e]);
+                logger()->error('Invalid date format for export totals: ' . $date, ['exception' => $e]);
             }
         }
 
@@ -268,7 +269,7 @@ class CheckListScreen extends Screen
         ));
 
         $timestamp = now()->format('Ymd_His');
-        $dateRange = $start->format('Ymd').'_'.$end->format('Ymd');
+        $dateRange = $start->format('Ymd') . '_' . $end->format('Ymd');
         $fileName  = "device_daily_report_{$dateRange}_{$timestamp}.xlsx";
         $disk      = 'public';
         $path      = "exports/device_report/{$fileName}";
@@ -314,24 +315,22 @@ class CheckListScreen extends Screen
     public function create(Request $request): void
     {
         try {
-
             Toast::info(__('Device report was created successfully.'));
         } catch (\Exception $e) {
             Log::error($e);
             Alert::error(__('There was an error creating the Device report. Please try again.'));
             return;
         }
-
     }
     public function remove(Request $request): void
     {
         $device = Device::find($request->input('id'));
-        $device->updated_by=null;
+        $device->updated_by = null;
         $device->status = 0;
         $device->save();
         Toast::info(__('Device report was removed'));
     }
-    
+
     /**
      * Build department summary DTOs from query rows.
      *
@@ -356,5 +355,4 @@ class CheckListScreen extends Screen
             ];
         });
     }
-    
 }

@@ -53,7 +53,7 @@ class PositionCheckFilter extends Filter
     {
         $departments = (array) $this->request->input('filter.department');
         $municipalities = (array) $this->request->input('filter.municipality');
-        if(count($departments) === 0 || count($municipalities) === 0){
+        if (count($departments) === 0 || count($municipalities) === 0) {
             $options = ['' => __('Select Department and Municipality first')];
             return [
             Select::make('filter[position]')
@@ -62,16 +62,16 @@ class PositionCheckFilter extends Filter
                 ->value($this->request->get('filter.position'))
                 ->multiple()
                 ->title(__('Positions')),
-        ];
+            ];
         }
         $divipoles = Divipole::when($departments, function (Builder $query) use ($departments) {
             $query->whereHas('department', function (Builder $query) use ($departments) {
                     $query->whereIn('name', $departments);
-                });
+            });
         })->when($municipalities, function (Builder $query) use ($municipalities) {
             $query->whereHas('municipality', function (Builder $query) use ($municipalities) {
                     $query->whereIn('name', $municipalities);
-                });
+            });
         })->get();
         $options = $divipoles->pluck('position_name')->unique()->sort()->values()->mapWithKeys(function ($item) {
             return [$item => $item];
@@ -94,9 +94,9 @@ class PositionCheckFilter extends Filter
         $selected = (array) $this->request->input('filter.position_name');
         $selected = array_values(array_unique(array_filter(array_map('trim', $selected))));
         if (empty($selected)) {
-            return $this->name().': '.__('All');
+            return $this->name() . ': ' . __('All');
         }
 
-        return $this->name().': '.implode(', ', $selected);
+        return $this->name() . ': ' . implode(', ', $selected);
     }
 }

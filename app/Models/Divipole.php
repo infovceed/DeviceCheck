@@ -14,7 +14,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Divipole extends Model
 {
-    use HasFactory,Filterable,AsSource;
+    use HasFactory;
+    use Filterable;
+    use AsSource;
 
     protected $fillable = [
         'code',
@@ -35,7 +37,7 @@ class Divipole extends Model
         'code'            => Where::class,
         'operative'       => WhereUserIn::class,
         'position_name'   => Like::class,
-        'position_address'=> Like::class,
+        'position_address' => Like::class,
         'created_at'      => Where::class,
     ];
 

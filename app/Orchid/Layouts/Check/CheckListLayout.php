@@ -19,6 +19,7 @@ use Orchid\Screen\Fields\DateTimer;
 class CheckListLayout extends Table
 {
     use ComponentsTrait;
+
     /**
      * Data source.
      *
@@ -44,9 +45,9 @@ class CheckListLayout extends Table
             TD::make('position_name', __('Position'))
                 ->width('220px')
                 ->filterValue(function ($value) {
-                        if (is_array($value)) {
-                            return implode(', ', array_map(fn($v) => mb_strimwidth($v, 0, 20, '...'), $value));
-                        }
+                    if (is_array($value)) {
+                        return implode(', ', array_map(fn($v) => mb_strimwidth($v, 0, 20, '...'), $value));
+                    }
                 }),
             TD::make('operative', __('Operative'))
                 ->sort()
@@ -65,18 +66,18 @@ class CheckListLayout extends Table
                 ->width('120px')
                 ->filter(
                     Relation::make('tel')
-                        ->fromModel(Device::class, 'tel','tel')
+                        ->fromModel(Device::class, 'tel', 'tel')
                         ->multiple()
                 ),
             TD::make('device_key', __('Key'))
                 ->filter(
                     Relation::make('device_key')
-                        ->fromModel(Device::class, 'device_key','device_key')
+                        ->fromModel(Device::class, 'device_key', 'device_key')
                         ->multiple()
                 ),
             TD::make('created_at', __('Report date'))
                 ->width('230px')
-                ->render(function(Check $check) {
+                ->render(function (Check $check) {
                     if (! $check->created_at) {
                         return null;
                     }
@@ -91,7 +92,7 @@ class CheckListLayout extends Table
 
                     return '<span class="no-word-cut">' . e($text) . '</span>';
                 }),
-            TD::make('distance', __('Distance').' (m)')
+            TD::make('distance', __('Distance') . ' (m)')
             ->width('160px')
             ->filter(
                 Select::make()
@@ -106,11 +107,11 @@ class CheckListLayout extends Table
                 'gt' => 'Mayores a 500 m',
                 default => $value,
             })
-                ->render(function(Check $check) {
-                    $distance = $check->distance*1000;
+                ->render(function (Check $check) {
+                    $distance = $check->distance * 1000;
                     return $this->badge([
                         'text'  => $distance,
-                        'color' => $distance<500 ? 'success' : 'danger',
+                        'color' => $distance < 500 ? 'success' : 'danger',
                     ]);
                 })->alignCenter(),
             TD::make('report_time', __('Scheduled Time'))
@@ -143,7 +144,7 @@ class CheckListLayout extends Table
             TD::make('time_difference_minutes', __('Time difference (minutes)'))
                 ->alignCenter()
                 ->width('160px')
-                ->render(function(Check $check) {
+                ->render(function (Check $check) {
                     if (is_string($check->time_difference_minutes)) {
                         $minutes = floatval($check->time_difference_minutes);
                     } elseif (is_numeric($check->time_difference_minutes)) {
@@ -151,7 +152,7 @@ class CheckListLayout extends Table
                     } else {
                         return $check->time_difference_minutes;
                     }
-                    if($check->type === 'checkout'){
+                    if ($check->type === 'checkout') {
                         return $this->badge([
                         'text'  => abs($minutes),
                         'color' => $minutes > 0 ? 'success' : 'danger',
@@ -173,7 +174,7 @@ class CheckListLayout extends Table
                     'checkout' => __('Departure'),
                     default => $value,
                 })
-                ->render(function(Check $check) {
+                ->render(function (Check $check) {
                     return $this->badge([
                         'text'  => $check->type == 'checkin' ? __('Arrival') : __('Departure'),
                         'color' => $check->type == 'checkin' ? 'info' : 'warning',
@@ -186,5 +187,4 @@ class CheckListLayout extends Table
     {
         return true;
     }
-
 }

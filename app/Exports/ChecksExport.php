@@ -78,7 +78,7 @@ class ChecksExport implements FromQuery, WithHeadings, WithMapping, WithStyles, 
             __('Mobile'),
             __('Key'),
             __('Report date'),
-            __('Distance').' (m)',
+            __('Distance') . ' (m)',
             __('Report time'),
             __('Arrival time'),
             __('Time difference (minutes)'),
@@ -105,7 +105,7 @@ class ChecksExport implements FromQuery, WithHeadings, WithMapping, WithStyles, 
             $check->type_label,
         ];
     }
-    
+
     public function styles(Worksheet $sheet): array
     {
         return [

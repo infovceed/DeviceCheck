@@ -12,13 +12,17 @@ use App\Notifications\DashboardNotification;
 
 class NotifyUserOfCompletedExport implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable;
+    use InteractsWithQueue;
+    use Queueable;
+    use SerializesModels;
 
     public function __construct(
         private User $user,
         private string $downloadUrl,
         private string $fileName
-    ){}
+    ) {
+    }
 
     public function handle(): void
     {

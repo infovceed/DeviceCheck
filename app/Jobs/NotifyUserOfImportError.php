@@ -12,13 +12,15 @@ use App\Notifications\DashboardNotification;
 
 class NotifyUserOfImportError implements ShouldQueue
 {
-    use Queueable, SerializesModels;
+    use Queueable;
+    use SerializesModels;
 
     public function __construct(
         private User $user,
         private string $title = 'Error en importación',
         private string $message = ''
-    ) {}
+    ) {
+    }
 
     public function handle(): void
     {

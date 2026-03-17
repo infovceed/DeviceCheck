@@ -61,7 +61,7 @@ class DepartmentListScreen extends Screen
                     ->sort()
                     ->filter(
                         Relation::make('department')
-                            ->fromModel(Department::class, 'name','name')
+                            ->fromModel(Department::class, 'name', 'name')
                     ),
                 TD::make('code', __('Code'))
                     ->sort()

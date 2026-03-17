@@ -13,6 +13,7 @@ use Illuminate\Contracts\Filesystem\FileNotFoundException;
 class DepartmentFileAction
 {
     use AsAction;
+
     private $model;
     public function __construct()
     {
@@ -21,15 +22,15 @@ class DepartmentFileAction
     public function handle(array $arguments)
     {
         $configuration = Configuration::first();
-        $attachmentID=$configuration->department_file;
-        $attachment = $configuration->attachment()->where('attachments.id',$attachmentID)->get();
+        $attachmentID = $configuration->department_file;
+        $attachment = $configuration->attachment()->where('attachments.id', $attachmentID)->get();
         if (!$attachment) {
             throw new FileNotFoundException('Attachment not found.');
         }
-        $path="app\\public\\".str_replace('/','\\',$attachment[0]->path);
-        //en linux usar:$path = "app/public/" . $attachment[0]->path; 
-        $file=storage_path($path.$attachment[0]->name.'.'.$attachment[0]->extension);
-        if(!file_exists($file)){
+        $path = "app\\public\\" . str_replace('/', '\\', $attachment[0]->path);
+        //en linux usar:$path = "app/public/" . $attachment[0]->path;
+        $file = storage_path($path . $attachment[0]->name . '.' . $attachment[0]->extension);
+        if (!file_exists($file)) {
             throw new FileNotFoundException();
         }
         $user = User::find($arguments['userId']);

@@ -20,6 +20,7 @@ use App\Orchid\Filters\TerritoryFilter;
 class DivipoleListScreen extends Screen
 {
     use ComponentsTrait;
+
     /**
      * Base permission required to access this screen.
      */
@@ -223,7 +224,7 @@ class DivipoleListScreen extends Screen
             'divipole.position_name'    => ['required', 'string', 'max:255'],
             'divipole.position_address' => ['required', 'string', 'max:500'],
         ]);
-        
+
         $divipole                   = Divipole::findOrFail($id);
         $divipole->department_id    = $dep;
         $divipole->municipality_id  = $mun;

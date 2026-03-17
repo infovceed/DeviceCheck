@@ -42,6 +42,6 @@ class CheckDateFilter extends Filter
     public function value(): string
     {
         $v = $this->request->input('created_at');
-        return $v ? $this->name().': '.$v : '';
+        return $v ? $this->name() . ': ' . $v : '';
     }
 }

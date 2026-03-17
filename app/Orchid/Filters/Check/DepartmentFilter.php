@@ -67,7 +67,7 @@ class DepartmentFilter extends Filter
     {
         return [
             Select::make('filter[department]')
-                ->fromModel(Department::class, 'name','name')
+                ->fromModel(Department::class, 'name', 'name')
                 ->empty(__('All Departments'))
                 ->multiple()
                 ->title(__('Departments'))
@@ -91,7 +91,7 @@ class DepartmentFilter extends Filter
         $selected = (array) $this->request->input('filter.department');
         $selected = array_values(array_unique(array_filter(array_map('trim', $selected))));
         if (empty($selected)) {
-            return $this->name().': '.__('All');
+            return $this->name() . ': ' . __('All');
         }
 
         $departments = Department::whereIn('name', $selected)
@@ -99,6 +99,6 @@ class DepartmentFilter extends Filter
             ->pluck('name')
             ->join(', ');
 
-        return $this->name().': '.$departments;
+        return $this->name() . ': ' . $departments;
     }
 }

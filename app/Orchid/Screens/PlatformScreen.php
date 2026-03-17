@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Orchid\Screens;
 
-
 use Orchid\Screen\TD;
 use App\Models\Device;
 use Orchid\Screen\Screen;
@@ -33,7 +32,7 @@ class PlatformScreen extends Screen
         $positions      = request('position', []);
         $incidents      = Device::getIncidentsOpen();
         $date           = request('chart_date', now()->toDateString());
-        [$labels, $valuesTotal, $valuesReported, $reportedCheckout] = Department::getChartData($date, $departmentID, $municipalities,$positions );
+        [$labels, $valuesTotal, $valuesReported, $reportedCheckout] = Department::getChartData($date, $departmentID, $municipalities, $positions);
 
         $totalReportedIn  = array_sum($valuesReported);
         $totalReportedOut = array_sum($reportedCheckout);
@@ -60,7 +59,7 @@ class PlatformScreen extends Screen
             ['labels' => $labels, 'name' => __('Arrival'),'values' => $valuesReported],
             ['labels' => $labels, 'name' => __('Check-out'),'values' => $reportedCheckout],
         ];
-        $totalDevices  = array_sum($valuesTotal)??0;
+        $totalDevices  = array_sum($valuesTotal) ?? 0;
         $reportedIn    = array_sum($valuesReported) ?? 0;
         $reportedOut   = array_sum($reportedCheckout) ?? 0;
         $unreportedIn  = max(0, $totalDevices - $reportedIn);
@@ -367,8 +366,7 @@ class PlatformScreen extends Screen
                     TD::make('Device_id', __('Write'))
                         ->render(fn($inc) => Link::make('')
                             ->route('platform.systems.incidents', ['device' => $inc->device_id])
-                            ->icon('bs.pencil')
-                        ),
+                            ->icon('bs.pencil')),
                 ])->title(__('Incidents')),
                 Layout::view('components.dashboard.empty'),
             ])->ratio('70/30'),

@@ -20,7 +20,8 @@ use Illuminate\Validation\Rule;
 
 class DevicesImport implements ToModel, WithHeadingRow, WithChunkReading, WithBatchInserts, WithValidation, SkipsOnFailure, ShouldQueue
 {
-    use Importable, SkipsFailures;
+    use Importable;
+    use SkipsFailures;
 
     private User $user;
     private array $seenTel = [];
@@ -62,7 +63,7 @@ class DevicesImport implements ToModel, WithHeadingRow, WithChunkReading, WithBa
             dispatch(new NotifyUserOfImportError(
                 $this->user,
                 'Error en importación de dispositivos',
-                'Se produjo un error procesando un registro: '.$e->getMessage()
+                'Se produjo un error procesando un registro: ' . $e->getMessage()
             ));
             return null;
         }

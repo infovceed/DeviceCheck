@@ -19,6 +19,7 @@ use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 class DivipoleImport implements ToModel, WithHeadingRow, WithChunkReading, WithBatchInserts, ShouldQueue, WithValidation, SkipsOnFailure
 {
     use Importable;
+
     private User $user;
     public function __construct(User $user)
     {
@@ -39,7 +40,7 @@ class DivipoleImport implements ToModel, WithHeadingRow, WithChunkReading, WithB
                     'department_id'   => $row['departamento_id'],
                     'code'            => $row['codigo'],
                     'position_name'   => $row['nombre_puesto'],
-                    'position_address'=> $row['direccion_puesto'],
+                    'position_address' => $row['direccion_puesto'],
                     'created_by'      => 1,
                     'updated_by'      => 1,
                     'updated_at'      => now(),

@@ -13,6 +13,7 @@ use Orchid\Platform\Notifications\DashboardMessage;
 class DashboardNotification extends Notification
 {
     use Queueable;
+
     private $title;
     private $message;
     private $route;

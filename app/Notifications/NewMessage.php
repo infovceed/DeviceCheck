@@ -15,12 +15,13 @@ use Orchid\Platform\Notifications\DashboardMessage;
 class NewMessage extends Notification
 {
     use Queueable;
+
     private $device;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct( Device $device)
+    public function __construct(Device $device)
     {
 
         $this->device = $device;
@@ -45,8 +46,8 @@ class NewMessage extends Notification
                  ? route('platform.systems.incidents', ['device' => $this->device->id])
                  : route('platform.systems.devices');
 
-             return (new DashboardMessage)
-                    ->title(__('New message in device').': '.$this->device->divipole->code)
+             return (new DashboardMessage())
+                    ->title(__('New message in device') . ': ' . $this->device->divipole->code)
                     ->message(__('You have a new message in the device. Click to view the message.'))
                     ->action($action);
     }

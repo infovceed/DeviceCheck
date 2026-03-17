@@ -68,7 +68,7 @@ class PositionFilter extends Filter
     {
         $departmentID = (array) $this->request->get('department');
         $municipalities = (array) $this->request->get('municipality');
-        if(count($departmentID) === 0 || count($municipalities) === 0){
+        if (count($departmentID) === 0 || count($municipalities) === 0) {
             $options = ['' => __('Select Department and Municipality first')];
             return [
             Select::make('position')
@@ -77,12 +77,12 @@ class PositionFilter extends Filter
                 ->value($this->request->get('position'))
                 ->multiple()
                 ->title(__('Positions')),
-        ];
+            ];
         }
         $divipoles = Divipole::when($departmentID, function (Builder $query) {
             $query->whereHas('department', function (Builder $query) {
                     $query->whereIn('id', (array)$this->request->get('department'));
-                });
+            });
         })->when($municipalities, function (Builder $query) {
             $query->whereHas('municipality', function (Builder $query) {
                 $query->whereIn('name', (array)$this->request->get('municipality'));
@@ -108,8 +108,8 @@ class PositionFilter extends Filter
     {
         $selected = (array) $this->request->get('position');
         if (empty($selected)) {
-            return $this->name().': All';
+            return $this->name() . ': All';
         }
-        return $this->name().': '.implode(', ', $selected);
+        return $this->name() . ': ' . implode(', ', $selected);
     }
 }

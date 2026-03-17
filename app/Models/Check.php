@@ -19,9 +19,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Check extends Model
 {
-    use HasFactory,Filterable,AsSource;
+    use HasFactory;
+    use Filterable;
+    use AsSource;
 
-    
+
 
     /**
      * Virtual attributes appended to array / JSON.
@@ -59,7 +61,7 @@ class Check extends Model
      */
     public static function applyAllowedFilters($query, array $filters)
     {
-        foreach ((new self)->allowedFilters as $column => $filterClass) {
+        foreach ((new self())->allowedFilters as $column => $filterClass) {
             if (!array_key_exists($column, $filters) || $filters[$column] === null || $filters[$column] === '') {
                 continue;
             }
@@ -85,9 +87,9 @@ class Check extends Model
             }
             if ($filterClass === Like::class) {
                 // Si vienen múltiples valores aplicamos OR LIKE
-                $query->where(function($q) use ($column, $valueParts) {
+                $query->where(function ($q) use ($column, $valueParts) {
                     foreach ($valueParts as $part) {
-                        $q->orWhere($column, 'like', '%'.$part.'%');
+                        $q->orWhere($column, 'like', '%' . $part . '%');
                     }
                 });
                 continue;
@@ -98,7 +100,7 @@ class Check extends Model
                     ->filter(fn($d) => preg_match('/^\d{4}-\d{2}-\d{2}$/', $d))
                     ->unique();
                 if ($dates->isNotEmpty()) {
-                    $query->where(function($q) use ($dates, $column) {
+                    $query->where(function ($q) use ($dates, $column) {
                         foreach ($dates as $d) {
                             $q->orWhereDate($column, $d);
                         }
@@ -130,7 +132,7 @@ class Check extends Model
                     ->unique();
                 if ($dates->isNotEmpty()) {
                     // Asume que el view/tabla expone una columna created_on (DATE indexable)
-                    $query->where(function($q) use ($dates) {
+                    $query->where(function ($q) use ($dates) {
                         foreach ($dates as $d) {
                             $q->orWhereDate('created_on', $d);
                         }
@@ -138,7 +140,6 @@ class Check extends Model
                 }
                 continue;
             }
-
         }
         return $query;
     }

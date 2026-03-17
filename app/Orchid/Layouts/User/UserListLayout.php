@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+
 namespace App\Orchid\Layouts\User;
 
 use App\Models\User;
@@ -20,6 +21,7 @@ use Orchid\Screen\Components\Cells\DateTimeSplit;
 class UserListLayout extends Table
 {
     use DateTrait;
+
     /**
      * @var string
      */
@@ -60,8 +62,8 @@ class UserListLayout extends Table
                 ->filterValue(function ($value) {
                     return Department::where('id', $value)->first()?->name;
                 })
-                ->render(function (User $user){
-                    $department =$user->department;
+                ->render(function (User $user) {
+                    $department = $user->department;
                     return $department?->name ?? __('N/A');
                 }),
             TD::make('created_at', __('Created'))
@@ -69,14 +71,14 @@ class UserListLayout extends Table
                 ->defaultHidden()
                 ->sort()
                 ->asComponent(DateTimeSplit::class, [
-                    'value' =>fn($created_at)=>$this->setTimezone($created_at, config('app.timezone')),
+                    'value' => fn($created_at)=>$this->setTimezone($created_at, config('app.timezone')),
                 ]),
 
             TD::make('updated_at', __('Last edit'))
                 ->align(TD::ALIGN_RIGHT)
                 ->sort()
                 ->asComponent(DateTimeSplit::class, [
-                    'value' =>fn($updated_at)=>$this->setTimezone($updated_at, config('app.timezone')),
+                    'value' => fn($updated_at)=>$this->setTimezone($updated_at, config('app.timezone')),
                 ]),
 
             TD::make(__('Actions'))

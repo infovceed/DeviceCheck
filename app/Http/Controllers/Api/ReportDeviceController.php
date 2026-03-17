@@ -50,7 +50,6 @@ class ReportDeviceController extends Controller
                 'message' => __('An error occurred while processing the report. Please try again.'),
             ], 500);
         }
-        
     }
 
     /**

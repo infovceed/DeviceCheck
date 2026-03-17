@@ -14,7 +14,7 @@ use Maatwebsite\Excel\Concerns\WithValidation;
 use Maatwebsite\Excel\Concerns\WithBatchInserts;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 
-class UsersImport implements ToModel, WithHeadingRow, WithChunkReading, WithBatchInserts,ShouldQueue
+class UsersImport implements ToModel, WithHeadingRow, WithChunkReading, WithBatchInserts, ShouldQueue
 {
     use Importable;
 
@@ -26,7 +26,7 @@ class UsersImport implements ToModel, WithHeadingRow, WithChunkReading, WithBatc
     public function model(array $row)
     {
         try {
-            if($row['id'] == null || $row['id'] == ''|| $row['id'] == 1) {
+            if ($row['id'] == null || $row['id'] == '' || $row['id'] == 1) {
                 Log::warning('Skipping row with missing ID', ['row' => $row]);
                 return null;
             }
@@ -99,5 +99,4 @@ class UsersImport implements ToModel, WithHeadingRow, WithChunkReading, WithBatc
             'user.password.required'        => 'El campo PASSWORD es obligatorio.',
         ];
     }
-
 }

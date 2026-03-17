@@ -14,23 +14,24 @@ use Illuminate\Contracts\Filesystem\FileNotFoundException;
 class ImportFileAction
 {
     use AsAction;
+
     public function handle(array $request)
     {
         ini_set('memory_limit', '-1');
         $modelImport = $this->getImport($request['route']);
-        if($request['route']=="platform.settings" || $request['route']=="settings.import"){
+        if ($request['route'] == "platform.settings" || $request['route'] == "settings.import") {
             $configuration = Configuration::first();
-            $attachment=$configuration->attachment()->get();
+            $attachment = $configuration->attachment()->get();
             if (!$attachment) {
                 throw new FileNotFoundException('Attachment not found.');
             }
-            $path="app\\public\\".str_replace('/','\\',$attachment[0]->path);
-            $file=storage_path($path.$attachment[0]->name.'.'.$attachment[0]->extension);
-            if(!file_exists($file)){
+            $path = "app\\public\\" . str_replace('/', '\\', $attachment[0]->path);
+            $file = storage_path($path . $attachment[0]->name . '.' . $attachment[0]->extension);
+            if (!file_exists($file)) {
                 throw new FileNotFoundException();
             }
         }
-        
+
         $user = User::find($request['userId']);
         $user->notify(new DashboardNotification(__('Import started'), __('The import has started. You will be notified when it is completed.')));
         $modelImport->queue($file)->chain([

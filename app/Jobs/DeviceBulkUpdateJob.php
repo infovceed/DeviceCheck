@@ -13,16 +13,22 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class DeviceBulkUpdateJob implements ShouldQueue
 {
-    use Dispatchable, Queueable, SerializesModels;
+    use Dispatchable;
+    use Queueable;
+    use SerializesModels;
 
     public function __construct(
         private string $filePath,
         private User $user
-    ) {}
+    ) {
+    }
 
     public function handle(): void
     {
-        $updated = 0; $notFound = 0; $skipped = 0; $total = 0;
+        $updated = 0;
+        $notFound = 0;
+        $skipped = 0;
+        $total = 0;
         try {
             $reader = IOFactory::createReaderForFile($this->filePath);
             $reader->setReadDataOnly(true);
@@ -115,7 +121,7 @@ class DeviceBulkUpdateJob implements ShouldQueue
                 ])
             ));
         } catch (\Throwable $e) {
-            Log::error('DeviceBulkUpdateJob error: '.$e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            Log::error('DeviceBulkUpdateJob error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             dispatch(new NotifyUserOfImportError(
                 $this->user,
                 'Excel bulk update error',
