@@ -24,7 +24,6 @@ use Orchid\Screen\Actions\ModalToggle;
 use App\Services\DeviceReportQueryBuilder;
 use App\Orchid\Layouts\Device\Modal\EditDeviceModalLayout;
 use App\Orchid\Layouts\Device\Modal\BulkUpdateByExcelModalLayout;
-use PhpOffice\PhpSpreadsheet\IOFactory;
 use App\Jobs\DeviceBulkUpdateJob;
 
 class DeviceListScreen extends Screen
@@ -113,9 +112,9 @@ class DeviceListScreen extends Screen
                     ->align(TD::ALIGN_CENTER)
                     ->render(fn(Device $device) =>
                         ModalToggle::make((string)$device->id)
+                            ->asyncParameters(['device' => $device->id])
                             ->modal('editDeviceModal')
-                            ->method('update', ['device' => $device->id])
-                            ->asyncParameters(['device' => $device->id])),
+                            ->method('update', ['device' => $device->id])),
                 TD::make('department', __('Department'))
                     ->sort()
                     ->filter(
@@ -272,16 +271,16 @@ class DeviceListScreen extends Screen
                             ? Link::make(__('Incidents'))
                                 ->route('platform.systems.incidents', ['device' => $device->id])
                                 ->icon('bs.pencil')
-                                ->canSee(auth()->user()->hasAccess('platform.systems.incidents.report') && config('incidents.enabled'))
+                                ->canSee(auth()->user()->hasAccess('platform.systems.incidents.report'))
                             : null,
 
                         ModalToggle::make(__('Edit'))
                             ->icon('bs.pencil')
-                            ->modal('editDeviceModal')
-                            ->method('update', ['device' => $device->id])
                             ->asyncParameters([
                                 'device' => $device->id,
                             ])
+                            ->modal('editDeviceModal')
+                            ->method('update', ['device' => $device->id])
                             ->canSee(auth()->user()->hasAccess('platform.systems.devices.edit')),
                     ])))
                 ->canSee((

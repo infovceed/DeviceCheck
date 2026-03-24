@@ -53,11 +53,11 @@ class UserPresenter extends Presenter implements Personable, Searchable
      */
     public function image(): ?string
     {
-        return env('APP_URL') . '/assets/img/QR_oficial.svg';
+        return rtrim((string) config('app.url', ''), '/') . '/assets/img/QR_oficial.svg';
     }
     public function imageWhite(): ?string
     {
-        return env('APP_URL') . '/assets/img/QR_oficial.svg';
+        return rtrim((string) config('app.url', ''), '/') . '/assets/img/QR_oficial.svg';
     }
 
     /**

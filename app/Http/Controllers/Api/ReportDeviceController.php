@@ -15,16 +15,25 @@ class ReportDeviceController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(ReportDeviceRequest $request)
+    public function index(Request $request)
     {
 
+        //
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(ReportDeviceRequest $request)
+    {
         $deviceData = $request->validated();
         try {
-            $deviceID = DeviceCheck::saveReport($deviceData);
-            $device   = Device::find($deviceID)->first();
-            $divipole = $device?->divipole()->first();
-            $department   = $divipole?->department()->first()?->name;
-            $municipality = $divipole?->municipality()->first()?->name;
+            $device = Device::findByImeiWithLocation($deviceData);
+            $deviceData['device_id'] = $device->id;
+            DeviceCheck::createReport($deviceData);
+            $divipole     = $device?->divipole;
+            $department   = $divipole?->department?->name;
+            $municipality = $divipole?->municipality?->name;
             $position     = $divipole?->position_name;
 
             $lines = [
@@ -50,14 +59,6 @@ class ReportDeviceController extends Controller
                 'message' => __('An error occurred while processing the report. Please try again.'),
             ], 500);
         }
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
     }
 
     /**

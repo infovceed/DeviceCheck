@@ -31,7 +31,7 @@ class IncidentListScreen extends Screen
         $incidents = Incident::where('device_id', request()->route('device'))->get();
         $isOpen = Device::find(request()->route('device'))->status_incidents === 1;
         return [
-            'incidents' => $incidents ?: [] ,
+            'incidents' => $incidents,
             'isOpen' => $isOpen,
         ];
     }

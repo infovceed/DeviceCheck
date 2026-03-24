@@ -103,9 +103,7 @@ class DeviceBulkUpdateJob implements ShouldQueue
                 if ($hasImei) {
                     $device->imei = $imei;
                 }
-                if ($hasKey) {
-                    $device->device_key = $key;
-                }
+                $device->device_key = $key;
                 $device->updated_by = $this->user->id;
                 $device->save();
                 $updated++;

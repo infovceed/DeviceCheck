@@ -59,9 +59,9 @@ class PlatformScreen extends Screen
             ['labels' => $labels, 'name' => __('Arrival'),'values' => $valuesReported],
             ['labels' => $labels, 'name' => __('Check-out'),'values' => $reportedCheckout],
         ];
-        $totalDevices  = array_sum($valuesTotal) ?? 0;
-        $reportedIn    = array_sum($valuesReported) ?? 0;
-        $reportedOut   = array_sum($reportedCheckout) ?? 0;
+        $totalDevices  = array_sum($valuesTotal);
+        $reportedIn    = array_sum($valuesReported);
+        $reportedOut   = array_sum($reportedCheckout);
         $unreportedIn  = max(0, $totalDevices - $reportedIn);
         $unreportedOut = max(0, $totalDevices - $reportedOut);
         $data['checkinChart'] = [
@@ -130,7 +130,7 @@ class PlatformScreen extends Screen
             Link::make(__('Refresh'))
                 ->icon('bs.arrow-clockwise')
                 ->route('platform.main', request()->query())
-                ->attributes(['data-turbo' => 'false']),
+                ->set('turbo', false),
         ];
     }
 
@@ -203,7 +203,7 @@ class PlatformScreen extends Screen
 
         if (isset($data['municipalitiesChart'])) {
             $layouts[] = Layout::view('components.dashboard.municipalities-realtime', [
-                'initial' => $data['municipalitiesChart'] ?? [],
+                'initial' => $data['municipalitiesChart'],
                 'wsUrl' => $wsUrl,
             ]);
         }

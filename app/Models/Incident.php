@@ -16,7 +16,7 @@ class Incident extends Model
 
     /**
      * The attributes for which you can use sorting in url.
-     * @var array
+     * @var list<string>
      */
     protected $fillable = [
         'subject',
@@ -29,11 +29,6 @@ class Incident extends Model
         'updated_at',
         'created_at',
     ];
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
     public function user()
     {
         return $this->belongsTo(User::class);

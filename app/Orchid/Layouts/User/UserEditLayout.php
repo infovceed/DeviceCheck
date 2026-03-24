@@ -34,7 +34,6 @@ class UserEditLayout extends Rows
                 ->placeholder(__('Document')),
             Select::make('user.department_id')
                 ->options($departments)
-                ->applyScope('orderByName')
                 ->title(__('Department'))
                 ->empty(__('Select a department'))
                 ->required()

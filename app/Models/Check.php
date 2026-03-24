@@ -15,8 +15,19 @@ use App\Filters\Types\WhereCreatedOnIn;
 use App\Filters\Types\WhereDistance500;
 use Illuminate\Database\Eloquent\Model;
 use App\Filters\Types\WhereCheckDeviceDivipoleUserIn;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
+/**
+ * @property Device|null $device
+ * @property Divipole|null $divipole
+ * @property \Carbon\CarbonInterface|string|null $created_at
+ * @property float|int|string|null $distance
+ * @property \Carbon\CarbonInterface|string|null $report_time
+ * @property \Carbon\CarbonInterface|string|null $time
+ * @property string|null $type
+ * @property string|float|int|null $time_difference_minutes
+ */
 class Check extends Model
 {
     use HasFactory;
@@ -28,7 +39,7 @@ class Check extends Model
     /**
      * Virtual attributes appended to array / JSON.
      *
-     * @var array
+     * @var list<string>
      */
     protected $appends = [
         'time_difference_minutes',
@@ -145,12 +156,12 @@ class Check extends Model
     }
 
 
-    public function device()
+    public function device(): BelongsTo
     {
         return $this->belongsTo(Device::class);
     }
 
-    public function divipole()
+    public function divipole(): BelongsTo
     {
         return $this->belongsTo(Divipole::class);
     }

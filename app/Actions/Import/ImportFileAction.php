@@ -5,11 +5,11 @@ namespace App\Actions\Import;
 use App\Models\User;
 use App\Imports\UsersImport;
 use App\Models\Configuration;
-use App\Imports\DivipoleImport;
 use App\Jobs\NotifyUserOfCompletedImport;
 use Lorisleiva\Actions\Concerns\AsAction;
 use App\Notifications\DashboardNotification;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
+use Orchid\Attachment\Models\Attachment;
 
 class ImportFileAction
 {
@@ -19,17 +19,27 @@ class ImportFileAction
     {
         ini_set('memory_limit', '-1');
         $modelImport = $this->getImport($request['route']);
-        if ($request['route'] == "platform.settings" || $request['route'] == "settings.import") {
+        $file = null;
+
+        if (in_array($request['route'], ["platform.settings", "settings.import", "platform.systems.users", "users.import"], true)) {
             $configuration = Configuration::first();
-            $attachment = $configuration->attachment()->get();
-            if (!$attachment) {
+
+            /** @var Attachment|null $attachment */
+            $attachment = $configuration->attachment()->first();
+
+            if ($attachment === null) {
                 throw new FileNotFoundException('Attachment not found.');
             }
-            $path = "app\\public\\" . str_replace('/', '\\', $attachment[0]->path);
-            $file = storage_path($path . $attachment[0]->name . '.' . $attachment[0]->extension);
+
+            $path = 'app\\public\\' . str_replace('/', '\\', $attachment->path);
+            $file = storage_path($path . $attachment->name . '.' . $attachment->extension);
             if (!file_exists($file)) {
                 throw new FileNotFoundException();
             }
+        }
+
+        if ($file === null) {
+            throw new FileNotFoundException('Import file not found for the selected route.');
         }
 
         $user = User::find($request['userId']);
@@ -47,9 +57,6 @@ class ImportFileAction
     public function getImport($route)
     {
         switch ($route) {
-            case "platform.settings":
-            case "settings.import":
-                return new DivipoleImport();
             case "platform.systems.users":
             case "users.import":
                 return new UsersImport();

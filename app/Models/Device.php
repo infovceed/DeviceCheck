@@ -11,8 +11,14 @@ use Illuminate\Database\Eloquent\Model;
 use App\Filters\Types\WhereDepartmentIn;
 use App\Filters\Types\WhereMunicipalityIn;
 use App\Filters\Types\WhereDeviceDivipoleUserIn;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
+/**
+ * @property-read Divipole|null $divipole
+ */
 class Device extends Model
 {
     use HasFactory;
@@ -56,21 +62,21 @@ class Device extends Model
         'report_time',
         'report_time_departure',
     ];
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
-    public function divipole()
+    public function divipole(): BelongsTo
     {
         return $this->belongsTo(Divipole::class);
     }
 
-    public function incidents()
+    public function incidents(): HasMany
     {
         return $this->hasMany(Incident::class);
     }
 
-    public function departments()
+    public function departments(): HasManyThrough
     {
         return $this->hasManyThrough(
             Department::class,
@@ -80,12 +86,12 @@ class Device extends Model
         );
     }
 
-    public function deviceChecks()
+    public function deviceChecks(): HasMany
     {
         return $this->hasMany(DeviceCheck::class);
     }
 
-    public static function totalReportedByDepartment(int $departmentId = null)
+    public static function totalReportedByDepartment(?int $departmentId = null)
     {
         $query = Department::query()
             ->withCount(['devices as total' => function ($q) {
@@ -123,5 +129,17 @@ class Device extends Model
         $device->report_time = now();
         $device->status = true;
         $device->save();
+    }
+    public static function findByImeiWithLocation(array $params): ?self
+    {
+        return self::query()
+            ->select(['id', 'divipole_id'])
+            ->with([
+                'divipole:id,department_id,municipality_id,position_name',
+                'divipole.department:id,name',
+                'divipole.municipality:id,name',
+            ])
+            ->where('imei', $params['imei'])
+            ->first();
     }
 }

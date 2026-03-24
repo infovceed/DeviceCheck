@@ -2,23 +2,24 @@
 
 namespace App\Orchid\Screens\ConfigSystem;
 
-use Orchid\Screen\Screen;
-use Orchid\Support\Color;
-use Illuminate\Http\Request;
+use App\Actions\Import\DepartmentFileAction;
+use App\Actions\Import\DevicesFileAction;
+use App\Actions\Import\DivipoleFileAction;
+use App\Actions\Import\MunicipalityFileAction;
 use App\Models\Configuration;
+use Illuminate\Console\Application;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Orchid\Screen\Actions\Button;
 use Orchid\Screen\Actions\Link;
 use Orchid\Screen\Fields\Input;
 use Orchid\Screen\Fields\Upload;
-use Orchid\Screen\Actions\Button;
-use Orchid\Support\Facades\Toast;
-use Illuminate\Support\Facades\DB;
+use Orchid\Screen\Screen;
+use Orchid\Support\Color;
 use Orchid\Support\Facades\Layout;
-use Illuminate\Console\Application;
+use Orchid\Support\Facades\Toast;
 use Symfony\Component\Process\Process;
-use App\Actions\Import\DivipoleFileAction;
-use App\Actions\Import\DevicesFileAction;
-use App\Actions\Import\DepartmentFileAction;
-use App\Actions\Import\MunicipalityFileAction;
 
 class SystemSettingsEditScreen extends Screen
 {
@@ -61,7 +62,7 @@ class SystemSettingsEditScreen extends Screen
                 ->icon('bs.arrow-counterclockwise')
                 ->method('clearCache'),
             Button::make(__('Clear database'))
-                ->type(Color::PRIMARY())
+                ->type(Color::PRIMARY)
                 ->icon('bs.database')
                 ->confirm(__('This action will truncate incidents, Devices, divipoles, departments and municipalities tables. Do you want to proceed?'))
                 ->method('clearDatabase'),
@@ -91,7 +92,7 @@ class SystemSettingsEditScreen extends Screen
                 ->description(__('Settings for the departments upload'))
                 ->commands(
                     Button::make(__('Save'))
-                        ->type(Color::DEFAULT())
+                        ->type(Color::DEFAULT)
                         ->icon('check')
                         ->method('saveDepartments')
                 ),
@@ -110,7 +111,7 @@ class SystemSettingsEditScreen extends Screen
                 ->description(__('Settings for the municipalities upload'))
                 ->commands(
                     Button::make(__('Save'))
-                        ->type(Color::DEFAULT())
+                        ->type(Color::DEFAULT)
                         ->icon('check')
                         ->method('saveMunicipalities')
                 ),
@@ -129,7 +130,7 @@ class SystemSettingsEditScreen extends Screen
                 ->description(__('If you upload this file, the divipoles table will be reset, and the new data will be imported. You must make sure that the configurations for departments, municipalities, and corporations have been previously uploaded.'))
                 ->commands(
                     Button::make(__('Save'))
-                        ->type(Color::DEFAULT())
+                        ->type(Color::DEFAULT)
                         ->icon('check')
                         ->method('saveDivipole')
                 ),
@@ -148,7 +149,7 @@ class SystemSettingsEditScreen extends Screen
                 ->description(__('If you upload this file, the Devices table will be reset, and the new data will be imported. You must make sure that the configurations for departments, municipalities, and corporations have been previously uploaded.'))
                 ->commands(
                     Button::make(__('Save'))
-                        ->type(Color::DEFAULT())
+                        ->type(Color::DEFAULT)
                         ->icon('check')
                         ->method('saveDevices')
                 ),
@@ -173,9 +174,7 @@ class SystemSettingsEditScreen extends Screen
     }
 
     /**
-     * Save the divipole file
-     *
-     * @return \Illuminate\Http\RedirectResponse
+     * Save the configuration and sync uploaded attachments.
      */
 
     public function saveConfig(Request $request, $fill): void
@@ -190,6 +189,7 @@ class SystemSettingsEditScreen extends Screen
             $attachments = $this->getAttachments($request);
             $configuration->attachment()->sync($attachments);
         DB::commit();
+        Log::channel('config')->info('Configuration saved with data: ' . json_encode($fill));
     }
 
     public function saveDepartments(Request $request): void
@@ -204,10 +204,12 @@ class SystemSettingsEditScreen extends Screen
         $data = $request->all();
         $data['userId'] = $request->user()->id;
         DepartmentFileAction::dispatch($data);
+        Log::channel('config')->info('Department file action dispatched by user ID: ' . auth()->id());
         Toast::info(__('Configuration saved'));
     }
     public function clearDepartmentsTable()
     {
+        Log::channel('config')->info('Clearing departments table by user ID: ' . auth()->id());
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
         DB::table('departments')->truncate();
         DB::statement('ALTER TABLE departments AUTO_INCREMENT = 1;');
@@ -226,10 +228,12 @@ class SystemSettingsEditScreen extends Screen
         $data = $request->all();
         $data['userId'] = $request->user()->id;
         MunicipalityFileAction::dispatch($data);
+        Log::channel('config')->info('Municipality file action dispatched by user ID: ' . auth()->id());
         Toast::info(__('Configuration saved'));
     }
     public function clearMunicipalitiesTable(): void
     {
+        Log::channel('config')->info('Clearing municipalities table by user ID: ' . auth()->id());
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
         DB::table('municipalities')->truncate();
         DB::statement('ALTER TABLE municipalities AUTO_INCREMENT = 1;');
@@ -254,10 +258,12 @@ class SystemSettingsEditScreen extends Screen
         $data['file'] = $request->file('file');
         $data['userId'] = $request->user()->id;
         DivipoleFileAction::dispatch($data);
+        Log::channel('config')->info('Divipole file action dispatched by user ID: ' . auth()->id());
         Toast::info(__('Configuration saved'));
     }
     public function clearDivipoleTable(): void
     {
+        Log::channel('config')->info('Clearing divipoles table by user ID: ' . auth()->id());
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
         DB::table('divipoles')->truncate();
         DB::statement('ALTER TABLE divipoles AUTO_INCREMENT = 1;');
@@ -284,10 +290,12 @@ class SystemSettingsEditScreen extends Screen
         $data['file'] = $request->file('file');
         $data['userId'] = $request->user()->id;
         DevicesFileAction::dispatch($data);
+        Log::channel('config')->info('Devices file action dispatched by user ID: ' . auth()->id());
         Toast::info(__('Configuration saved'));
     }
     public function clearDeviceTable(): void
     {
+        Log::channel('config')->info('Clearing devices table by user ID: ' . auth()->id());
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
         DB::table('devices')->truncate();
         DB::statement('ALTER TABLE devices AUTO_INCREMENT = 1;');
@@ -295,6 +303,7 @@ class SystemSettingsEditScreen extends Screen
     }
     public function clearIncidentsTable(): void
     {
+        Log::channel('config')->info('Clearing incidents table by user ID: ' . auth()->id());
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
         DB::table('incidents')->truncate();
         DB::statement('ALTER TABLE incidents AUTO_INCREMENT = 1;');
@@ -302,6 +311,7 @@ class SystemSettingsEditScreen extends Screen
     }
     public function clearDeviceChecksTable(): void
     {
+        Log::channel('config')->info('Clearing device_checks table by user ID: ' . auth()->id());
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
         DB::table('device_checks')->truncate();
         DB::statement('ALTER TABLE device_checks AUTO_INCREMENT = 1;');
@@ -322,6 +332,7 @@ class SystemSettingsEditScreen extends Screen
         $this->clearDivipoleTable();
         $this->clearDepartmentsTable();
         $this->clearMunicipalitiesTable();
+        Log::channel('config')->info('Database cleared by user ID: ' . auth()->id());
         return redirect()->back();
     }
     public function getAttachments($request): array

@@ -11,7 +11,7 @@ class MunicipalitiesController extends Controller
     public function chart(Request $request)
     {
         $departments = (array) ($request->input('department', $request->input('department', [])) ?? []);
-        $departmentId = (int) (is_array($departments) && count($departments) > 0 ? $departments[0] : 0);
+        $departmentId = (int) ($departments[0] ?? 0);
         $municipalities = (array) ($request->input('municipality', $request->input('municipality', [])) ?? []);
         $positions      = (array) ($request->input('position', $request->input('position', [])) ?? []);
         $date           = $request->input('chart_date', now()->toDateString());

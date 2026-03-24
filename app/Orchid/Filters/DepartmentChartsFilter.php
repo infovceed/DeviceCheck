@@ -66,9 +66,9 @@ class DepartmentChartsFilter extends Filter
             Select::make('department')
                 ->options($options)
                 ->empty(__('All Departments'))
-                ->value($this->request->get('department'))
                 ->multiple()
-                ->title(__('Departments')),
+                ->title(__('Departments'))
+                ->value($this->request->get('department')),
         ];
     }
 

@@ -9,10 +9,8 @@ use Orchid\Screen\TD;
 use App\Traits\DateTrait;
 use App\Models\Department;
 use Orchid\Screen\Actions\Link;
-use Orchid\Screen\Fields\Input;
 use Orchid\Screen\Layouts\Table;
 use Orchid\Screen\Actions\Button;
-use Orchid\Screen\Fields\Relation;
 use Orchid\Screen\Layouts\Persona;
 use Orchid\Screen\Actions\DropDown;
 use Orchid\Screen\Actions\ModalToggle;
@@ -39,13 +37,13 @@ class UserListLayout extends Table
             TD::make('name', __('Name'))
                 ->sort()
                 ->cantHide()
-                ->filter(Input::make())
+                ->filter(TD::FILTER_TEXT)
                 ->render(fn (User $user) => new Persona($user->presenter())),
 
             TD::make('email', __('Email'))
                 ->sort()
                 ->cantHide()
-                ->filter(Input::make())
+                ->filter(TD::FILTER_TEXT)
                 ->render(fn (User $user) => ModalToggle::make($user->email)
                     ->modal('asyncEditUserModal')
                     ->modalTitle($user->presenter()->title())
@@ -54,17 +52,13 @@ class UserListLayout extends Table
                         'user' => $user->id,
                     ])),
             TD::make('department_id', __('Department'))
-                ->filter(
-                    Relation::make('department')
-                    ->fromModel(Department::class, 'name')
-                    ->empty(),
-                )
+                ->filter(TD::FILTER_TEXT)
                 ->filterValue(function ($value) {
                     return Department::where('id', $value)->first()?->name;
                 })
                 ->render(function (User $user) {
                     $department = $user->department;
-                    return $department?->name ?? __('N/A');
+                    return $department ? $department->name : __('N/A');
                 }),
             TD::make('created_at', __('Created'))
                 ->align(TD::ALIGN_RIGHT)
@@ -89,7 +83,7 @@ class UserListLayout extends Table
                     ->list([
 
                         Link::make(__('Edit'))
-                            ->route('platform.systems.users.edit', $user->id)
+                            ->route('platform.systems.users.edit', ['user' => $user->id])
                             ->icon('bs.pencil'),
 
                         Button::make(__('Delete'))

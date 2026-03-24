@@ -8,10 +8,17 @@ use Orchid\Filters\Filterable;
 use Orchid\Filters\Types\Like;
 use Orchid\Filters\Types\Where;
 use App\Filters\Types\WhereUserIn;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
+/**
+ * @property-read Department|null $department
+ * @property-read Municipality|null $municipality
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, User> $users
+ */
 class Divipole extends Model
 {
     use HasFactory;
@@ -42,17 +49,17 @@ class Divipole extends Model
     ];
 
 
-    public function department()
+    public function department(): BelongsTo
     {
         return $this->belongsTo(Department::class);
     }
 
-    public function municipality()
+    public function municipality(): BelongsTo
     {
         return $this->belongsTo(Municipality::class);
     }
 
-    public function users()
+    public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'divipoles_users', 'divipole_id', 'user_id');
     }

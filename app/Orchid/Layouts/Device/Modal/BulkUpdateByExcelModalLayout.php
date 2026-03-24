@@ -2,13 +2,16 @@
 
 namespace App\Orchid\Layouts\Device\Modal;
 
-use Orchid\Screen\Field;
+use Orchid\Screen\Contracts\Fieldable;
 use Orchid\Screen\Layouts\Rows;
 use Orchid\Screen\Fields\Group;
 use Orchid\Screen\Fields\Input;
 
 class BulkUpdateByExcelModalLayout extends Rows
 {
+    /**
+     * @return iterable<Fieldable>
+     */
     protected function fields(): iterable
     {
         return [

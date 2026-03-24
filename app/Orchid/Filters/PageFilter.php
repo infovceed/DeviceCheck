@@ -53,7 +53,6 @@ class PageFilter extends Filter
     {
         return [
             Select::make('perPage')
-                    ->id('perPage-select')
                     ->title(__('Records per page'))
                     ->options([
                         15  => '15',
@@ -61,6 +60,7 @@ class PageFilter extends Filter
                         45  => '45',
                         60  => '60',
                     ])
+                    ->id('perPage-select')
                     ->value(request()->input('perPage', 50))
         ];
     }

@@ -131,6 +131,12 @@ return [
         'path' => storage_path('logs/worker.log'),
         'level' => 'debug',
         ],
+        'config' => [
+        'driver' => 'single',
+        'path' => storage_path('logs/config.log'),
+        'level' => 'debug',
+        'replace_placeholders' => true,
+        ],
 
     ],
 

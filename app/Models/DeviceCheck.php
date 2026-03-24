@@ -39,7 +39,7 @@ class DeviceCheck extends Model
      * Attributes to append when model is converted to array/json.
      * These are virtual attributes provided by accessors below.
      *
-     * @var array
+     * @var list<string>
      */
     protected $appends = [
         'report_date_formatted',
@@ -66,21 +66,14 @@ class DeviceCheck extends Model
         return $this->belongsTo(Divipole::class);
     }
 
-    public static function saveReport(array $deviceData): Device
+    public static function createReport(array $deviceData): void
     {
-        $device = Device::query()
-                    ->where('imei', $deviceData['imei'])
-                ->first(['id']);
-        if (!$device) {
-            throw new \Exception("Device not found", 1);
-        }
         self::create([
-            'device_id' => $device->id,
+            'device_id' => $deviceData['device_id'],
             'latitude'  => $deviceData['lat'],
             'longitude' => $deviceData['lon'],
             'type'      => $deviceData['tipo'],
         ]);
-        return $device;
     }
 
     /**

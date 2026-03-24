@@ -41,6 +41,10 @@ return [
     'websocket' => [
         // Permite definir una URL de WebSocket dedicada (dev/prod)
         'url' => env('WEBSOCKET_URL', env('APP_URL')),
+        // URL HTTP del relay para notificaciones (si difiere de url)
+        'notify_url' => env('WEBSOCKET_NOTIFY_URL'),
+        // Puerto local del relay (fallback)
+        'port' => env('WEBSOCKET_PORT', 8001),
         'api_key' => env('WEBSOCKET_API_KEY'),
     ],
 

@@ -58,15 +58,15 @@ class UserProfileScreen extends Screen
     {
         return [
             Button::make('Back to my account')
-                ->novalidate()
-                ->canSee(Impersonation::isSwitch())
                 ->icon('bs.people')
-                ->route('platform.switch.logout'),
+                ->route('platform.switch.logout')
+                ->canSee(Impersonation::isSwitch())
+                ->set('formnovalidate', 'true'),
 
             Button::make('Sign out')
-                ->novalidate()
                 ->icon('bs.box-arrow-left')
-                ->route('platform.logout'),
+                ->route('platform.logout')
+                ->set('formnovalidate', 'true'),
         ];
     }
 
@@ -81,7 +81,7 @@ class UserProfileScreen extends Screen
                 ->description(__("Update your account's profile information and email address."))
                 ->commands(
                     Button::make(__('Save'))
-                        ->type(Color::BASIC())
+                        ->type(Color::BASIC)
                         ->icon('bs.check-circle')
                         ->method('save')
                 ),
@@ -91,7 +91,7 @@ class UserProfileScreen extends Screen
                 ->description(__('Ensure your account is using a long, random password to stay secure.'))
                 ->commands(
                     Button::make(__('Update password'))
-                        ->type(Color::BASIC())
+                        ->type(Color::BASIC)
                         ->icon('bs.check-circle')
                         ->method('changePassword')
                 ),

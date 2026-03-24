@@ -54,8 +54,8 @@ class RoleFilter extends Filter
             Select::make('role')
                 ->fromModel(Role::class, 'name', 'slug')
                 ->empty()
-                ->value($this->request->get('role'))
-                ->title(__('Roles')),
+                ->title(__('Roles'))
+                ->value($this->request->get('role')),
         ];
     }
 

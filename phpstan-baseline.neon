@@ -1,0 +1,505 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$extension\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Actions/Import/DepartmentFileAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Actions/Import/DepartmentFileAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$path\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Actions/Import/DepartmentFileAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$extension\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Actions/Import/DevicesFileAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Actions/Import/DevicesFileAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$path\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Actions/Import/DevicesFileAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$extension\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Actions/Import/DivipoleFileAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Actions/Import/DivipoleFileAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$path\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Actions/Import/DivipoleFileAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$extension\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Actions/Import/ImportFileAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Actions/Import/ImportFileAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$path\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Actions/Import/ImportFileAction.php
+
+		-
+			message: '#^Negated boolean expression is always false\.$#'
+			identifier: booleanNot.alwaysFalse
+			count: 1
+			path: app/Actions/Import/ImportFileAction.php
+
+		-
+			message: '#^Variable \$file might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: app/Actions/Import/ImportFileAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$extension\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Actions/Import/MunicipalityFileAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Actions/Import/MunicipalityFileAction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$path\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Actions/Import/MunicipalityFileAction.php
+
+		-
+			message: '#^Property App\\Exports\\ChecksExport\:\:\$filters on left side of \?\? is not nullable nor uninitialized\.$#'
+			identifier: nullCoalesce.initializedProperty
+			count: 1
+			path: app/Exports/ChecksExport.php
+
+		-
+			message: '#^Call to function is_array\(\) with array\<mixed, mixed\> will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: app/Http/Controllers/Dashboard/MunicipalitiesController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Device\:\:\$divipole\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Requests/Reports/ReportDeviceRequest.php
+
+		-
+			message: '#^Method App\\Imports\\UsersImport\:\:model\(\) should return Illuminate\\Database\\Eloquent\\Model\|null but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Imports/UsersImport.php
+
+		-
+			message: '#^If condition is always true\.$#'
+			identifier: if.alwaysTrue
+			count: 1
+			path: app/Jobs/DeviceBulkUpdateJob.php
+
+		-
+			message: '#^PHPDoc type array of property App\\Models\\Check\:\:\$appends is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$appends\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/Check.php
+
+		-
+			message: '#^PHPDoc tag @param for parameter \$departmentID with type mixed is not subtype of native type array\.$#'
+			identifier: parameter.phpDocType
+			count: 1
+			path: app/Models/Department.php
+
+		-
+			message: '#^Relation ''divipole'' is not found in App\\Models\\Device model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Models/Device.php
+
+		-
+			message: '#^PHPDoc type array of property App\\Models\\DeviceCheck\:\:\$appends is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$appends\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/DeviceCheck.php
+
+		-
+			message: '#^PHPDoc tag @var above a method has no effect\.$#'
+			identifier: varTag.misplaced
+			count: 1
+			path: app/Models/Incident.php
+
+		-
+			message: '#^PHPDoc type array of property App\\Models\\Incident\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/Incident.php
+
+		-
+			message: '#^Call to an undefined method Orchid\\Screen\\Field\:\:multiple\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Orchid/Filters/Check/MunicipalityCheckFilter.php
+
+		-
+			message: '#^Relation ''department'' is not found in App\\Models\\Divipole model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Orchid/Filters/Check/MunicipalityCheckFilter.php
+
+		-
+			message: '#^Call to an undefined method Orchid\\Screen\\Field\:\:multiple\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Orchid/Filters/Check/PositionCheckFilter.php
+
+		-
+			message: '#^Relation ''department'' is not found in App\\Models\\Divipole model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Orchid/Filters/Check/PositionCheckFilter.php
+
+		-
+			message: '#^Relation ''municipality'' is not found in App\\Models\\Divipole model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Orchid/Filters/Check/PositionCheckFilter.php
+
+		-
+			message: '#^Call to an undefined method Orchid\\Screen\\Field\:\:multiple\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Orchid/Filters/DepartmentChartsFilter.php
+
+		-
+			message: '#^Call to an undefined method Orchid\\Screen\\Field\:\:multiple\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Orchid/Filters/MunicipalityFilter.php
+
+		-
+			message: '#^Relation ''department'' is not found in App\\Models\\Divipole model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Orchid/Filters/MunicipalityFilter.php
+
+		-
+			message: '#^Call to an undefined method Orchid\\Screen\\Field\:\:title\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Orchid/Filters/PageFilter.php
+
+		-
+			message: '#^Call to an undefined method Orchid\\Screen\\Field\:\:multiple\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Orchid/Filters/PositionFilter.php
+
+		-
+			message: '#^Relation ''department'' is not found in App\\Models\\Divipole model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Orchid/Filters/PositionFilter.php
+
+		-
+			message: '#^Relation ''municipality'' is not found in App\\Models\\Divipole model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Orchid/Filters/PositionFilter.php
+
+		-
+			message: '#^Call to an undefined method Orchid\\Screen\\Field\:\:title\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Orchid/Filters/RoleFilter.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Check\:\:\$created_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Orchid/Layouts/Check/CheckListLayout.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Check\:\:\$device\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Orchid/Layouts/Check/CheckListLayout.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Check\:\:\$distance\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Orchid/Layouts/Check/CheckListLayout.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Check\:\:\$report_time\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Orchid/Layouts/Check/CheckListLayout.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Check\:\:\$time\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Orchid/Layouts/Check/CheckListLayout.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Check\:\:\$type\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Orchid/Layouts/Check/CheckListLayout.php
+
+		-
+			message: '#^Elseif condition is always false\.$#'
+			identifier: elseif.alwaysFalse
+			count: 1
+			path: app/Orchid/Layouts/Check/CheckListLayout.php
+
+		-
+			message: '#^Method App\\Orchid\\Layouts\\Device\\Modal\\BulkUpdateByExcelModalLayout\:\:fields\(\) should return iterable\<Orchid\\Screen\\Field\> but returns array\<int, Orchid\\Screen\\Fields\\Group\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Orchid/Layouts/Device/Modal/BulkUpdateByExcelModalLayout.php
+
+		-
+			message: '#^Call to an undefined method Orchid\\Screen\\Field\:\:required\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Orchid/Layouts/Device/Modal/EditDeviceModalLayout.php
+
+		-
+			message: '#^Call to an undefined method Orchid\\Screen\\Fields\\Relation\:\:empty\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Orchid/Layouts/Device/Modal/EditDeviceModalLayout.php
+
+		-
+			message: '#^Method App\\Orchid\\Layouts\\Device\\Modal\\EditDeviceModalLayout\:\:fields\(\) should return iterable\<Orchid\\Screen\\Field\> but returns array\<int, Orchid\\Screen\\Fields\\Group\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Orchid/Layouts/Device/Modal/EditDeviceModalLayout.php
+
+		-
+			message: '#^Parameter \#1 \$filter of method Orchid\\Screen\\TD\:\:filter\(\) expects string, Orchid\\Screen\\Fields\\Input given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Orchid/Layouts/Role/RoleListLayout.php
+
+		-
+			message: '#^Parameter \#2 \$parameters of method Orchid\\Screen\\Actions\\Link\:\:route\(\) expects array, int given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Orchid/Layouts/Role/RoleListLayout.php
+
+		-
+			message: '#^Call to an undefined method Orchid\\Screen\\Fields\\Select\:\:applyScope\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Orchid/Layouts/User/UserEditLayout.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$department\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Orchid/Layouts/User/UserListLayout.php
+
+		-
+			message: '#^Call to an undefined method Orchid\\Screen\\Fields\\Relation\:\:empty\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Orchid/Layouts/User/UserListLayout.php
+
+		-
+			message: '#^Parameter \#1 \$filter of method Orchid\\Screen\\TD\:\:filter\(\) expects string, Orchid\\Screen\\Fields\\Input given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Orchid/Layouts/User/UserListLayout.php
+
+		-
+			message: '#^Parameter \#2 \$parameters of method Orchid\\Screen\\Actions\\Link\:\:route\(\) expects array, int given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Orchid/Layouts/User/UserListLayout.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Orchid/Layouts/User/UserListLayout.php
+
+		-
+			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
+			identifier: larastan.noEnvCallsOutsideOfConfig
+			count: 2
+			path: app/Orchid/Presenters/UserPresenter.php
+
+		-
+			message: '#^Call to an undefined static method Orchid\\Support\\Color\:\:DEFAULT\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 4
+			path: app/Orchid/Screens/ConfigSystem/SystemSettingsEditScreen.php
+
+		-
+			message: '#^Call to an undefined static method Orchid\\Support\\Color\:\:PRIMARY\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: app/Orchid/Screens/ConfigSystem/SystemSettingsEditScreen.php
+
+		-
+			message: '#^PHPDoc tag @return with type Illuminate\\Http\\RedirectResponse is incompatible with native type void\.$#'
+			identifier: return.phpDocType
+			count: 1
+			path: app/Orchid/Screens/ConfigSystem/SystemSettingsEditScreen.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Device\:\:\$divipole\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Orchid/Screens/Device/DeviceListScreen.php
+
+		-
+			message: '#^Call to an undefined method Orchid\\Screen\\Actions\\Button\:\:asyncParameters\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Orchid/Screens/Device/DeviceListScreen.php
+
+		-
+			message: '#^Relation ''divipole'' is not found in App\\Models\\Device model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Orchid/Screens/Device/DeviceListScreen.php
+
+		-
+			message: '#^Right side of && is always true\.$#'
+			identifier: booleanAnd.rightAlwaysTrue
+			count: 1
+			path: app/Orchid/Screens/Device/DeviceListScreen.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Divipole\:\:\$department\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Orchid/Screens/Divipole/DivipoleListScreen.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Divipole\:\:\$municipality\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Orchid/Screens/Divipole/DivipoleListScreen.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Divipole\:\:\$users\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Orchid/Screens/Divipole/DivipoleListScreen.php
+
+		-
+			message: '#^Call to an undefined method Orchid\\Screen\\Actions\\Button\:\:asyncParameters\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Orchid/Screens/Divipole/DivipoleListScreen.php
+
+		-
+			message: '#^Relation ''department'' is not found in App\\Models\\Divipole model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Orchid/Screens/Divipole/DivipoleListScreen.php
+
+		-
+			message: '#^Relation ''municipality'' is not found in App\\Models\\Divipole model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Orchid/Screens/Divipole/DivipoleListScreen.php
+
+		-
+			message: '#^Relation ''users'' is not found in App\\Models\\Divipole model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Orchid/Screens/Divipole/DivipoleListScreen.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Device\:\:\$divipole\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Orchid/Screens/Incident/IncidentListScreen.php
+
+		-
+			message: '#^Ternary operator condition is always true\.$#'
+			identifier: ternary.alwaysTrue
+			count: 1
+			path: app/Orchid/Screens/Incident/IncidentListScreen.php
+
+		-
+			message: '#^Call to an undefined method Orchid\\Screen\\Actions\\Link\:\:attributes\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Orchid/Screens/PlatformScreen.php
+
+		-
+			message: '#^Expression on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.expr
+			count: 3
+			path: app/Orchid/Screens/PlatformScreen.php
+
+		-
+			message: '#^Offset ''municipalitiesChart'' on non\-empty\-array on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Orchid/Screens/PlatformScreen.php
+
+		-
+			message: '#^Relation ''department'' is not found in App\\Models\\User model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Orchid/Screens/User/UserListScreen.php
+
+		-
+			message: '#^Call to an undefined method Orchid\\Screen\\Field\:\:icon\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Orchid/Screens/User/UserProfileScreen.php
+
+		-
+			message: '#^Call to an undefined static method Orchid\\Support\\Color\:\:BASIC\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 2
+			path: app/Orchid/Screens/User/UserProfileScreen.php
+
+		-
+			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
+			identifier: larastan.noEnvCallsOutsideOfConfig
+			count: 3
+			path: app/Services/WebSocketNotifier.php

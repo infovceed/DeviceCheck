@@ -7,9 +7,6 @@ use App\Models\User;
 use App\Models\Check;
 use Orchid\Screen\TD;
 use App\Models\Device;
-use App\Models\Divipole;
-use App\Models\Department;
-use App\Models\Municipality;
 use App\Traits\ComponentsTrait;
 use Orchid\Screen\Fields\Select;
 use Orchid\Screen\Layouts\Table;
@@ -145,13 +142,11 @@ class CheckListLayout extends Table
                 ->alignCenter()
                 ->width('160px')
                 ->render(function (Check $check) {
-                    if (is_string($check->time_difference_minutes)) {
-                        $minutes = floatval($check->time_difference_minutes);
-                    } elseif (is_numeric($check->time_difference_minutes)) {
-                        $minutes = floatval($check->time_difference_minutes);
-                    } else {
-                        return $check->time_difference_minutes;
+                    $raw = $check->time_difference_minutes;
+                    if (! is_numeric($raw)) {
+                        return $raw;
                     }
+                    $minutes = floatval($raw);
                     if ($check->type === 'checkout') {
                         return $this->badge([
                         'text'  => abs($minutes),

@@ -9,6 +9,7 @@ use App\Jobs\NotifyUserOfCompletedImport;
 use Lorisleiva\Actions\Concerns\AsAction;
 use App\Notifications\DashboardNotification;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
+use Orchid\Attachment\Models\Attachment;
 
 class DepartmentFileAction
 {
@@ -23,13 +24,15 @@ class DepartmentFileAction
     {
         $configuration = Configuration::first();
         $attachmentID = $configuration->department_file;
-        $attachment = $configuration->attachment()->where('attachments.id', $attachmentID)->get();
-        if (!$attachment) {
+        /** @var Attachment|null $attachment */
+        $attachment = $configuration->attachment()->where('attachments.id', $attachmentID)->first();
+        if ($attachment === null) {
             throw new FileNotFoundException('Attachment not found.');
         }
-        $path = "app\\public\\" . str_replace('/', '\\', $attachment[0]->path);
-        //en linux usar:$path = "app/public/" . $attachment[0]->path;
-        $file = storage_path($path . $attachment[0]->name . '.' . $attachment[0]->extension);
+        $fragmentsPath=['app', 'public'];
+        $attachmentPathFragments = explode('/', $attachment->path);
+        $path = implode(DIRECTORY_SEPARATOR, [...$fragmentsPath, ...$attachmentPathFragments]);
+        $file = storage_path("{$path}{$attachment->name}.{$attachment->extension}");
         if (!file_exists($file)) {
             throw new FileNotFoundException();
         }

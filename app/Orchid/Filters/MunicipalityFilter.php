@@ -8,7 +8,6 @@ use App\Models\Divipole;
 use Orchid\Filters\Filter;
 use App\Models\Municipality;
 use Orchid\Screen\Fields\Select;
-use Orchid\Screen\Fields\Relation;
 use Illuminate\Database\Eloquent\Builder;
 
 class MunicipalityFilter extends Filter
@@ -63,10 +62,10 @@ class MunicipalityFilter extends Filter
             return [
                 Select::make('municipality')
                     ->options(['' => __('Select Department first')])
-                    ->empty(__('All Municipalities'))
-                    ->value($this->request->get('municipality'))
                     ->multiple()
-                    ->title(__('Municipalities')),
+                    ->title(__('Municipalities'))
+                    ->empty(__('All Municipalities'))
+                    ->value($this->request->get('municipality')),
             ];
         }
         $divipoles = Divipole::when($departmentID, function (Builder $query) use ($departmentID) {
@@ -81,10 +80,10 @@ class MunicipalityFilter extends Filter
         return [
             Select::make('municipality')
                 ->options($options)
-                ->empty(__('All Municipalities'))
-                ->value($this->request->get('municipality'))
                 ->multiple()
-                ->title(__('Municipalities')),
+                ->title(__('Municipalities'))
+                ->empty(__('All Municipalities'))
+                ->value($this->request->get('municipality')),
         ];
     }
 

@@ -34,7 +34,7 @@ Route::get('/auth/device-token', [DeviceAuthController::class, 'issueToken'])
 
 // Proteger el reporte de dispositivos con validación de token propio
 Route::middleware([ValidateDeviceToken::class])
-    ->get('/report-device', [ReportDeviceController::class, 'index'])
+    ->get('/report-device', [ReportDeviceController::class, 'store'])
     ->name('api.report-device');
 
 Route::middleware(['ws.key'])->group(function () {

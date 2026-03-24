@@ -3,13 +3,14 @@
 namespace App\Jobs;
 
 use App\Models\User;
+use App\Notifications\DashboardNotification;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
-use App\Notifications\DashboardNotification;
+use Illuminate\Support\Facades\Log;
 
 class DivipoleCsvImportJob implements ShouldQueue
 {
@@ -81,7 +82,7 @@ class DivipoleCsvImportJob implements ShouldQueue
                     __('There was an error importing the file: ') . $e->getMessage()
                 ));
             }
-            \Log::error('Error in DivipoleCsvImportJob: ' . $e->getMessage());
+            Log::error('Error in DivipoleCsvImportJob: ' . $e->getMessage());
         }
     }
 }

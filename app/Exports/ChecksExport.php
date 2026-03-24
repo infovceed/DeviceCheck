@@ -4,7 +4,6 @@ namespace App\Exports;
 
 use App\Models\Check;
 use App\Models\User;
-use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\FromQuery;
@@ -15,7 +14,6 @@ use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
-use Carbon\Carbon;
 
 class ChecksExport implements FromQuery, WithHeadings, WithMapping, WithStyles, WithChunkReading, ShouldQueue
 {
@@ -62,7 +60,7 @@ class ChecksExport implements FromQuery, WithHeadings, WithMapping, WithStyles, 
             }
         }
 
-        $filters = $this->filters ?? [];
+        $filters = $this->filters;
         Check::applyAllowedFilters($query, $filters);
         $query->orderBy('id');
         return $query;

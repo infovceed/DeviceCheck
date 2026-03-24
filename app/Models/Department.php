@@ -6,7 +6,6 @@ use Orchid\Screen\AsSource;
 use Orchid\Filters\Filterable;
 use Orchid\Filters\Types\Like;
 use Orchid\Filters\Types\Where;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
@@ -55,7 +54,7 @@ class Department extends Model
     /**
      * Get chart data (labels, total, reported) optionally filtered by department and cached.
      *
-     * @param mixed $departmentID 'all' or integer id
+        * @param array $departmentID Department IDs filter
      * @param float $minutes cache duration
      * @return array [labels, totals, reporteds]
      */

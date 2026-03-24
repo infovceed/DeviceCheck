@@ -13,11 +13,7 @@ class WebSocketNotifier
     public function notify(array $paths = ['/ws/stats']): bool
     {
         $wsUrl = trim((string) config('services.websocket.url', ''));
-        if ($wsUrl === '') {
-            $wsUrl = trim((string) env('WEBSOCKET_URL', ''));
-        }
-
-        $notifyBase = trim((string) env('WEBSOCKET_NOTIFY_URL', ''));
+        $notifyBase = trim((string) config('services.websocket.notify_url', ''));
         if ($notifyBase === '') {
             $notifyBase = null;
         }
@@ -56,7 +52,7 @@ class WebSocketNotifier
 
     private function localRelayBaseUrl(): ?string
     {
-        $port = (int) env('WEBSOCKET_PORT', 8001);
+        $port = (int) config('services.websocket.port', 8001);
         if ($port <= 0) {
             return null;
         }

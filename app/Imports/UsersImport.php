@@ -3,14 +3,13 @@
 namespace App\Imports;
 
 use App\Models\Department;
-use Log;
+use Illuminate\Support\Facades\Log;
 use App\Models\User;
 use Orchid\Platform\Models\Role;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\Importable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Maatwebsite\Excel\Concerns\WithValidation;
 use Maatwebsite\Excel\Concerns\WithBatchInserts;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 
@@ -54,6 +53,7 @@ class UsersImport implements ToModel, WithHeadingRow, WithChunkReading, WithBatc
                 $role = Role::where('id', $row['rol'])->first();
                 $user->replaceRoles([$role->id]);
             }
+            return $user;
         } catch (\Exception $e) {
             Log::error('Error processing row', ['row' => $row, 'error' => $e->getMessage()]);
             return null;

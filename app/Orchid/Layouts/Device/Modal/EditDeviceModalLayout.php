@@ -3,14 +3,11 @@
 namespace App\Orchid\Layouts\Device\Modal;
 
 use App\Models\Divipole;
-use App\Models\User;
-use Orchid\Screen\Field;
+use Orchid\Screen\Contracts\Fieldable;
 use Orchid\Screen\Fields\Group;
 use Orchid\Screen\Fields\Input;
-use Orchid\Screen\Fields\Label;
 use Orchid\Screen\Fields\Relation;
 use Orchid\Screen\Layouts\Rows;
-use Orchid\Screen\Fields\Select;
 use Orchid\Screen\Fields\DateTimer;
 
 class EditDeviceModalLayout extends Rows
@@ -25,7 +22,7 @@ class EditDeviceModalLayout extends Rows
     /**
      * Get the fields elements to be displayed.
      *
-     * @return Field[]
+     * @return iterable<Fieldable>
      */
     protected function fields(): iterable
     {
@@ -35,31 +32,32 @@ class EditDeviceModalLayout extends Rows
                 Relation::make('payload.divipole_id')
                     ->title(__('DIVIPOLE (por código)'))
                     ->fromModel(Divipole::class, 'code', 'id')
-                    ->empty(__('Select a divipole'))
+                    ->allowEmpty()
+                    ->placeholder(__('Select a divipole'))
                     ->displayAppend('label')
-                    ->required(),
+                    ->set('required', true),
             ]),
 
             Group::make([
                 Input::make('payload.tel')
                     ->title(__('Phone'))
                     ->placeholder('3001234567')
-                    ->required(),
+                    ->set('required', true),
 
                 Input::make('payload.imei')
                     ->title(__('IMEI'))
                     ->maxlength(30)
-                    ->required(),
+                    ->set('required', true),
             ]),
 
             Group::make([
                 Input::make('payload.device_key')
                     ->title(__('Key'))
-                    ->required(),
+                    ->set('required', true),
 
                 Input::make('payload.sequential')
                     ->title(__('Consecutivo'))
-                    ->required(),
+                    ->set('required', true),
             ]),
             Group::make([
                 Input::make('payload.latitude')
@@ -68,7 +66,7 @@ class EditDeviceModalLayout extends Rows
                     ->placeholder('4,7110')
                     ->help(__('Report latitude'))
                     ->style('max-width: 100%')
-                    ->required(),
+                    ->set('required', true),
 
                 Input::make('payload.longitude')
                     ->title(__('Longitud'))
@@ -76,7 +74,7 @@ class EditDeviceModalLayout extends Rows
                     ->placeholder('-74,0721')
                     ->help(__('Report longitude'))
                     ->style('max-width: 100%')
-                    ->required(),
+                    ->set('required', true),
             ]),
 
             Group::make([
@@ -87,7 +85,7 @@ class EditDeviceModalLayout extends Rows
                     ->serverFormat('H:i:s')
                     ->allowInput()
                     ->placeholder('HH:mm')
-                    ->required(),
+                    ->set('required', true),
 
                 DateTimer::make('payload.report_time_departure')
                     ->title(__('Report time (Departure)'))
@@ -96,7 +94,7 @@ class EditDeviceModalLayout extends Rows
                     ->serverFormat('H:i:s')
                     ->allowInput()
                     ->placeholder('HH:mm')
-                    ->required(),
+                    ->set('required', true),
             ]),
         ];
     }

@@ -6,7 +6,6 @@ namespace App\Orchid\Filters\Check;
 
 use App\Models\Divipole;
 use Orchid\Filters\Filter;
-use App\Models\Municipality;
 use Orchid\Screen\Fields\Select;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -58,10 +57,10 @@ class PositionCheckFilter extends Filter
             return [
             Select::make('filter[position]')
                 ->options($options)
-                ->empty(__('Select Department and Municipality first'))
-                ->value($this->request->get('filter.position'))
                 ->multiple()
-                ->title(__('Positions')),
+                ->title(__('Positions'))
+                ->empty(__('Select Department and Municipality first'))
+                ->value($this->request->get('filter.position')),
             ];
         }
         $divipoles = Divipole::when($departments, function (Builder $query) use ($departments) {
@@ -79,10 +78,10 @@ class PositionCheckFilter extends Filter
         return [
             Select::make('filter[position_name]')
                 ->options($options)
-                ->empty(__('All Positions'))
-                ->value($this->request->input('filter.position_name'))
                 ->multiple()
-                ->title(__('Positions')),
+                ->title(__('Positions'))
+                ->empty(__('All Positions'))
+                ->value($this->request->input('filter.position_name')),
         ];
     }
 

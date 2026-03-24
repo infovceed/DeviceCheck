@@ -14,8 +14,12 @@ use App\Orchid\Presenters\UserPresenter;
 use Illuminate\Notifications\Notifiable;
 use Orchid\Filters\Types\WhereDateStartEnd;
 use Orchid\Platform\Models\User as Authenticatable;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
+/**
+ * @property-read Department|null $department
+ */
 class User extends Authenticatable implements UserInterface
 {
     use AsSource;
@@ -114,7 +118,7 @@ class User extends Authenticatable implements UserInterface
     }
 
     //relaciones
-    public function department()
+    public function department(): BelongsTo
     {
         return $this->belongsTo(Department::class);
     }

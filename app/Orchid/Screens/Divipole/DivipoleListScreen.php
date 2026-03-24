@@ -80,9 +80,9 @@ class DivipoleListScreen extends Screen
                 ->render(function (Divipole $divipole) use ($canEdit) {
                     if ($canEdit) {
                         return ModalToggle::make((string) $divipole->id)
+                            ->asyncParameters(['divipole' => $divipole->id])
                             ->modal('editDivipoleModal')
-                            ->method('saveDivipole')
-                            ->asyncParameters(['divipole' => $divipole->id]);
+                            ->method('saveDivipole');
                     }
                     return (string) $divipole->id;
                 }),
@@ -140,9 +140,9 @@ class DivipoleListScreen extends Screen
                 ->align(TD::ALIGN_CENTER)
                 ->render(function (Divipole $divipole) {
                     return ModalToggle::make(__('Edit'))
+                        ->asyncParameters(['divipole' => $divipole->id])
                         ->modal('editDivipoleModal')
-                        ->method('saveDivipole')
-                        ->asyncParameters(['divipole' => $divipole->id]);
+                        ->method('saveDivipole');
                 });
         }
 
