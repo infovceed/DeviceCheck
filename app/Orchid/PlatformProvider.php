@@ -66,6 +66,10 @@ class PlatformProvider extends OrchidServiceProvider
                 ->route('platform.settings')
                 ->permission('platform.settings')
                 ->title(__('System Settings')),
+            Menu::make(__('Work Shifts'))
+                ->icon('bs.clock')
+                ->route('platform.systems.work-shifts')
+                ->permission('platform.systems.work-shifts'),
             Menu::make(__('Departments'))
                 ->icon('bs.geo')
                 ->route('platform.systems.departments')
@@ -99,14 +103,18 @@ class PlatformProvider extends OrchidServiceProvider
                 ->addPermission('platform.systems.device-check', __('Device Checks'))
 
                 ->addPermission('platform.settings', __('Settings'))
+                ->addPermission('platform.systems.work-shifts', __('Work Shifts'))
                 ->addPermission('platform.systems.departments', __('Departments'))
                 ->addPermission('platform.systems.municipalities', __('Municipalities'))
                 ->addPermission('platform.systems.divipoles', __('Divipoles')),
 
+            ItemPermission::group(__('Work Shifts'))
+                ->addPermission('platform.systems.work-shifts.create', __('Create'))
+                ->addPermission('platform.systems.work-shifts.edit', __('Edit')),
             ItemPermission::group(__('Divipole'))
-                ->addPermission('platform.systems.divipoles.edit', __('Edit Divipoles')),
+                ->addPermission('platform.systems.divipoles.edit', __('Edit')),
             ItemPermission::group(__('Devices'))
-                ->addPermission('platform.systems.devices.edit', __('Edit Devices'))
+                ->addPermission('platform.systems.devices.edit', __('Edit'))
                 ->addPermission('platform.systems.devices.show-all', __('Show all Devices')),
             ItemPermission::group(__('Dashboard'))
                 ->addPermission('platform.systems.dashboard', __('Dashboard'))
@@ -116,7 +124,6 @@ class PlatformProvider extends OrchidServiceProvider
                 ->addPermission('platform.systems.user.create', __('Create'))
                 ->addPermission('platform.systems.user.edit', __('Edit'))
                 ->addPermission('platform.systems.user.show-all', __('Show all users')),
-                //->addPermission('platform.systems.user.delete', __('Delete')),
             ...(config('incidents.enabled') ? [
                 ItemPermission::group(__('Incidents'))
                     ->addPermission('platform.systems.incidents.receive-notification', __('Receive Notification'))

@@ -2,19 +2,21 @@
 
 namespace App\Models;
 
-use App\Models\User;
-use Orchid\Screen\AsSource;
-use Orchid\Filters\Filterable;
-use Orchid\Filters\Types\Where;
-use App\Filters\Types\WherePositionIn;
-use Illuminate\Database\Eloquent\Model;
 use App\Filters\Types\WhereDepartmentIn;
-use App\Filters\Types\WhereMunicipalityIn;
 use App\Filters\Types\WhereDeviceDivipoleUserIn;
+use App\Filters\Types\WhereMunicipalityIn;
+use App\Filters\Types\WherePositionIn;
+use App\Models\Configuration;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Facades\Cache;
+use Orchid\Filters\Filterable;
+use Orchid\Filters\Types\Where;
+use Orchid\Screen\AsSource;
 
 /**
  * @property-read Divipole|null $divipole
@@ -37,6 +39,7 @@ class Device extends Model
         'report_time',
         'report_time_departure',
         'status',
+        'work_shift_id',
         'status_incidents',
         'created_by',
         'updated_by',
@@ -114,24 +117,13 @@ class Device extends Model
                'divipoles.position_name as position_name',
                'devices.tel as tel']);
     }
-
-    public static function saveReport(array $deviceData)
-    {
-        $device = self::where('imei', $deviceData['imei'])
-                        ->whereHas('divipole', fn($query) => $query->where('code', $deviceData['puesto']))
-                        ->first();
-        if (!$device) {
-            $device = new self();
-            $device->imei = $deviceData['imei'];
-        }
-        $device->latitude = $deviceData['lat'];
-        $device->longitude = $deviceData['lon'];
-        $device->report_time = now();
-        $device->status = true;
-        $device->save();
-    }
     public static function findByImeiWithLocation(array $params): ?self
     {
+        $currentWorkShiftId = Cache::remember('config.current_work_shift_id', 30, function () {
+            return Configuration::query()
+                                ->whereKey(1)
+                                ->value('current_work_shift_id');
+        });
         return self::query()
             ->select(['id', 'divipole_id'])
             ->with([
@@ -139,6 +131,7 @@ class Device extends Model
                 'divipole.department:id,name',
                 'divipole.municipality:id,name',
             ])
+            ->where('work_shift_id', $currentWorkShiftId)
             ->where('imei', $params['imei'])
             ->first();
     }

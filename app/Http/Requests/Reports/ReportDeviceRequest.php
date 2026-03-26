@@ -2,10 +2,10 @@
 
 namespace App\Http\Requests\Reports;
 
+use App\Models\Configuration;
 use App\Models\Device;
-use App\Models\Divipole;
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
 class ReportDeviceRequest extends FormRequest
@@ -27,10 +27,10 @@ class ReportDeviceRequest extends FormRequest
     {
         return [
             'puesto' => ['bail','required', 'string', 'max:20','exists:divipoles,code'],
-            'imei'   => ['bail','required', 'string', 'max:50','exists:devices,imei'],
             'lat'    => ['bail','required', 'string', 'max:30'],
             'lon'    => ['bail','required', 'string', 'max:30'],
             'tipo'   => ['bail','required', 'in:checkin,checkout'],
+            'imei'   => ['bail','required', 'string', 'max:50'],
         ];
     }
 
@@ -68,17 +68,31 @@ class ReportDeviceRequest extends FormRequest
 
     protected function passedValidation()
     {
-        $imei = $this->input('imei');
-        logger("IMEI ENTRANTE");
-        logger($imei);
-        $position = $this->input('puesto');
-        $device = Device::where('imei', $imei)->first();
+        $imei = (string) $this->input('imei');
+        $position = (string) $this->input('puesto');
+        $type = (string) $this->input('tipo');
+
+        $currentWorkShiftId = $this->currentWorkShiftId();
+
+        $device = Device::query()
+            ->where('imei', $imei)
+            ->where('work_shift_id', $currentWorkShiftId)
+            ->first();
+
+        if ($device === null) {
+            $this->responseMessage(1);
+        }
+
         if (! $device->is_backup && ($device->divipole?->code !== $position)) {
             $this->responseMessage(2);
         }
-        if ($this->input('tipo') === 'checkout') {
+
+        [$dayStart, $dayEnd] = $this->todayRange();
+
+        if ($type === 'checkout') {
             $hasCheckinToday = $device->deviceChecks()
-                ->whereDate('created_at', now()->toDateString())
+                ->where('created_at', '>=', $dayStart)
+                ->where('created_at', '<', $dayEnd)
                 ->where('type', 'checkin')
                 ->exists();
 
@@ -86,13 +100,36 @@ class ReportDeviceRequest extends FormRequest
                 $this->responseMessage(4);
             }
         }
+
         $deviceCheck = $device->deviceChecks()
-            ->whereDate('created_at', now()->toDateString())
-            ->where('type', $this->input('tipo'))
+            ->where('created_at', '>=', $dayStart)
+            ->where('created_at', '<', $dayEnd)
+            ->where('type', $type)
             ->exists();
         if ($deviceCheck) {
             $this->responseMessage(3);
         }
+    }
+
+    private function currentWorkShiftId(): ?int
+    {
+        $value = cache()->remember('config.current_work_shift_id', 30, function (): ?int {
+            return Configuration::query()
+                ->whereKey(1)
+                ->value('current_work_shift_id');
+        });
+
+        return $value !== null ? (int) $value : null;
+    }
+
+    /**
+     * @return array{0: \Illuminate\Support\Carbon, 1: \Illuminate\Support\Carbon}
+     */
+    private function todayRange(): array
+    {
+        $start = now()->startOfDay();
+
+        return [$start, (clone $start)->addDay()];
     }
 
     protected function responseMessage(int $type)

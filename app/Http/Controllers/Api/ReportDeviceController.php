@@ -7,7 +7,6 @@ use App\Models\DeviceCheck;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Reports\ReportDeviceRequest;
-use Illuminate\Support\Facades\Http;
 use App\Jobs\NotifyWebSocketClients;
 
 class ReportDeviceController extends Controller

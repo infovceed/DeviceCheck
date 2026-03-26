@@ -7,13 +7,14 @@ use App\Actions\Import\DevicesFileAction;
 use App\Actions\Import\DivipoleFileAction;
 use App\Actions\Import\MunicipalityFileAction;
 use App\Models\Configuration;
+use App\Models\WorkShift;
 use Illuminate\Console\Application;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Orchid\Screen\Actions\Button;
 use Orchid\Screen\Actions\Link;
-use Orchid\Screen\Fields\Input;
+use Orchid\Screen\Fields\Select;
 use Orchid\Screen\Fields\Upload;
 use Orchid\Screen\Screen;
 use Orchid\Support\Color;
@@ -36,6 +37,7 @@ class SystemSettingsEditScreen extends Screen
             'municipality_attachment' => $configuration?->attachment()->where('attachments.id', $configuration->municipality_file)->get(),
             'divipole_attachment'     => $configuration?->attachment()->where('attachments.id', $configuration->divipole_file)->get(),
             'Devices_attachment'      => $configuration?->attachment()->where('attachments.id', $configuration->Devices_file)->get(),
+            'current_work_shift_id'   => $configuration?->current_work_shift_id,
         ];
     }
 
@@ -77,6 +79,22 @@ class SystemSettingsEditScreen extends Screen
     public function layout(): iterable
     {
         return [
+            Layout::block(
+                Layout::rows([
+                    Select::make('current_work_shift_id')
+                        ->title(__('Current work shift'))
+                        ->options(WorkShift::query()->pluck('name', 'id'))
+                        ->empty(__('Select a work shift'))
+                        ->required(),
+                ])
+            )->title(__('Work shift configuration'))
+              ->description(__('Select the current work shift. This will be used to filter device checks on the dashboard and reports.'))
+              ->commands(
+                  Button::make(__('Save'))
+                      ->type(Color::DEFAULT)
+                      ->icon('check')
+                      ->method('saveWorkShiftConfig')
+              ),
             Layout::block(Layout::rows([
                 Upload::make('department_attachment')
                     ->acceptedFiles('.xlsx')
@@ -344,5 +362,17 @@ class SystemSettingsEditScreen extends Screen
             $request->input('divipole_attachment', []),
             $request->input('Devices_attachment', []),
         );
+    }
+
+    public function saveWorkShiftConfig(Request $request): void
+    {
+        $request->validate([
+            'current_work_shift_id' => 'required|exists:work_shifts,id',
+        ]);
+        Log::channel('config')->info('Saving work shift configuration with work shift ID: ' . $request->input('current_work_shift_id') . ' by user ID: ' . auth()->id());
+        $this->saveConfig($request, [
+            'current_work_shift_id' => $request->input('current_work_shift_id'),
+        ]);
+        Toast::info(__('Configuration saved'));
     }
 }

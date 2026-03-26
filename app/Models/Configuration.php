@@ -16,6 +16,7 @@ class Configuration extends Model
         'department_file',
         'municipality_file',
         'Devices_file',
+        'current_work_shift_id',
 
     ];
 }

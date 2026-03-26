@@ -2,22 +2,23 @@
 
 declare(strict_types=1);
 
-use Illuminate\Http\Request;
-use Tabuna\Breadcrumbs\Trail;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Route;
+use App\Orchid\Screens\Check\CheckListScreen;
+use App\Orchid\Screens\ConfigSystem\SystemSettingsEditScreen;
+use App\Orchid\Screens\Department\DepartmentListScreen;
+use App\Orchid\Screens\Device\DeviceListScreen;
+use App\Orchid\Screens\Incident\IncidentListScreen;
+use App\Orchid\Screens\Municipality\MunicipalityListScreen;
 use App\Orchid\Screens\PlatformScreen;
 use App\Orchid\Screens\Role\RoleEditScreen;
 use App\Orchid\Screens\Role\RoleListScreen;
 use App\Orchid\Screens\User\UserEditScreen;
 use App\Orchid\Screens\User\UserListScreen;
 use App\Orchid\Screens\User\UserProfileScreen;
-use App\Orchid\Screens\Device\DeviceListScreen;
-use App\Orchid\Screens\Incident\IncidentListScreen;
-use App\Orchid\Screens\Check\CheckListScreen;
-use App\Orchid\Screens\Department\DepartmentListScreen;
-use App\Orchid\Screens\Municipality\MunicipalityListScreen;
-use App\Orchid\Screens\ConfigSystem\SystemSettingsEditScreen;
+use App\Orchid\Screens\WorkShift\WorkShiftListScreen;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
+use Tabuna\Breadcrumbs\Trail;
 
 /*
 |--------------------------------------------------------------------------
@@ -157,4 +158,12 @@ Route::post('logout', function (Request $request) {
     return redirect()->route('platform.login');
 })->name('platform.logout');
 
-
+// Platform > System > Work Shifts
+Route::group(['prefix' => 'work-shifts'], function () {
+    // Platform > System > Work Shifts > Work Shift
+    Route::screen('/', WorkShiftListScreen::class)
+        ->name('platform.systems.work-shifts')
+        ->breadcrumbs(fn (Trail $trail) => $trail
+            ->parent('platform.index')
+            ->push(__('Work Shifts'), route('platform.systems.work-shifts')));
+});

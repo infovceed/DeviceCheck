@@ -10,8 +10,6 @@ class DepartmentController extends Controller
 {
     public function chart(Request $request)
     {
-        // Aplicar filtros directamente desde la query, sin depender de auth
-        // Soportar tanto 'key' como 'key[]'
         $departmentID = (array) ($request->input('department', $request->input('department', [])) ?? []);
         if (empty($departmentID)) {
             $departmentID = (array) ($request->input('department', []) ?? []);

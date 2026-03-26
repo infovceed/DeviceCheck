@@ -353,5 +353,18 @@
     "Real-time Data": "Datos en tiempo real",
     "Select Department and Municipality first": "Seleccione primero Departamento y Municipio",
     "Report Type": "Tipo de reporte",
-    "departments": "departamentos"
+    "departments": "departamentos",
+    "Work Shifts": "Jornadas de trabajo",
+    "Work Shift": "Jornada de trabajo",
+    "Create work shift": "Crear jornada de trabajo",
+    "Edit work shift": "Editar jornada de trabajo",
+    "Edit work shifts": "Editar jornadas de trabajo",
+    "Work shift was created successfully.": "Jornada de trabajo creada con éxito.",
+    "Work shift was updated successfully.": "Jornada de trabajo actualizada con éxito.",
+    "There was an error creating the work shift. Please try again.": "Hubo un error al crear la jornada de trabajo. Por favor, inténtalo de nuevo.",
+    "There was an error updating the work shift. Please try again.": "Hubo un error al actualizar la jornada de trabajo. Por favor, inténtalo de nuevo.",
+    "Current work shift": "Jornada de trabajo actual",
+    "Select the current work shift. This will be used to filter device checks on the dashboard and reports.": "Seleccione la jornada de trabajo actual. Esto se usará para filtrar las verificaciones de dispositivos en el panel de control y los informes.",
+    "Select a work shift": "Seleccione una jornada de trabajo",
+    "Work shift configuration": "Configuración de jornada de trabajo"
 }

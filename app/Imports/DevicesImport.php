@@ -16,7 +16,6 @@ use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\SkipsFailures;
 use Maatwebsite\Excel\Validators\Failure;
 use App\Jobs\NotifyUserOfImportError;
-use Illuminate\Validation\Rule;
 
 class DevicesImport implements ToModel, WithHeadingRow, WithChunkReading, WithBatchInserts, WithValidation, SkipsOnFailure, ShouldQueue
 {
@@ -26,6 +25,7 @@ class DevicesImport implements ToModel, WithHeadingRow, WithChunkReading, WithBa
     private User $user;
     private array $seenTel = [];
     private array $seenImei = [];
+    private ?int $currentWorkShift = null;
 
     public function __construct(User $user)
     {
@@ -52,6 +52,7 @@ class DevicesImport implements ToModel, WithHeadingRow, WithChunkReading, WithBa
                 'longitude'             => $row['longitud'],
                 'is_backup'             => $row['esbackup'] ?? 0,
                 'status'                => 0,
+                'work_shift_id'         => $row['jornada'],
                 'created_by'            => 1,
                 'updated_by'            => 1,
                 'created_at'            => now(),
@@ -67,6 +68,12 @@ class DevicesImport implements ToModel, WithHeadingRow, WithChunkReading, WithBa
             ));
             return null;
         }
+    }
+
+    public function prepareForValidation(array $data, int $index): array
+    {
+        $this->currentWorkShift = isset($data['jornada']) ? (int) $data['jornada'] : null;
+        return $data;
     }
 
     public function batchSize(): int
@@ -91,62 +98,88 @@ class DevicesImport implements ToModel, WithHeadingRow, WithChunkReading, WithBa
             'divipole_id'      => 'required|integer|exists:divipoles,id',
             'tel'              => [
                 'required',
-                Rule::unique('devices', 'tel'),
                 function ($attribute, $value, $fail) {
                     $val = trim((string)$value);
                     if ($val === '') {
                         return; // 'required' ya se encarga
                     }
-                    if (isset($this->seenTel[$val])) {
-                        $fail("El valor del campo '{$attribute}' está repetido en el archivo.");
+                    $key = $val . '_' . ($this->currentWorkShift ?? 'null');
+                    // Unicidad en DB por jornada
+                    if ($this->currentWorkShift !== null) {
+                        $exists = Device::where('tel', $val)
+                            ->where('work_shift_id', $this->currentWorkShift)
+                            ->exists();
+                        if ($exists) {
+                            $fail("El valor del campo '{$attribute}' ya existe en la base de datos para esta jornada.");
+                            return;
+                        }
+                    }
+                    // Unicidad dentro del archivo por jornada
+                    if (isset($this->seenTel[$key])) {
+                        $fail("El valor del campo '{$attribute}' está repetido en el archivo para esta jornada.");
                     } else {
-                        $this->seenTel[$val] = true;
+                        $this->seenTel[$key] = true;
                     }
                 },
             ],
             'imei'             => [
                 'required',
-                Rule::unique('devices', 'imei'),
                 function ($attribute, $value, $fail) {
                     $val = trim((string)$value);
                     if ($val === '') {
                         return; // 'required' ya se encarga
                     }
-                    if (isset($this->seenImei[$val])) {
-                        $fail("El valor del campo '{$attribute}' está repetido en el archivo.");
+                    $key = $val . '_' . ($this->currentWorkShift ?? 'null');
+                    // Unicidad en DB por jornada
+                    if ($this->currentWorkShift !== null) {
+                        $exists = Device::where('imei', $val)
+                            ->where('work_shift_id', $this->currentWorkShift)
+                            ->exists();
+                        if ($exists) {
+                            $fail("El valor del campo '{$attribute}' ya existe en la base de datos para esta jornada.");
+                            return;
+                        }
+                    }
+                    // Unicidad dentro del archivo por jornada
+                    if (isset($this->seenImei[$key])) {
+                        $fail("El valor del campo '{$attribute}' está repetido en el archivo para esta jornada.");
                     } else {
-                        $this->seenImei[$val] = true;
+                        $this->seenImei[$key] = true;
                     }
                 },
             ],
-            'llave'            => 'required',
-            'consecutivo'      => 'required',
-            'llegada'          => 'required',
-            'salida'           => 'required',
-            'latitud'          => 'required',
-            'longitud'         => 'required',
-            'esbackup'         => 'nullable|in:0,1',
+            'llave'       => 'required',
+            'consecutivo' => 'required',
+            'llegada'     => 'required',
+            'salida'      => 'required',
+            'latitud'     => 'required',
+            'longitud'    => 'required',
+            'jornada'     => 'required|integer|exists:work_shifts,id',
+            'esbackup'    => 'nullable|in:0,1',
         ];
     }
 
     public function customValidationMessages(): array
     {
         return [
-            'id.required'                  => 'El campo id es obligatorio.',
-            'id.integer'                   => 'El campo id debe ser numérico.',
-            'divipole_id.required'         => 'El campo divipole_id es obligatorio.',
-            'divipole_id.exists'           => 'El divipole_id no existe.',
-            'tel.required'                 => 'El campo tel es obligatorio.',
-            'tel.unique'                   => 'El número de teléfono ya existe.',
-            'imei.required'                => 'El campo imei es obligatorio.',
-            'imei.unique'                  => 'El IMEI ya existe.',
-            'llave.required'               => 'El campo llave es obligatorio.',
-            'consecutivo.required'         => 'El campo consecutivo es obligatorio.',
-            'llegada.required'             => 'El campo llegada es obligatorio.',
-            'salida.required'              => 'El campo salida es obligatorio.',
-            'latitud.required'             => 'El campo latitud es obligatorio.',
-            'longitud.required'            => 'El campo longitud es obligatorio.',
-            'esbackup.in'                  => 'El campo esbackup debe ser 0 o 1.',
+            'id.required'          => 'El campo id es obligatorio.',
+            'id.integer'           => 'El campo id debe ser numérico.',
+            'divipole_id.required' => 'El campo divipole_id es obligatorio.',
+            'divipole_id.exists'   => 'El divipole_id no existe.',
+            'tel.required'         => 'El campo tel es obligatorio.',
+            'tel.unique'           => 'El número de teléfono ya existe.',
+            'imei.required'        => 'El campo imei es obligatorio.',
+            'imei.unique'          => 'El IMEI ya existe.',
+            'llave.required'       => 'El campo llave es obligatorio.',
+            'consecutivo.required' => 'El campo consecutivo es obligatorio.',
+            'llegada.required'     => 'El campo llegada es obligatorio.',
+            'salida.required'      => 'El campo salida es obligatorio.',
+            'latitud.required'     => 'El campo latitud es obligatorio.',
+            'longitud.required'    => 'El campo longitud es obligatorio.',
+            'jornada.required'     => 'El campo jornada es obligatorio.',
+            'jornada.integer'      => 'El campo jornada debe ser numérico.',
+            'jornada.exists'       => 'El jornada no existe.',
+            'esbackup.in'          => 'El campo esbackup debe ser 0 o 1.',
         ];
     }
 

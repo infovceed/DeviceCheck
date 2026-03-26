@@ -29,7 +29,7 @@ class DepartmentFileAction
         if ($attachment === null) {
             throw new FileNotFoundException('Attachment not found.');
         }
-        $fragmentsPath=['app', 'public'];
+        $fragmentsPath = ['app', 'public'];
         $attachmentPathFragments = explode('/', $attachment->path);
         $path = implode(DIRECTORY_SEPARATOR, [...$fragmentsPath, ...$attachmentPathFragments]);
         $file = storage_path("{$path}{$attachment->name}.{$attachment->extension}");

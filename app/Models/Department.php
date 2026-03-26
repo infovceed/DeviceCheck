@@ -64,6 +64,8 @@ class Department extends Model
                     ->leftJoin('divipoles', 'departments.id', '=', 'divipoles.department_id')
                     ->leftJoin('municipalities', 'divipoles.municipality_id', '=', 'municipalities.id')
                     ->leftJoin('devices', 'divipoles.id', '=', 'devices.divipole_id')
+                    ->join('configurations as cfg', 'cfg.id', '=', DB::raw('1'))
+                    ->whereColumn('devices.work_shift_id', 'cfg.current_work_shift_id')
                     ->leftJoin('device_checks', function ($join) use ($date) {
                         $join->on('device_checks.device_id', '=', 'devices.id')
                              ->whereDate('device_checks.created_at', '=', $date);
@@ -111,6 +113,8 @@ class Department extends Model
             ->join('divipoles', 'municipalities.id', '=', 'divipoles.municipality_id')
             ->join('departments', 'departments.id', '=', 'divipoles.department_id')
             ->leftJoin('devices', 'divipoles.id', '=', 'devices.divipole_id')
+            ->join('configurations as cfg', 'cfg.id', '=', DB::raw('1'))
+            ->whereColumn('devices.work_shift_id', 'cfg.current_work_shift_id')
             ->leftJoin('device_checks', function ($join) use ($date) {
                 $join->on('device_checks.device_id', '=', 'devices.id')
                      ->whereDate('device_checks.created_at', '=', $date);
