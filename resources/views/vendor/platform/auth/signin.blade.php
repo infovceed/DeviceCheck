@@ -1,39 +1,51 @@
+@php
+    $invalidCredentials = collect($errors->get('email'))->unique()->first();
+@endphp
+
 <div class="mb-3">
 
-    <label class="form-label">
-        {{__('Email address')}}
+    <label class="form-label" for="email">
+        {{ __('Email address') }}
     </label>
 
-    {!!  \Orchid\Screen\Fields\Input::make('email')
-        ->type('email')
-        ->required()
-        ->tabindex(1)
-        ->autofocus()
-        ->autocomplete('email')
-        ->inputmode('email')
-        ->placeholder(__('Enter your email'))
-    !!}
+    <input
+        id="email"
+        name="email"
+        type="email"
+        class="form-control"
+        value="{{ old('email') }}"
+        required
+        tabindex="1"
+        autofocus
+        autocomplete="email"
+        inputmode="email"
+        placeholder="{{ __('Enter your email') }}"
+    >
 
-    @if ($errors->has('email'))
-        <div class="invalid-feedback d-block">{{ $errors->first('email') }}</div>
+    @if($invalidCredentials)
+        <div class="invalid-feedback d-block">
+            <small>{{ $invalidCredentials }}</small>
+        </div>
     @endif
 </div>
 
 <div class="mb-3">
-    <label class="form-label w-100">
-        {{__('Password')}}
+    <label class="form-label w-100" for="password">
+        {{ __('Password') }}
     </label>
 
-    {!!  \Orchid\Screen\Fields\Password::make('password')
-        ->required()
-        ->autocomplete('current-password')
-        ->tabindex(2)
-        ->placeholder(__('Enter your password'))
-    !!}
-
-    @if ($errors->has('password'))
-        <div class="invalid-feedback d-block">{{ $errors->first('password') }}</div>
-    @endif
+    <div class="input-group">
+        <input
+            id="password"
+            name="password"
+            type="password"
+            class="form-control"
+            required
+            autocomplete="current-password"
+            tabindex="2"
+            placeholder="{{ __('Enter your password') }}"
+        >
+    </div>
 </div>
 
 <div class="row align-items-center">
