@@ -35,3 +35,51 @@
     overflow-wrap: normal !important;
     white-space: normal !important;
 }
+
+.department-toggle-btn {
+    --bs-btn-color: #002060;
+    --bs-btn-hover-color: #001647;
+    --bs-btn-active-color: #001647;
+    border: 1px solid #002060 !important;
+    background-color: #ffffff !important;
+    color: #002060 !important;
+    font-weight: 600;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.department-toggle-btn:hover,
+.department-toggle-btn:focus {
+    border-color: #001647 !important;
+    background-color: #eaf0ff !important;
+    color: #001647 !important;
+}
+
+.department-toggle-btn:focus {
+    box-shadow: 0 0 0 0.2rem rgba(0, 32, 96, 0.2) !important;
+}
+
+.department-toggle-btn--active {
+    --bs-btn-color: #ffffff;
+    --bs-btn-hover-color: #FF8805;
+    --bs-btn-active-color: #FF8805;
+    border-color: #002060 !important;
+    background-color: #002060 !important;
+    color: #ffffff !important;
+}
+
+.department-toggle-btn--active:hover,
+.department-toggle-btn--active:focus {
+    border-color: #002060 !important;
+    background-color: #002060 !important;
+    color: #FF8805 !important;
+}
+
+a.department-toggle-btn--active:hover,
+a.department-toggle-btn--active:focus,
+a.department-toggle-btn--active:active,
+a.department-toggle-btn--active:visited:hover,
+a.department-toggle-btn--active:visited:focus,
+a.department-toggle-btn--active:visited:active {
+    color: #FF8805 !important;
+}
+

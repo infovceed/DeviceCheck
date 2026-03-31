@@ -44,6 +44,10 @@ class CheckListScreen extends Screen
     public function query(): iterable
     {
         $perPage = request()->input('perPage', 15);
+        $filters = request()->query('filter', []);
+
+        $data['departmentButtons'] = $this->buildDepartmentToggleButtons($filters);
+
         $checks = Check::query()
             ->filters()
             ->when(auth()->user()->hasAccess('platform.systems.devices.show-department'), function ($query) {
@@ -56,7 +60,6 @@ class CheckListScreen extends Screen
             ->paginate($perPage);
         $data['checks'] = $checks;
 
-        $filters = request()->query('filter', []);
         if (isset($filters['type']) && $filters['type'] == 'checkin' && !empty($filters['report_time'])) {
             $addFilters['report_time_arrival'] = $filters['report_time'];
             $addFilters = array_merge($filters, $addFilters);
@@ -298,6 +301,7 @@ class CheckListScreen extends Screen
     {
         $layout[]  = Layout::view('partials.auto-filter-enable');
         $layout[]  = new CheckFiltersLayout();
+        $layout[]  = Layout::view('partials.check-department-buttons');
         $layout[]  = (new CheckListLayout())->title(__('Reported Devices'));
         $filters   = request()->query('filter', []);
         $showSummary = isset($filters['type']) && !empty($filters['type']) && isset($filters['created_at']) && !empty($filters['created_at']);
@@ -354,5 +358,96 @@ class CheckListScreen extends Screen
                 'pct_pending'  => $pctPending,
             ];
         });
+    }
+
+    /**
+     * Build department toggle buttons preserving current filters.
+     *
+     * @param array<string, mixed> $filters
+     * @return array<int, array{name: string, active: bool, url: string}>
+     */
+    protected function buildDepartmentToggleButtons(array $filters): array
+    {
+        $selectedDepartments = $this->normalizeDepartmentFilter($filters['department'] ?? null);
+
+        $departmentNames = Department::query()
+            ->when(auth()->user()->hasAccess('platform.systems.devices.show-department'), function ($query) {
+                $departmentId = auth()->user()->department_id;
+                if ($departmentId) {
+                    $query->where('id', $departmentId);
+                }
+            })
+            ->orderBy('name', 'asc')
+            ->pluck('name')
+            ->toArray();
+
+        /** @var array<string, mixed> $baseQuery */
+        $baseQuery = request()->query();
+        unset($baseQuery['page'], $baseQuery['summaryPage'], $baseQuery['missingPage']);
+
+        return array_map(function (string $departmentName) use ($selectedDepartments, $baseQuery): array {
+            return [
+                'name' => $departmentName,
+                'active' => in_array($departmentName, $selectedDepartments, true),
+                'url' => $this->buildDepartmentToggleUrl($baseQuery, $departmentName, $selectedDepartments),
+            ];
+        }, $departmentNames);
+    }
+
+    /**
+     * @param array<string, mixed> $baseQuery
+     */
+    protected function buildDepartmentToggleUrl(array $baseQuery, string $departmentName, array $selectedDepartments): string
+    {
+        $query = $baseQuery;
+        $updatedDepartments = $selectedDepartments;
+
+        if (in_array($departmentName, $updatedDepartments, true)) {
+            $updatedDepartments = array_values(array_filter(
+                $updatedDepartments,
+                static fn (string $department): bool => $department !== $departmentName
+            ));
+        } else {
+            $updatedDepartments[] = $departmentName;
+        }
+
+        $query['filter'] = is_array($query['filter'] ?? null)
+            ? $query['filter']
+            : [];
+
+        if (empty($updatedDepartments)) {
+            unset($query['filter']['department']);
+            if (empty($query['filter'])) {
+                unset($query['filter']);
+            }
+        } else {
+            $query['filter']['department'] = array_values(array_unique($updatedDepartments));
+        }
+
+        $queryString = http_build_query($query);
+
+        return $queryString !== '' ? request()->url() . '?' . $queryString : request()->url();
+    }
+
+    /**
+     * Normalize department filter values.
+     *
+     * @param mixed $department
+     * @return array<int, string>
+     */
+    protected function normalizeDepartmentFilter(mixed $department): array
+    {
+        if ($department === null || $department === '') {
+            return [];
+        }
+
+        $values = is_array($department)
+            ? $department
+            : array_map('trim', explode(',', (string) $department));
+
+        return array_values(array_unique(array_filter(
+            array_map(static fn ($value) => trim((string) $value), $values),
+            static fn (string $value) => $value !== ''
+        )));
     }
 }

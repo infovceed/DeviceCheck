@@ -69,16 +69,19 @@ class DepartmentFilter extends Filter
             Select::make('filter[department]')
                 ->fromModel(Department::class, 'name', 'name')
                 ->empty(__('All Departments'))
-                ->multiple()
                 ->title(__('Departments'))
+                ->multiple()
                 ->value(function () {
                     $department = request()->query('filter', [])['department'] ?? null;
-                    if ($department) {
-                        $values = is_array($department) ? $department : explode(',', (string) $department);
-                        $values = array_values(array_unique(array_filter(array_map('trim', $values))));
-                        return $values ?: null;
+                    if ($department === null || $department === '') {
+                        return null;
                     }
-                    return null;
+
+                    $values = is_array($department)
+                        ? $department
+                        : explode(',', (string) $department);
+
+                    return array_values(array_unique(array_filter(array_map('trim', $values))));
                 }),
         ];
     }
