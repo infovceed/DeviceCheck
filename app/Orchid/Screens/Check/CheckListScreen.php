@@ -3,8 +3,8 @@
 namespace App\Orchid\Screens\Check;
 
 use App\Exports\ChecksExport;
-use App\Jobs\RunReportDeviceDailyExport;
 use App\Jobs\NotifyUserOfCompletedExport;
+use App\Jobs\RunReportDeviceDailyExport;
 use App\Models\Check;
 use App\Models\Department;
 use App\Models\Device;
@@ -16,10 +16,11 @@ use App\Orchid\Layouts\Check\CheckListLayout;
 use App\Orchid\Layouts\Check\DepartmentSummaryLayout;
 use App\Orchid\Layouts\Check\MissingDevicesLayout;
 use App\Traits\ComponentsTrait;
-use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
@@ -72,71 +73,14 @@ class CheckListScreen extends Screen
         // Summary of departments
         $showSummary = isset($filters['type']) && !empty($filters['type']) && isset($filters['created_at']) && !empty($filters['created_at']);
         if ($showSummary) {
-            if (empty($filters['department'])) {
-                $departments = Department::query()
-                    ->when(auth()->user()->hasAccess('platform.systems.devices.show-department'), function ($query) {
-                        $departmentId = auth()->user()->department_id;
-                        if ($departmentId) {
-                            $query->where('id', $departmentId);
-                        }
-                    })
-                    ->pluck('name')
-                    ->toArray();
-                $filters['department'] = $departments;
-            }
-            if (!empty($filters['created_at']) && empty($filters['check_day'])) {
-                $inputFilters = request()->input('filter', $filters);
-                $inputFilters['check_day'] = $filters['created_at'];
-                request()->merge(['filter' => $inputFilters]);
-            }
-            $query = DeviceDailyCheck::query()->filters();
-            if (!empty($filters['type']) && $filters['type'] === 'checkin') {
-                $query->select(
-                    'department as name',
-                    'municipality',
-                    DB::raw('COUNT(DISTINCT device_id) as total'),
-                    DB::raw('COUNT(DISTINCT CASE WHEN has_checkin > 0 THEN device_id END) as reported')
-                );
-            } else {
-                $query->select(
-                    'department as name',
-                    'municipality',
-                    DB::raw('COUNT(DISTINCT device_id) as total'),
-                    DB::raw('COUNT(DISTINCT CASE WHEN has_checkout > 0 THEN device_id END) as reported')
-                );
-            }
-
-            $query->groupBy('department', 'municipality')
-                ->orderBy('department');
-            $summaryPage = request()->input('summaryPage', 1);
-            $paginated = $query->paginate(40, ['*'], 'summaryPage', $summaryPage);
-            $paginated->appends(request()->except(['summaryPage']));
-            $transformed = $this->buildDepartmentSummary($paginated->getCollection());
-            $paginated->setCollection($transformed);
-            $data['departmentSummary'] = $paginated;
+            $this->showSummary($filters, $data);
         }
 
         //Table of missing devices
         $showMissing = !empty($filters['department']) && !empty($filters['type']) && !empty($filters['created_at']);
         if ($showMissing) {
-            $dates = $filters['created_at'];
-            if (is_string($dates)) {
-                $dates = array_filter(array_map('trim', explode(',', $dates)));
-            }
-            $dates = array_unique((array)$dates);
-
-            $type = is_array($filters['type']) ? reset($filters['type']) : $filters['type'];
-            $deptNames = (array)$filters['department'];
-            $missingPage = request()->input('missingPage', 1);
-            $missing = DeviceWithLocation::missingFor($deptNames, $type, $dates, $filters)
-                ->paginate(15, ['*'], 'missingPage', $missingPage);
-            $missing->appends(request()->except(['missingPage']));
-            $data['missingDevices'] = $missing;
-            $data['missingType']    = $type;
-            $data['missingDates']   = $dates;
+            $this->showMissing($filters, $data);
         }
-
-
         return $data;
     }
 
@@ -369,17 +313,27 @@ class CheckListScreen extends Screen
     protected function buildDepartmentToggleButtons(array $filters): array
     {
         $selectedDepartments = $this->normalizeDepartmentFilter($filters['department'] ?? null);
-
-        $departmentNames = Department::query()
-            ->when(auth()->user()->hasAccess('platform.systems.devices.show-department'), function ($query) {
-                $departmentId = auth()->user()->department_id;
-                if ($departmentId) {
-                    $query->where('id', $departmentId);
-                }
-            })
-            ->orderBy('name', 'asc')
-            ->pluck('name')
-            ->toArray();
+        $user = auth()->user();
+        $cacheVersion = (int) Cache::get('filter_options_version', 1);
+        $cacheKey = 'department_toggle_buttons:v' . $cacheVersion . ':' . md5(implode(',', $selectedDepartments) . '|' . $user->id);
+        $departmentNames = Cache::remember($cacheKey, 60, function () use ($user) {
+            return Department::query()
+                ->select('departments.name')
+                ->join('divipoles', 'divipoles.department_id', '=', 'departments.id')
+                ->join('devices as d', 'd.divipole_id', '=', 'divipoles.id')
+                ->join('configurations as c', DB::raw('c.id'), '=', DB::raw('1'))
+                ->whereColumn('d.work_shift_id', 'c.current_work_shift_id')
+                ->when($user->hasAccess('platform.systems.devices.show-department'), function ($query) use ($user) {
+                    $departmentId = $user->department_id;
+                    if ($departmentId) {
+                        $query->where('id', $departmentId);
+                    }
+                })
+                ->orderBy('name', 'asc')
+                ->distinct()
+                ->pluck('name')
+                ->toArray();
+        });
 
         /** @var array<string, mixed> $baseQuery */
         $baseQuery = request()->query();
@@ -449,5 +403,70 @@ class CheckListScreen extends Screen
             array_map(static fn ($value) => trim((string) $value), $values),
             static fn (string $value) => $value !== ''
         )));
+    }
+
+    public function showSummary(&$filters, &$data): void
+    {
+        if (empty($filters['department'])) {
+                $departments = Department::query()
+                    ->when(auth()->user()->hasAccess('platform.systems.devices.show-department'), function ($query) {
+                        $departmentId = auth()->user()->department_id;
+                        if ($departmentId) {
+                            $query->where('id', $departmentId);
+                        }
+                    })
+                    ->pluck('name')
+                    ->toArray();
+                $filters['department'] = $departments;
+        }
+        if (!empty($filters['created_at']) && empty($filters['check_day'])) {
+            $inputFilters = request()->input('filter', $filters);
+            $inputFilters['check_day'] = $filters['created_at'];
+            request()->merge(['filter' => $inputFilters]);
+        }
+        $query = DeviceDailyCheck::query()->filters();
+        if (!empty($filters['type']) && $filters['type'] === 'checkin') {
+            $query->select(
+                'department as name',
+                'municipality',
+                DB::raw('COUNT(DISTINCT device_id) as total'),
+                DB::raw('COUNT(DISTINCT CASE WHEN has_checkin > 0 THEN device_id END) as reported')
+            );
+        } else {
+            $query->select(
+                'department as name',
+                'municipality',
+                DB::raw('COUNT(DISTINCT device_id) as total'),
+                DB::raw('COUNT(DISTINCT CASE WHEN has_checkout > 0 THEN device_id END) as reported')
+            );
+        }
+
+        $query->groupBy('department', 'municipality')
+            ->orderBy('department');
+        $summaryPage = request()->input('summaryPage', 1);
+        $paginated = $query->paginate(40, ['*'], 'summaryPage', $summaryPage);
+        $paginated->appends(request()->except(['summaryPage']));
+        $transformed = $this->buildDepartmentSummary($paginated->getCollection());
+        $paginated->setCollection($transformed);
+        $data['departmentSummary'] = $paginated;
+    }
+
+    public function showMissing(&$filters, &$data): void
+    {
+        $dates = $filters['created_at'];
+        if (is_string($dates)) {
+            $dates = array_filter(array_map('trim', explode(',', $dates)));
+        }
+        $dates = array_unique((array)$dates);
+
+        $type = is_array($filters['type']) ? reset($filters['type']) : $filters['type'];
+        $deptNames = (array)$filters['department'];
+        $missingPage = request()->input('missingPage', 1);
+        $missing = DeviceWithLocation::missingFor($deptNames, $type, $dates, $filters)
+            ->paginate(15, ['*'], 'missingPage', $missingPage);
+        $missing->appends(request()->except(['missingPage']));
+        $data['missingDevices'] = $missing;
+        $data['missingType']    = $type;
+        $data['missingDates']   = $dates;
     }
 }

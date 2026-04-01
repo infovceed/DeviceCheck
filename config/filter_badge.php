@@ -15,9 +15,10 @@ return [
     |
     */
     'plurals' => [
-        'operative' => 'Agentes',
-        'department' => 'Departamentos',
-        // 'agent_id'   => 'Agentes',
+        'operative'     => 'Agentes',
+        'department'    => 'Departamentos',
+        'municipality'  => 'Municipios',
+        'position_name' => 'Puestos',
     ],
 
     /*

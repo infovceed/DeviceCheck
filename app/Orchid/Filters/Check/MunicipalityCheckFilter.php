@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace App\Orchid\Filters\Check;
 
 use App\Models\Divipole;
-use Orchid\Filters\Filter;
 use App\Models\Municipality;
-use Orchid\Screen\Fields\Select;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Cache;
+use Orchid\Filters\Filter;
+use Orchid\Screen\Fields\Select;
 
 class MunicipalityCheckFilter extends Filter
 {
@@ -53,30 +54,36 @@ class MunicipalityCheckFilter extends Filter
     public function display(): array
     {
         $departmentID = (array) $this->request->input('filter.department');
+        $cacheVersion = (int) Cache::get('filter_options_version', 1);
         if (empty($departmentID)) {
             return [
                 Select::make('filter[municipality]')
                     ->multiple()
                     ->title(__('Municipalities'))
-                    ->empty(__('All Municipalities'))
+                    ->empty(__('Select departments first'))
                     ->value($this->request->get('filter.municipality')),
             ];
         }
-        $divipoles = Divipole::when($departmentID, function (Builder $query) use ($departmentID) {
-            $query->whereHas('department', function (Builder $query) use ($departmentID) {
-                $query->whereIn('name', $departmentID);
-            });
+        $cacheKey = 'municipality_ids:v' . $cacheVersion . ':' . md5(implode(',', $departmentID));
+        $municipalityIDs = Cache::remember($cacheKey, 60, function () use ($departmentID) {
+            return Divipole::when($departmentID, function (Builder $query) use ($departmentID) {
+                $query->whereHas('department', function (Builder $query) use ($departmentID) {
+                    $query->whereIn('name', $departmentID);
+                });
+            })->pluck('municipality_id')->unique()->toArray();
         });
-        $municipalityIDs = $divipoles->pluck('municipality_id')->unique()->toArray();
-        $options = Municipality::whereIn('id', $municipalityIDs)
-            ->orderBy('name', 'asc')
-            ->pluck('name', 'name');
+        $cacheKey = 'municipality_filter_options:v' . $cacheVersion . ':' . md5(implode(',', $municipalityIDs));
+        $options = Cache::remember($cacheKey, 60, function () use ($municipalityIDs) {
+             return Municipality::whereIn('id', $municipalityIDs)
+                ->orderBy('name', 'asc')
+                ->pluck('name', 'name');
+        });
         return [
             Select::make('filter[municipality]')
                 ->options($options)
                 ->multiple()
                 ->title(__('Municipalities'))
-                ->empty(__('All Municipalities'))
+                ->empty(__('Select municipalities'))
                 ->value($this->request->input('filter.municipality')),
         ];
     }

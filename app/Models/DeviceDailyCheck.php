@@ -18,6 +18,7 @@ class DeviceDailyCheck extends Model
     protected $allowedFilters = [
         'department'    => WhereIn::class,
         'municipality'  => WhereIn::class,
+        'position_name' => WhereIn::class,
         'check_day'     => WhereIn::class,
         'report_time_arrival'   => Where::class,
         'report_time_departure' => Where::class,

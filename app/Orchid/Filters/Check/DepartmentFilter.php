@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Orchid\Filters\Check;
 
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Builder;
 use Orchid\Filters\Filter;
 use App\Models\Department;
@@ -65,10 +67,34 @@ class DepartmentFilter extends Filter
      */
     public function display(): array
     {
+        $user = auth()->user();
+        $cacheVersion = (int) Cache::get('filter_options_version', 1);
+        $cacheKey = 'department_filter_options:v' . $cacheVersion . ':' . ($user->id ?? 'guest') . ':' . ($user->department_id ?? 'all');
+
+        $options = Cache::remember($cacheKey, 60, function () use ($user) {
+            return Department::query()
+                ->select('departments.name')
+                ->join('divipoles', 'divipoles.department_id', '=', 'departments.id')
+                ->join('devices as d', 'd.divipole_id', '=', 'divipoles.id')
+                ->join('configurations as c', DB::raw('c.id'), '=', DB::raw('1'))
+                ->whereColumn('d.work_shift_id', 'c.current_work_shift_id')
+                ->when($user?->hasAccess('platform.systems.devices.show-department'), function (Builder $query) use ($user) {
+                    $departmentId = $user?->department_id;
+
+                    if ($departmentId !== null) {
+                        $query->where('departments.id', $departmentId);
+                    }
+                })
+                ->orderBy('departments.name', 'asc')
+                ->distinct()
+                ->pluck('departments.name', 'departments.name')
+                ->toArray();
+        });
+
         return [
             Select::make('filter[department]')
-                ->fromModel(Department::class, 'name', 'name')
-                ->empty(__('All Departments'))
+                ->options($options)
+                ->empty(__('Select departments'))
                 ->title(__('Departments'))
                 ->multiple()
                 ->value(function () {

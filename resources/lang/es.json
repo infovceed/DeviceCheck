@@ -366,5 +366,11 @@
     "Current work shift": "Jornada de trabajo actual",
     "Select the current work shift. This will be used to filter device checks on the dashboard and reports.": "Seleccione la jornada de trabajo actual. Esto se usará para filtrar las verificaciones de dispositivos en el panel de control y los informes.",
     "Select a work shift": "Seleccione una jornada de trabajo",
-    "Work shift configuration": "Configuración de jornada de trabajo"
+    "Work shift configuration": "Configuración de jornada de trabajo",
+    "Select Municipalities": "Seleccionar municipios",
+    "Select Positions": "Seleccionar puestos",
+    "Select Work Shift": "Seleccionar jornada de trabajo",
+    "Select departments": "Seleccionar departamentos",
+    "Select departments first": "Seleccionar departamentos primero",
+    "Select municipalities": "Seleccionar municipios"
 }

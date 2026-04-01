@@ -67,6 +67,17 @@ class DeviceWithLocation extends Model
             ->when(isset($filters['municipality']), function ($query) use ($filters) {
                 $query->whereIn('municipality', $filters['municipality']);
             })
+            ->when(isset($filters['position_name']), function ($query) use ($filters) {
+                $positions = is_array($filters['position_name'])
+                    ? $filters['position_name']
+                    : array_map('trim', explode(',', (string) $filters['position_name']));
+
+                $positions = array_values(array_unique(array_filter($positions, static fn ($value) => (string) $value !== '')));
+
+                if (!empty($positions)) {
+                    $query->whereIn('position_name', $positions);
+                }
+            })
             ->orderBy('department')
             ->orderBy('municipality')
             ->orderBy('position_name');

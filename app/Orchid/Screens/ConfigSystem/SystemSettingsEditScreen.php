@@ -10,6 +10,7 @@ use App\Models\Configuration;
 use App\Models\WorkShift;
 use Illuminate\Console\Application;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Orchid\Screen\Actions\Button;
@@ -366,6 +367,8 @@ class SystemSettingsEditScreen extends Screen
 
     public function saveWorkShiftConfig(Request $request): void
     {
+        $currentVersion = (int) Cache::get('filter_options_version', 1);
+        Cache::forever('filter_options_version', $currentVersion + 1);
         $request->validate([
             'current_work_shift_id' => 'required|exists:work_shifts,id',
         ]);
