@@ -54,8 +54,9 @@ class DepartmentChartsFilter extends Filter
     public function display(): array
     {
         $user = auth()->user();
+        $cacheTtl = (int) config('cache.filter_options_ttl', 60);
         $cacheKey = "departments.chart.filter.department.{$user->id}";
-        $options = Cache::remember($cacheKey, 60, function () use ($user) {
+        $options = Cache::remember($cacheKey, $cacheTtl, function () use ($user) {
             return Department::when(!$user->hasAccess('platform.systems.dashboard.show-all'), function (Builder $query) use ($user) {
                 $query->where('id', $user->department_id);
             })

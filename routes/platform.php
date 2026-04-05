@@ -6,6 +6,7 @@ use App\Orchid\Screens\Check\CheckListScreen;
 use App\Orchid\Screens\ConfigSystem\SystemSettingsEditScreen;
 use App\Orchid\Screens\Department\DepartmentListScreen;
 use App\Orchid\Screens\Device\DeviceListScreen;
+use App\Orchid\Screens\FilterHours\FilterHoursScreen;
 use App\Orchid\Screens\Incident\IncidentListScreen;
 use App\Orchid\Screens\Municipality\MunicipalityListScreen;
 use App\Orchid\Screens\PlatformScreen;
@@ -140,6 +141,12 @@ Route::group(['prefix' => 'device-checks'], function () {
         ->breadcrumbs(fn (Trail $trail) => $trail
             ->parent('platform.index')
             ->push(__('Device Checks'), route('platform.systems.devices-check')));
+    // Platform > System > Device Checks > Filter Hours
+    Route::screen('filter-hours', FilterHoursScreen::class)
+        ->name('platform.systems.devices-check.filter-hours')
+        ->breadcrumbs(fn (Trail $trail) => $trail
+            ->parent('platform.systems.devices-check')
+            ->push(__('Filter Hours'), route('platform.systems.devices-check.filter-hours')));
 });
 
 if (config('incidents.enabled')) {

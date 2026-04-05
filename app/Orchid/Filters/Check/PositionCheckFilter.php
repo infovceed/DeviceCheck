@@ -52,9 +52,10 @@ class PositionCheckFilter extends Filter
      */
     public function display(): array
     {
+        $cacheTtl = (int) config('cache.filter_options_ttl', 60);
         $cacheVersion = (int) Cache::get('filter_options_version', 1);
         $cacheKey = 'position_filter_options:v' . $cacheVersion . ':positions';
-        $options = Cache::remember($cacheKey, 60, function () {
+        $options = Cache::remember($cacheKey, $cacheTtl, function () {
             return Divipole::query()
                 ->select('divipoles.position_name')
                 ->join('devices as d', 'd.divipole_id', '=', 'divipoles.id')

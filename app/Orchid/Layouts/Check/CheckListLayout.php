@@ -11,7 +11,6 @@ use App\Traits\ComponentsTrait;
 use Orchid\Screen\Fields\Select;
 use Orchid\Screen\Layouts\Table;
 use Orchid\Screen\Fields\Relation;
-use Orchid\Screen\Fields\DateTimer;
 
 class CheckListLayout extends Table
 {
@@ -113,15 +112,7 @@ class CheckListLayout extends Table
                 })->alignCenter(),
             TD::make('report_time', __('Scheduled Time'))
             ->width('160px')
-            ->filter(
-                DateTimer::make('report_time')
-                    ->noCalendar()
-                    ->serverFormat('H:i:s')
-                    ->format('H:i')
-                    ->placeholder('00:00:00')
-                    ->allowInput()
-                    ->multiple()
-            )->render(function (Check $check) {
+            ->render(function (Check $check) {
                 if (! $check->report_time) {
                     return __('Not Scheduled');
                 }

@@ -10,6 +10,7 @@ use Orchid\Filters\Filterable;
 use Orchid\Filters\Types\Like;
 use Orchid\Filters\Types\Where;
 use Orchid\Filters\Types\WhereIn;
+use App\Filters\Types\WhereTimeIn;
 use App\Filters\Types\WhereDateIn;
 use App\Filters\Types\WhereCreatedOnIn;
 use App\Filters\Types\WhereDistance500;
@@ -62,8 +63,7 @@ class Check extends Model
         'code'                   => Where::class,
         'created_at'             => WhereCreatedOnIn::class,
         'distance'               => WhereDistance500::class,
-        'report_time'            => Where::class,
-        'report_time_departure'  => Where::class,
+        'report_time'            => WhereTimeIn::class,
     ];
 
     /**
@@ -146,6 +146,20 @@ class Check extends Model
                     $query->where(function ($q) use ($dates) {
                         foreach ($dates as $d) {
                             $q->orWhereDate('created_on', $d);
+                        }
+                    });
+                }
+                continue;
+            }
+
+            if ($filterClass === WhereTimeIn::class) {
+                $times = $valueParts->map(fn($t) => trim($t))
+                    ->filter(fn($t) => preg_match('/^\d{2}:\d{2}:\d{2}$/', $t))
+                    ->unique();
+                if ($times->isNotEmpty()) {
+                    $query->where(function ($q) use ($times) {
+                        foreach ($times as $t) {
+                            $q->orWhereTime('time', $t);
                         }
                     });
                 }

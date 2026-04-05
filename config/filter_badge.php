@@ -19,6 +19,9 @@ return [
         'department'    => 'Departamentos',
         'municipality'  => 'Municipios',
         'position_name' => 'Puestos',
+        'report_time'   => 'Horas programadas',
+        'report_time_arrival' => 'Horas reporte (llegada)',
+        'report_time_departure' => 'Horas reporte (salida)',
     ],
 
     /*

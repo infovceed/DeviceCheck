@@ -54,6 +54,7 @@ class MunicipalityCheckFilter extends Filter
     public function display(): array
     {
         $departmentID = (array) $this->request->input('filter.department');
+        $cacheTtl = (int) config('cache.filter_options_ttl', 60);
         $cacheVersion = (int) Cache::get('filter_options_version', 1);
         if (empty($departmentID)) {
             return [
@@ -65,7 +66,7 @@ class MunicipalityCheckFilter extends Filter
             ];
         }
         $cacheKey = 'municipality_ids:v' . $cacheVersion . ':' . md5(implode(',', $departmentID));
-        $municipalityIDs = Cache::remember($cacheKey, 60, function () use ($departmentID) {
+        $municipalityIDs = Cache::remember($cacheKey, $cacheTtl, function () use ($departmentID) {
             return Divipole::when($departmentID, function (Builder $query) use ($departmentID) {
                 $query->whereHas('department', function (Builder $query) use ($departmentID) {
                     $query->whereIn('name', $departmentID);
@@ -73,7 +74,7 @@ class MunicipalityCheckFilter extends Filter
             })->pluck('municipality_id')->unique()->toArray();
         });
         $cacheKey = 'municipality_filter_options:v' . $cacheVersion . ':' . md5(implode(',', $municipalityIDs));
-        $options = Cache::remember($cacheKey, 60, function () use ($municipalityIDs) {
+        $options = Cache::remember($cacheKey, $cacheTtl, function () use ($municipalityIDs) {
              return Municipality::whereIn('id', $municipalityIDs)
                 ->orderBy('name', 'asc')
                 ->pluck('name', 'name');

@@ -101,7 +101,6 @@ class PlatformProvider extends OrchidServiceProvider
                 ->addPermission('platform.systems.report-download', __('Report Download'))
                 ->addPermission('platform.systems.devices', __('Devices'))
                 ->addPermission('platform.systems.device-check', __('Device Checks'))
-
                 ->addPermission('platform.settings', __('Settings'))
                 ->addPermission('platform.systems.work-shifts', __('Work Shifts'))
                 ->addPermission('platform.systems.departments', __('Departments'))
@@ -111,6 +110,11 @@ class PlatformProvider extends OrchidServiceProvider
             ItemPermission::group(__('Work Shifts'))
                 ->addPermission('platform.systems.work-shifts.create', __('Create'))
                 ->addPermission('platform.systems.work-shifts.edit', __('Edit')),
+            ItemPermission::group(__('Filter Hours'))
+                ->addPermission('platform.systems.device-check.filter-hours', __('Access Filter Hours'))
+                ->addPermission('platform.systems.device-check.filter-hours.create', __('Create'))
+                ->addPermission('platform.systems.device-check.filter-hours.edit', __('Edit'))
+                ->addPermission('platform.systems.device-check.filter-hours.delete', __('Delete')),
             ItemPermission::group(__('Divipole'))
                 ->addPermission('platform.systems.divipoles.edit', __('Edit')),
             ItemPermission::group(__('Devices'))

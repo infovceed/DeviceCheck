@@ -17,6 +17,9 @@ return [
 
     'default' => env('CACHE_STORE', 'database'),
 
+    // TTL para opciones cacheadas de selectores/filtros en pantallas Orchid.
+    'filter_options_ttl' => (int) env('FILTER_OPTIONS_CACHE_TTL', 60),
+
     /*
     |--------------------------------------------------------------------------
     | Cache Stores

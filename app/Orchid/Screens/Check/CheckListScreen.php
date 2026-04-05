@@ -10,6 +10,7 @@ use App\Models\Department;
 use App\Models\Device;
 use App\Models\DeviceDailyCheck;
 use App\Models\DeviceWithLocation;
+use App\Models\FilterHours;
 use App\Notifications\DashboardNotification;
 use App\Orchid\Layouts\Check\CheckFiltersLayout;
 use App\Orchid\Layouts\Check\CheckListLayout;
@@ -44,14 +45,48 @@ class CheckListScreen extends Screen
      */
     public function query(): iterable
     {
-        $perPage = request()->input('perPage', 15);
         $filters = request()->query('filter', []);
-
         $data['departmentButtons'] = $this->buildDepartmentToggleButtons($filters);
+        $data['filterHoursButtons'] = $this->buildFilterHoursToggleButtons($filters);
 
-        $checks = Check::query()
+        $reportTimes = $this->resolveFilterHoursToTimes($filters['report_time'] ?? null);
+        if ($reportTimes !== []) {
+            $filters['report_time'] = $reportTimes;
+        }
+
+        if (isset($filters['type']) && $filters['type'] == 'checkin' && !empty($filters['report_time'])) {
+            $addFilters['report_time_arrival'] = $filters['report_time'];
+            $addFilters = array_merge($filters, $addFilters);
+            $filters = $addFilters;
+        } elseif (isset($filters['type']) && $filters['type'] == 'checkout' && !empty($filters['report_time'])) {
+            $addFilters['report_time_departure'] = $filters['report_time'];
+            $addFilters = array_merge($filters, $addFilters);
+            $filters = $addFilters;
+        }
+
+        request()->merge(['filter' => $filters]);
+        $data['checks'] = $this->checkList();
+
+        // Summary of departments
+        $showSummary = isset($filters['type']) && !empty($filters['type']) && isset($filters['created_at']) && !empty($filters['created_at']);
+        if ($showSummary) {
+            $this->showSummary($filters, $data);
+        }
+        //Table of missing devices
+        $showMissing = !empty($filters['department']) && !empty($filters['type']) && !empty($filters['created_at']);
+        if ($showMissing) {
+            $this->showMissing($filters, $data);
+        }
+        return $data;
+    }
+
+    protected function checkList()
+    {
+        $perPage = request()->input('perPage', 15);
+
+        return Check::query()
             ->filters()
-            ->when(auth()->user()->hasAccess('platform.systems.devices.show-department'), function ($query) {
+            ->when(auth()->user()->hasAccess('platform.systems.devices.show-department'), function ($query,) {
                 $departmentId = auth()->user()->department_id;
                 if ($departmentId) {
                     $query->where('department_id', $departmentId);
@@ -59,29 +94,6 @@ class CheckListScreen extends Screen
             })
             ->defaultSort('id', 'asc')
             ->paginate($perPage);
-        $data['checks'] = $checks;
-
-        if (isset($filters['type']) && $filters['type'] == 'checkin' && !empty($filters['report_time'])) {
-            $addFilters['report_time_arrival'] = $filters['report_time'];
-            $addFilters = array_merge($filters, $addFilters);
-            request()->merge(['filter' => $addFilters]);
-        } elseif (isset($filters['type']) && $filters['type'] == 'checkout' && !empty($filters['report_time'])) {
-            $addFilters['report_time_departure'] = $filters['report_time'];
-            $addFilters = array_merge($filters, $addFilters);
-            request()->merge(['filter' => $addFilters]);
-        }
-        // Summary of departments
-        $showSummary = isset($filters['type']) && !empty($filters['type']) && isset($filters['created_at']) && !empty($filters['created_at']);
-        if ($showSummary) {
-            $this->showSummary($filters, $data);
-        }
-
-        //Table of missing devices
-        $showMissing = !empty($filters['department']) && !empty($filters['type']) && !empty($filters['created_at']);
-        if ($showMissing) {
-            $this->showMissing($filters, $data);
-        }
-        return $data;
     }
 
     /**
@@ -127,9 +139,13 @@ class CheckListScreen extends Screen
                 ->method('exportTotals', [
                     'filter' => request()->query('filter', []),
                 ]),
-                Link::make(__('Refresh'))
+            Link::make(__('Refresh'))
                 ->icon('bs.arrow-clockwise')
                 ->route('platform.systems.devices-check'),
+            Link::make(__('Filter Hours'))
+                ->icon('bs.funnel')
+                ->route('platform.systems.devices-check.filter-hours')
+                ->canSee(auth()->user()->hasAccess('platform.systems.device-check.filter-hours')),
         ];
     }
 
@@ -246,16 +262,17 @@ class CheckListScreen extends Screen
         $layout[]  = Layout::view('partials.auto-filter-enable');
         $layout[]  = new CheckFiltersLayout();
         $layout[]  = Layout::view('partials.check-department-buttons');
+        $layout[]  = Layout::view('partials.check-filter-hours-buttons');
         $layout[]  = (new CheckListLayout())->title(__('Reported Devices'));
         $filters   = request()->query('filter', []);
         $showSummary = isset($filters['type']) && !empty($filters['type']) && isset($filters['created_at']) && !empty($filters['created_at']);
-
         if ($showSummary) {
             $layout[] = Layout::split([
                 (new DepartmentSummaryLayout())->title(__('Department Summary')),
                 (new MissingDevicesLayout())->title(__('Missing Devices')),
             ])->ratio('50/50');
         }
+
         return $layout;
     }
 
@@ -314,9 +331,10 @@ class CheckListScreen extends Screen
     {
         $selectedDepartments = $this->normalizeDepartmentFilter($filters['department'] ?? null);
         $user = auth()->user();
+        $cacheTtl = (int) config('cache.filter_options_ttl', 60);
         $cacheVersion = (int) Cache::get('filter_options_version', 1);
         $cacheKey = 'department_toggle_buttons:v' . $cacheVersion . ':' . md5(implode(',', $selectedDepartments) . '|' . $user->id);
-        $departmentNames = Cache::remember($cacheKey, 60, function () use ($user) {
+        $departmentNames = Cache::remember($cacheKey, $cacheTtl, function () use ($user) {
             return Department::query()
                 ->select('departments.name')
                 ->join('divipoles', 'divipoles.department_id', '=', 'departments.id')
@@ -446,7 +464,7 @@ class CheckListScreen extends Screen
         $summaryPage = request()->input('summaryPage', 1);
         $paginated = $query->paginate(40, ['*'], 'summaryPage', $summaryPage);
         $paginated->appends(request()->except(['summaryPage']));
-        $transformed = $this->buildDepartmentSummary($paginated->getCollection());
+        $transformed = $this->buildDepartmentSummary(collect($paginated->items()));
         $paginated->setCollection($transformed);
         $data['departmentSummary'] = $paginated;
     }
@@ -468,5 +486,99 @@ class CheckListScreen extends Screen
         $data['missingDevices'] = $missing;
         $data['missingType']    = $type;
         $data['missingDates']   = $dates;
+    }
+
+    public function buildFilterHoursToggleButtons(array $filters): array
+    {
+        $selectedHours = $this->normalizeFilterHours($filters['report_time'] ?? null);
+        $cacheTtl = (int) config('cache.filter_options_ttl', 60);
+        $cacheKey = 'filter_hours:v' . (int) Cache::get('filter_options_version', 1);
+        $filterHours = Cache::remember($cacheKey, $cacheTtl, function () {
+            return FilterHours::query()
+                ->orderBy('hour', 'asc')
+                ->get();
+        });
+
+        /** @var array<string, mixed> $baseQuery */
+        $baseQuery = request()->query();
+        unset($baseQuery['page'], $baseQuery['summaryPage'], $baseQuery['missingPage']);
+
+        return $filterHours->map(function (FilterHours $filterHour) use ($selectedHours, $baseQuery) {
+            return [
+                'hour' => Carbon::parse($filterHour->hour)->format('h:i A'),
+                'active' => in_array($filterHour->id, $selectedHours, true),
+                'url' => $this->buildFilterHoursToggleUrl($baseQuery, $filterHour->id, $selectedHours),
+            ];
+        })->toArray();
+    }
+
+    protected function buildFilterHoursToggleUrl(array $baseQuery, int $filterHourId, array $selectedHours): string
+    {
+        $query = $baseQuery;
+        $updatedHours = $selectedHours;
+
+        if (in_array($filterHourId, $updatedHours, true)) {
+            $updatedHours = array_values(array_filter(
+                $updatedHours,
+                static fn (int $id): bool => $id !== $filterHourId
+            ));
+        } else {
+            $updatedHours[] = $filterHourId;
+        }
+
+        $query['filter'] = is_array($query['filter'] ?? null)
+            ? $query['filter']
+            : [];
+
+        if (empty($updatedHours)) {
+            unset($query['filter']['report_time']);
+            if (empty($query['filter'])) {
+                unset($query['filter']);
+            }
+        } else {
+            $query['filter']['report_time'] = array_values(array_unique($updatedHours));
+        }
+
+        $queryString = http_build_query($query);
+
+        return $queryString !== '' ? request()->url() . '?' . $queryString : request()->url();
+    }
+
+    protected function normalizeFilterHours(mixed $reportTime): array
+    {
+        if ($reportTime === null || $reportTime === '') {
+            return [];
+        }
+
+        $values = is_array($reportTime)
+            ? $reportTime
+            : array_map('trim', explode(',', (string) $reportTime));
+
+        return array_values(array_unique(array_filter(
+            array_map(static fn ($value) => (int) trim((string) $value), $values),
+            static fn (int $value) => $value > 0
+        )));
+    }
+
+    /**
+     * @param mixed $reportTime
+     * @return array<int, string>
+     */
+    protected function resolveFilterHoursToTimes(mixed $reportTime): array
+    {
+        $selectedHourIds = $this->normalizeFilterHours($reportTime);
+
+        if ($selectedHourIds === []) {
+            return [];
+        }
+
+        return FilterHours::query()
+            ->whereIn('id', $selectedHourIds)
+            ->get(['hour'])
+            ->map(function (FilterHours $filterHour): string {
+                return Carbon::parse((string) $filterHour->hour)->format('H:i:s');
+            })
+            ->values()
+            ->all();
     }
 }

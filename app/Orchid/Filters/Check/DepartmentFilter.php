@@ -68,10 +68,11 @@ class DepartmentFilter extends Filter
     public function display(): array
     {
         $user = auth()->user();
+        $cacheTtl = (int) config('cache.filter_options_ttl', 60);
         $cacheVersion = (int) Cache::get('filter_options_version', 1);
         $cacheKey = 'department_filter_options:v' . $cacheVersion . ':' . ($user->id ?? 'guest') . ':' . ($user->department_id ?? 'all');
 
-        $options = Cache::remember($cacheKey, 60, function () use ($user) {
+        $options = Cache::remember($cacheKey, $cacheTtl, function () use ($user) {
             return Department::query()
                 ->select('departments.name')
                 ->join('divipoles', 'divipoles.department_id', '=', 'departments.id')

@@ -59,10 +59,40 @@ class DeviceWithLocation extends Model
                     ->whereIn('c.created_on', $dates);
             })
             ->when($type == 'checkin' && isset($filters['report_time']), function ($query) use ($filters) {
-                $query->where('report_time', $filters['report_time']);
+                $reportTimes = is_array($filters['report_time'])
+                    ? $filters['report_time']
+                    : array_map('trim', explode(',', (string) $filters['report_time']));
+
+                $reportTimes = array_values(array_unique(array_filter(
+                    array_map(static fn ($value): string => trim((string) $value), $reportTimes),
+                    static fn (string $value): bool => $value !== ''
+                )));
+
+                if (!empty($reportTimes)) {
+                    $query->where(function ($timeQuery) use ($reportTimes) {
+                        foreach ($reportTimes as $reportTime) {
+                            $timeQuery->orWhere('report_time', '=', $reportTime);
+                        }
+                    });
+                }
             })
             ->when($type == 'checkout' && isset($filters['report_time']), function ($query) use ($filters) {
-                $query->where('report_time_departure', $filters['report_time']);
+                $reportTimes = is_array($filters['report_time'])
+                    ? $filters['report_time']
+                    : array_map('trim', explode(',', (string) $filters['report_time']));
+
+                $reportTimes = array_values(array_unique(array_filter(
+                    array_map(static fn ($value): string => trim((string) $value), $reportTimes),
+                    static fn (string $value): bool => $value !== ''
+                )));
+
+                if (!empty($reportTimes)) {
+                    $query->where(function ($timeQuery) use ($reportTimes) {
+                        foreach ($reportTimes as $reportTime) {
+                            $timeQuery->orWhere('report_time_departure', '=', $reportTime);
+                        }
+                    });
+                }
             })
             ->when(isset($filters['municipality']), function ($query) use ($filters) {
                 $query->whereIn('municipality', $filters['municipality']);
