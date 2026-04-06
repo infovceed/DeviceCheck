@@ -10,7 +10,6 @@ use Orchid\Screen\Screen;
 use App\Models\Department;
 use Orchid\Screen\Actions\Link;
 use Orchid\Support\Facades\Layout;
-use App\Orchid\Layouts\Dashboard\ChartsLayout;
 use App\Orchid\Layouts\Dashboard\PieChartLayout;
 use App\Orchid\Layouts\Dashboard\ChartFiltersLayout;
 

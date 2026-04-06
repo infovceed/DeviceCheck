@@ -242,7 +242,7 @@ export default function RealTimeMunicipalitiesChart({ initialSeries, wsUrl, titl
                     dataKey="PArrival"
                     stackId="a"
                     name="Pendientes Llegada"
-                    fill="#727272"
+                    fill="#00206080"
                     shape={<ConditionalRoundedBarShape dataKey="PArrival" />}
                   >
                     <LabelList dataKey="PArrivalCenterLabel" position="center" fill="#FFFFFF"/>
@@ -262,7 +262,7 @@ export default function RealTimeMunicipalitiesChart({ initialSeries, wsUrl, titl
                     dataKey="PCheckout"
                     stackId="b"
                     name="Pendientes Salida"
-                    fill="#C0BFBF"
+                    fill="#FF880580"
                     shape={<ConditionalRoundedBarShape dataKey="PCheckout" />}
                   >
                     <LabelList dataKey="PCheckoutCenterLabel" position="center" />
