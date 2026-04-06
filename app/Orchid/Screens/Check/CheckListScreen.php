@@ -46,12 +46,17 @@ class CheckListScreen extends Screen
     public function query(): iterable
     {
         $filters = request()->query('filter', []);
+        $selectedReportHourIds = $this->resolveSelectedFilterHourIds($filters);
+        $filters['report_time_ids'] = $selectedReportHourIds;
+
         $data['departmentButtons'] = $this->buildDepartmentToggleButtons($filters);
         $data['filterHoursButtons'] = $this->buildFilterHoursToggleButtons($filters);
 
-        $reportTimes = $this->resolveFilterHoursToTimes($filters['report_time'] ?? null);
+        $reportTimes = $this->resolveFilterHoursToTimes($selectedReportHourIds);
         if ($reportTimes !== []) {
             $filters['report_time'] = $reportTimes;
+        } else {
+            unset($filters['report_time']);
         }
 
         if (isset($filters['type']) && $filters['type'] == 'checkin' && !empty($filters['report_time'])) {
@@ -490,7 +495,7 @@ class CheckListScreen extends Screen
 
     public function buildFilterHoursToggleButtons(array $filters): array
     {
-        $selectedHours = $this->normalizeFilterHours($filters['report_time'] ?? null);
+        $selectedHours = $this->resolveSelectedFilterHourIds($filters);
         $cacheTtl = (int) config('cache.filter_options_ttl', 60);
         $cacheKey = 'filter_hours:v' . (int) Cache::get('filter_options_version', 1);
         $filterHours = Cache::remember($cacheKey, $cacheTtl, function () {
@@ -531,12 +536,12 @@ class CheckListScreen extends Screen
             : [];
 
         if (empty($updatedHours)) {
-            unset($query['filter']['report_time']);
+            unset($query['filter']['report_time_ids']);
             if (empty($query['filter'])) {
                 unset($query['filter']);
             }
         } else {
-            $query['filter']['report_time'] = array_values(array_unique($updatedHours));
+            $query['filter']['report_time_ids'] = array_values(array_unique($updatedHours));
         }
 
         $queryString = http_build_query($query);
@@ -554,10 +559,28 @@ class CheckListScreen extends Screen
             ? $reportTime
             : array_map('trim', explode(',', (string) $reportTime));
 
-        return array_values(array_unique(array_filter(
-            array_map(static fn ($value) => (int) trim((string) $value), $values),
-            static fn (int $value) => $value > 0
+        return array_values(array_unique(array_map(
+            static fn (string $value): int => (int) $value,
+            array_filter(
+                array_map(static fn ($value): string => trim((string) $value), $values),
+                static fn (string $value): bool => $value !== '' && ctype_digit($value) && (int) $value > 0
+            )
         )));
+    }
+
+    /**
+     * @param array<string, mixed> $filters
+     * @return array<int, int>
+     */
+    protected function resolveSelectedFilterHourIds(array $filters): array
+    {
+        $selectedHourIds = $this->normalizeFilterHours($filters['report_time_ids'] ?? null);
+
+        if ($selectedHourIds !== []) {
+            return $selectedHourIds;
+        }
+
+        return $this->normalizeFilterHours($filters['report_time'] ?? null);
     }
 
     /**
