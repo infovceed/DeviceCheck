@@ -53,11 +53,18 @@ class PlatformScreen extends Screen
             'departmentID' => $departmentID,
             'incidents' => $incidents,
         ];
-
+        $valuesPendingIn = [];
+        $valuesPendingOut = [];
+        foreach ($valuesTotal as $index => $total) {
+            $valuesPendingIn[$index] = max(0, (int) $total - (int) ($valuesReported[$index] ?? 0));
+            $valuesPendingOut[$index] = max(0, (int) $total - (int) ($reportedCheckout[$index] ?? 0));
+        }
         $data['departmentsChart'] = [
             ['labels' => $labels, 'name' => __('Meta'),    'values' => $valuesTotal],
             ['labels' => $labels, 'name' => __('Arrival'),'values' => $valuesReported],
             ['labels' => $labels, 'name' => __('Check-out'),'values' => $reportedCheckout],
+            ['labels' => $labels, 'name' => __('PArrival'),'values' => $valuesPendingIn],
+            ['labels' => $labels, 'name' => __('PCheckout'),'values' => $valuesPendingOut],
         ];
         $totalDevices  = array_sum($valuesTotal);
         $reportedIn    = array_sum($valuesReported);
@@ -92,11 +99,18 @@ class PlatformScreen extends Screen
                 $municipalities,
                 $positions
             );
-
+            $mvaluesPendingIn = [];
+            $mvaluesPendingOut = [];
+            foreach ($mtotal as $index => $total) {
+                $mvaluesPendingIn[$index] = max(0, (int) $total - (int) ($mcheckin[$index] ?? 0));
+                $mvaluesPendingOut[$index] = max(0, (int) $total - (int) ($mcheckout[$index] ?? 0));
+            }
             $data['municipalitiesChart'] = [
-                ['labels' => $mlabels, 'name' => 'Meta',       'values' => $mtotal],
-                ['labels' => $mlabels, 'name' => __('Arrival'),   'values' => $mcheckin],
+                ['labels' => $mlabels, 'name' => __('Meta'),       'values' => $mtotal],
+                ['labels' => $mlabels, 'name' => __('Arrival'),    'values' => $mcheckin],
                 ['labels' => $mlabels, 'name' => __('Check-out'),  'values' => $mcheckout],
+                ['labels' => $mlabels, 'name' => __('PArrival'),   'values' => $mvaluesPendingIn],
+                ['labels' => $mlabels, 'name' => __('PCheckout'),  'values' => $mvaluesPendingOut],
             ];
         }
         $this->viewData = $data;
@@ -147,44 +161,17 @@ class PlatformScreen extends Screen
         }
 
         $showAll = $user->hasAccess('platform.systems.dashboard.show-all');
-        $showRealTime = $user->hasAccess('platform.systems.dashboard.realtime');
         $data = $this->viewData;
-
-        if (!$showRealTime) {
-            return $this->buildStaticLayouts($data, $showAll);
-        }
-
-        return $this->buildRealtimeLayouts($data, $showAll);
+        return $this->buildLayouts($data, $showAll);
     }
 
-    protected function buildStaticLayouts(array $data, bool $showAll): array
+    protected function buildLayouts(array $data, bool $showAll): array
     {
-        $layouts = [
-            $this->buildStatsColumns($data['stats'] ?? []),
-        ];
-
-        if ($showAll) {
-            $layouts = array_merge($layouts, $this->buildChartFilters());
+        $wsUrl = null;
+        $showRealTime = auth()->user()->hasAccess('platform.systems.dashboard.realtime');
+        if ($showRealTime) {
+            $wsUrl = $this->getWsUrl();
         }
-
-        $layouts[] = ChartsLayout::make('departmentsChart', 'Reporte por departamento')
-            ->description('Comparativa de dispositivos reportados por departamento.');
-
-        $layouts[] = $this->buildStaticPies($data['stats'] ?? []);
-
-        if (isset($data['municipalitiesChart'])) {
-            $layouts[] = ChartsLayout::make('municipalitiesChart', 'Reporte por municipio')
-                ->description('Totals, check-in and check-out by municipality');
-        }
-
-        $layouts = array_merge($layouts, $this->buildIncidentsSection());
-
-        return $layouts;
-    }
-
-    protected function buildRealtimeLayouts(array $data, bool $showAll): array
-    {
-        $wsUrl = $this->getWsUrl();
 
         $layouts = [
             $this->buildRealtimeStatsColumns($data['stats'] ?? [], $wsUrl),

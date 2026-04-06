@@ -8,31 +8,84 @@ import {
   Tooltip,
   Legend,
   Bar,
+  Rectangle,
   LabelList,
 } from 'recharts';
-import type { ChartDataPoint, Series,ChartProps } from '../interfaces/chart';
+import type { ChartDataPoint, Series,ChartProps,Radius,ConditionalBarShapeProps  } from '../interfaces/chart';
 import { municipalitiesBus } from '../services/municipalitiesBus';
+
+function ConditionalRoundedBarShape({ dataKey, payload, ...props }: ConditionalBarShapeProps) {
+  const currentValue = payload?.[dataKey] ?? 0;
+  const metaValue = payload?.Meta ?? 0;
+  const isPendingBar = dataKey === 'PArrival' || dataKey === 'PCheckout';
+  const shouldRound = isPendingBar ? currentValue > 0 : currentValue === metaValue;
+  const radius: Radius | 0 = shouldRound ? [10, 10, 0, 0] : 0;
+
+  return <Rectangle {...props} radius={radius} />;
+}
 
 function toChartData(series: Series[] | undefined): Array<ChartDataPoint> {
   if (!series || series.length === 0) return [];
   const baseLabels = series[0].labels ?? [];
+
   return baseLabels.map((label, idx) => {
     const row: ChartDataPoint  = { label };
     series.forEach((s, sIdx) => {
       const value = s.values?.[idx] ?? 0;
-      const name = s.name ?? '';
+      const name = (s.name ?? '').trim();
       if (/^meta$/i.test(name)) row.Meta = value;
+      else if (/^(?:p\s*arrival|pendientes?\s*llegada|pending\s*arrival)$/i.test(name)) row.PArrival = value;
       else if (/arrival|llegada/i.test(name)) row.Arrival = value;
+      else if (/^(?:p\s*checkout|pendientes?\s*salida|pending\s*checkout|psalida)$/i.test(name)) row.PCheckout = value;
       else if (/check[- ]?out|checkout|salida/i.test(name)) row.Checkout = value;
       else {
         if (sIdx === 0) row.Meta = value;
         else if (sIdx === 1) row.Arrival = value;
         else if (sIdx === 2) row.Checkout = value;
+        else if (sIdx === 3) row.PArrival = value;
+        else if (sIdx === 4) row.PCheckout = value;
         else (row as any)[name || `Serie ${sIdx + 1}`] = value;
       }
     });
+
+    const meta = Math.max(0, Number(row.Meta ?? 0));
+    const arrivalReported  = Math.max(0, Number(row.Arrival ?? 0));
+    const checkoutReported = Math.max(0, Number(row.Checkout ?? 0));
+
+    const normalizedArrival  = Math.min(arrivalReported, meta);
+    const normalizedCheckout = Math.min(checkoutReported, meta);
+
+    row.Meta      = meta;
+    row.Arrival   = normalizedArrival;
+    row.Checkout  = normalizedCheckout;
+    row.PArrival  = Math.max(0, meta - normalizedArrival);
+    row.PCheckout = Math.max(0, meta - normalizedCheckout);
+
+    const pendingArrival  = row.PArrival;
+    const pendingCheckout = row.PCheckout;
+
+    row.ArrivalCenterLabel   = normalizedArrival > 0 && normalizedArrival < meta ? String(normalizedArrival) : '';
+    row.PArrivalCenterLabel  = pendingArrival > 0 && pendingArrival < meta ? String(pendingArrival) : '';
+    row.CheckoutCenterLabel  = normalizedCheckout > 0 && normalizedCheckout < meta ? String(normalizedCheckout) : '';
+    row.PCheckoutCenterLabel = pendingCheckout > 0 && pendingCheckout < meta ? String(pendingCheckout) : '';
+    row.MetaArrivalTopLabel  = meta > 0 ? String(meta) : '';
+    row.MetaCheckoutTopLabel = meta > 0 ? String(meta) : '';
+
     return row;
   });
+}
+
+function normalizeFilterValues(rawValues: string[]): string[] {
+  const uniqueValues = new Set<string>();
+
+  rawValues.forEach((value) => {
+    value.split(',').forEach((part) => {
+      const cleaned = part.trim();
+      if (cleaned.length > 0) uniqueValues.add(cleaned);
+    });
+  });
+
+  return Array.from(uniqueValues);
 }
 
 function resolveWsUrl(input?: string): string {
@@ -54,14 +107,14 @@ function resolveWsUrl(input?: string): string {
   return /\/ws\/municipalities(\/?$)/.test(base) ? base : `${base}/ws/municipalities`;
 }
 
-function appendFiltersToWsUrl(baseUrl: string): string {
-  const current = new URLSearchParams(location.search);
+function appendFiltersToWsUrl(baseUrl: string, search: string): string {
+  const current = new URLSearchParams(search);
   const params = new URLSearchParams();
   const keys = ['department', 'municipality', 'position'];
   keys.forEach((key) => {
     const plain = current.getAll(key);
     const bracket = current.getAll(`${key}[]`);
-    const values = [...plain, ...bracket];
+    const values = normalizeFilterValues([...plain, ...bracket]);
     values.forEach((v) => params.append(`${key}[]`, v));
   });
   const date = current.get('chart_date');
@@ -76,6 +129,33 @@ function appendFiltersToWsUrl(baseUrl: string): string {
 
 export default function RealTimeMunicipalitiesChart({ initialSeries, wsUrl, title = 'Reporte por municipio', xLabel = 'Municipio', yLabel = 'Dispositivos reportados', pxPerLabel = 150 }: ChartProps) {
   const [series, setSeries] = useState<Series[] | undefined>(initialSeries);
+  const [locationSearch, setLocationSearch] = useState<string>(() => location.search);
+
+  useEffect(() => {
+    setSeries(initialSeries);
+  }, [initialSeries]);
+
+  useEffect(() => {
+    const syncSearch = () => {
+      const next = location.search;
+      setLocationSearch((prev) => (prev === next ? prev : next));
+    };
+
+    syncSearch();
+    document.addEventListener('turbo:load', syncSearch);
+    document.addEventListener('turbo:render', syncSearch);
+    globalThis.addEventListener('popstate', syncSearch);
+
+    const watchId = globalThis.setInterval(syncSearch, 400);
+
+    return () => {
+      document.removeEventListener('turbo:load', syncSearch);
+      document.removeEventListener('turbo:render', syncSearch);
+      globalThis.removeEventListener('popstate', syncSearch);
+      globalThis.clearInterval(watchId);
+    };
+  }, []);
+
   const data = useMemo(() => toChartData(series), [series]);
   const contentWidth = useMemo(() => {
     const n = data.length;
@@ -109,14 +189,18 @@ export default function RealTimeMunicipalitiesChart({ initialSeries, wsUrl, titl
     };
   }, []);
 
-  useEffect(() => {
+  const wsUrlWithFilters = useMemo(() => {
     let url = resolveWsUrl(wsUrl);
-    url = appendFiltersToWsUrl(url);
-    const unsubscribe = municipalitiesBus.subscribe(url, (nextSeries) => {
+    url = appendFiltersToWsUrl(url, locationSearch);
+    return url;
+  }, [wsUrl, locationSearch]);
+
+  useEffect(() => {
+    const unsubscribe = municipalitiesBus.subscribe(wsUrlWithFilters, (nextSeries) => {
       if (Array.isArray(nextSeries)) setSeries(nextSeries);
     });
     return () => unsubscribe();
-  }, [wsUrl]);
+  }, [wsUrlWithFilters]);
 
   return (
     <div className="card bg-white rounded shadow-sm mb-3">
@@ -127,33 +211,63 @@ export default function RealTimeMunicipalitiesChart({ initialSeries, wsUrl, titl
             {ready ? (
               <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={100}>
                 <BarChart data={data} margin={{ top: 20, right: 30, left: 10, bottom: 60 }}>
-                <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis
-                    dataKey="label"
-                    interval={0}
-                    height={60}
-                    tickMargin={10}
-                    label={{ value: xLabel, position: 'insideLeft', offset: 0, dy: 20 }}
+                  <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis
+                      dataKey="label"
+                      interval={0}
+                      height={60}
+                      tickMargin={10}
+                      label={{ value: xLabel, position: 'insideLeft', offset: 0, dy: 20 }}
+                    />
+                  <YAxis allowDecimals={false} label={{ value: yLabel, angle: -90, position: 'insideLeft', dy: 50 }} />
+                  <Tooltip />
+                  <Legend
+                    layout="horizontal"
+                    verticalAlign="bottom"
+                    align="left"
+                    formatter={(value: any) => (
+                      <span style={{ marginRight: 12 }}>{String(value)}</span>
+                    )}
                   />
-                <YAxis allowDecimals={false} label={{ value: yLabel, angle: -90, position: 'insideLeft', dy: 50 }} />
-                <Tooltip />
-                <Legend
-                  layout="horizontal"
-                  verticalAlign="bottom"
-                  align="left"
-                  formatter={(value: any) => (
-                    <span style={{ marginRight: 12 }}>{String(value)}</span>
-                  )}
-                />
-                <Bar dataKey="Meta" name="Meta" fill="#92D050" radius={[10, 10, 0, 0]}>
-                  <LabelList dataKey="Meta" position="top" />
-                </Bar>
-                <Bar dataKey="Arrival" name="Llegada" fill="#002060" radius={[10, 10, 0, 0]}>
-                  <LabelList dataKey="Arrival" position="top" />
-                </Bar>
-                <Bar dataKey="Checkout" name="Salida" fill="#FF8805" radius={[10, 10, 0, 0]}>
-                  <LabelList dataKey="Checkout" position="top" />
-                </Bar>
+                  <Bar
+                    dataKey="Arrival"
+                    stackId="a"
+                    name="Reportados Llegada"
+                    fill="#002060"
+                    shape={<ConditionalRoundedBarShape dataKey="Arrival" />}
+                  >
+                    <LabelList dataKey="ArrivalCenterLabel" position="center" fill="#FFFFFF" />
+                  </Bar>
+                  <Bar
+                    dataKey="PArrival"
+                    stackId="a"
+                    name="Pendientes Llegada"
+                    fill="#727272"
+                    shape={<ConditionalRoundedBarShape dataKey="PArrival" />}
+                  >
+                    <LabelList dataKey="PArrivalCenterLabel" position="center" fill="#FFFFFF"/>
+                    <LabelList dataKey="MetaArrivalTopLabel" position="top" />
+                  </Bar>
+
+                  <Bar
+                    dataKey="Checkout"
+                    stackId="b"
+                    name="Reportados Salida"
+                    fill="#FF8805"
+                    shape={<ConditionalRoundedBarShape dataKey="Checkout" />}
+                  >
+                    <LabelList dataKey="CheckoutCenterLabel" position="center" fill="#FFFFFF" />
+                  </Bar>
+                  <Bar
+                    dataKey="PCheckout"
+                    stackId="b"
+                    name="Pendientes Salida"
+                    fill="#C0BFBF"
+                    shape={<ConditionalRoundedBarShape dataKey="PCheckout" />}
+                  >
+                    <LabelList dataKey="PCheckoutCenterLabel" position="center" />
+                    <LabelList dataKey="MetaCheckoutTopLabel" position="top" />
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             ) : (

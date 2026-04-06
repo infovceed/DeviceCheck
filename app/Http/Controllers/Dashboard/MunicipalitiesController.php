@@ -31,11 +31,19 @@ class MunicipalitiesController extends Controller
             $municipalities,
             $positions
         );
+        $mvaluesPendingIn = [];
+        $mvaluesPendingOut = [];
+        foreach ($mtotal as $index => $total) {
+            $mvaluesPendingIn[$index] = max(0, (int) $total - (int) ($mcheckin[$index] ?? 0));
+            $mvaluesPendingOut[$index] = max(0, (int) $total - (int) ($mcheckout[$index] ?? 0));
+        }
 
         $series = [
-            ['labels' => $labels, 'name' => __('Meta'), 'values' => $mtotal],
+            ['labels' => $labels, 'name' => __('Meta'),    'values' => $mtotal],
             ['labels' => $labels, 'name' => __('Arrival'), 'values' => $mcheckin],
             ['labels' => $labels, 'name' => __('Check-out'), 'values' => $mcheckout],
+            ['labels' => $labels, 'name' => __('PArrival'), 'values' => $mvaluesPendingIn],
+            ['labels' => $labels, 'name' => __('PCheckout'), 'values' => $mvaluesPendingOut],
         ];
 
         return response()->json([

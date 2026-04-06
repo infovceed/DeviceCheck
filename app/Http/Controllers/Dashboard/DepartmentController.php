@@ -24,11 +24,19 @@ class DepartmentController extends Controller
             $municipalities,
             $positions
         );
-
+        $valuesPendingIn = [];
+        $valuesPendingOut = [];
+        foreach ($valuesTotal as $index => $total) {
+            $valuesPendingIn[$index] = max(0, (int) $total - (int) ($valuesReported[$index] ?? 0));
+            $valuesPendingOut[$index] = max(0, (int) $total - (int) ($reportedCheckout[$index] ?? 0));
+        }
         $series = [
             ['labels' => $labels, 'name' => __('Meta'), 'values' => $valuesTotal],
             ['labels' => $labels, 'name' => __('Arrival'), 'values' => $valuesReported],
             ['labels' => $labels, 'name' => __('Check-out'), 'values' => $reportedCheckout],
+            ['labels' => $labels, 'name' => __('PArrival'),'values' => $valuesPendingIn],
+            ['labels' => $labels, 'name' => __('PCheckout'),'values' => $valuesPendingOut],
+
         ];
 
         return response()->json([
