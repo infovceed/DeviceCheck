@@ -36,6 +36,9 @@
 
             $popoverContent = null;
             $displayText = (string) $filterString;
+            $clearFilterColumn = in_array($column, ['report_time_arrival', 'report_time_departure'], true)
+                ? 'report_time'
+                : $column;
 
             if (is_array($rawFilter)) {
                 $isRange = isset($rawFilter['start']) || isset($rawFilter['end']);
@@ -116,6 +119,16 @@
                         }
                     }
 
+                    if ($column === 'report_time' && count($labels) > 0) {
+                        $labels = array_map(function ($value) {
+                            try {
+                                return \Carbon\Carbon::parse((string) $value)->format('H:i:s');
+                            } catch (\Throwable $e) {
+                                return (string) $value;
+                            }
+                        }, $labels);
+                    }
+
                     if (count($values) <= 2 && $labels !== $values) {
                         $displayText = implode(', ', array_map('strval', $labels));
                     }
@@ -139,7 +152,7 @@
         <div data-controller="filter" class="mt-2">
             <a href="#"
                data-action="filter#clearFilter"
-               data-filter="{{$column}}"
+               data-filter="{{ $clearFilterColumn }}"
                class="badge bg-light border d-inline-flex align-items-center">
                 @if($popoverContent !== null)
                     <span

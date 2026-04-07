@@ -112,23 +112,4 @@ class DepartmentFilter extends Filter
                 }),
         ];
     }
-
-    /**
-     * Value to be displayed
-     */
-    public function value(): string
-    {
-        $selected = (array) $this->request->input('filter.department');
-        $selected = array_values(array_unique(array_filter(array_map('trim', $selected))));
-        if (empty($selected)) {
-            return $this->name() . ': ' . __('All');
-        }
-
-        $departments = Department::whereIn('name', $selected)
-            ->orderBy('name', 'asc')
-            ->pluck('name')
-            ->join(', ');
-
-        return $this->name() . ': ' . $departments;
-    }
 }

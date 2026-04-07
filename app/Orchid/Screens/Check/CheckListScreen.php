@@ -17,6 +17,7 @@ use App\Orchid\Layouts\Check\CheckListLayout;
 use App\Orchid\Layouts\Check\DepartmentSummaryLayout;
 use App\Orchid\Layouts\Check\MissingDevicesLayout;
 use App\Traits\ComponentsTrait;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -38,6 +39,7 @@ class CheckListScreen extends Screen
 {
     use ComponentsTrait;
 
+    protected $departments;
     /**
      * Fetch data to be displayed on the screen.
      *
@@ -46,18 +48,16 @@ class CheckListScreen extends Screen
     public function query(): iterable
     {
         $filters = request()->query('filter', []);
-        $selectedReportHourIds = $this->resolveSelectedFilterHourIds($filters);
-        $filters['report_time_ids'] = $selectedReportHourIds;
-
-        $data['departmentButtons'] = $this->buildDepartmentToggleButtons($filters);
-        $data['filterHoursButtons'] = $this->buildFilterHoursToggleButtons($filters);
-
-        $reportTimes = $this->resolveFilterHoursToTimes($selectedReportHourIds);
-        if ($reportTimes !== []) {
-            $filters['report_time'] = $reportTimes;
-        } else {
-            unset($filters['report_time']);
+        $selectedReportHourIds = $filters['report_time'] ?? [];
+        foreach ($selectedReportHourIds as $key => $value) {
+            if (is_string($value)) {
+                $selectedReportHourIds[$key] = (int) $value;
+                $filters['report_time'][$key] = (int) $value;
+            }
         }
+        $data['departmentButtons']  = $this->buildDepartmentToggleButtons($filters);
+        $data['filterHoursButtons'] = $this->buildFilterHoursToggleButtons($selectedReportHourIds);
+        $filters['report_time']     = $this->resolveFilterHoursToTimes($selectedReportHourIds);
 
         if (isset($filters['type']) && $filters['type'] == 'checkin' && !empty($filters['report_time'])) {
             $addFilters['report_time_arrival'] = $filters['report_time'];
@@ -78,10 +78,12 @@ class CheckListScreen extends Screen
             $this->showSummary($filters, $data);
         }
         //Table of missing devices
-        $showMissing = !empty($filters['department']) && !empty($filters['type']) && !empty($filters['created_at']);
+        $showMissing = !empty($filters['type']) && !empty($filters['created_at']);
         if ($showMissing) {
             $this->showMissing($filters, $data);
         }
+        $filters['report_time'] = $selectedReportHourIds;
+        request()->merge(['filter' => $filters]);
         return $data;
     }
 
@@ -264,12 +266,12 @@ class CheckListScreen extends Screen
      */
     public function layout(): iterable
     {
-        $layout[]  = Layout::view('partials.auto-filter-enable');
-        $layout[]  = new CheckFiltersLayout();
-        $layout[]  = Layout::view('partials.check-department-buttons');
-        $layout[]  = Layout::view('partials.check-filter-hours-buttons');
-        $layout[]  = (new CheckListLayout())->title(__('Reported Devices'));
-        $filters   = request()->query('filter', []);
+        $layout[] = Layout::view('partials.auto-filter-enable');
+        $layout[] = new CheckFiltersLayout();
+        $layout[] = Layout::view('partials.check-department-buttons');
+        $layout[] = Layout::view('partials.check-filter-hours-buttons');
+        $layout[] = (new CheckListLayout())->title(__('Reported Devices'));
+        $filters  = request()->query('filter', []);
         $showSummary = isset($filters['type']) && !empty($filters['type']) && isset($filters['created_at']) && !empty($filters['created_at']);
         if ($showSummary) {
             $layout[] = Layout::split([
@@ -340,22 +342,7 @@ class CheckListScreen extends Screen
         $cacheVersion = (int) Cache::get('filter_options_version', 1);
         $cacheKey = 'department_toggle_buttons:v' . $cacheVersion . ':' . md5(implode(',', $selectedDepartments) . '|' . $user->id);
         $departmentNames = Cache::remember($cacheKey, $cacheTtl, function () use ($user) {
-            return Department::query()
-                ->select('departments.name')
-                ->join('divipoles', 'divipoles.department_id', '=', 'departments.id')
-                ->join('devices as d', 'd.divipole_id', '=', 'divipoles.id')
-                ->join('configurations as c', DB::raw('c.id'), '=', DB::raw('1'))
-                ->whereColumn('d.work_shift_id', 'c.current_work_shift_id')
-                ->when($user->hasAccess('platform.systems.devices.show-department'), function ($query) use ($user) {
-                    $departmentId = $user->department_id;
-                    if ($departmentId) {
-                        $query->where('id', $departmentId);
-                    }
-                })
-                ->orderBy('name', 'asc')
-                ->distinct()
-                ->pluck('name')
-                ->toArray();
+            return $this->getDepartments();
         });
 
         /** @var array<string, mixed> $baseQuery */
@@ -430,17 +417,9 @@ class CheckListScreen extends Screen
 
     public function showSummary(&$filters, &$data): void
     {
-        if (empty($filters['department'])) {
-                $departments = Department::query()
-                    ->when(auth()->user()->hasAccess('platform.systems.devices.show-department'), function ($query) {
-                        $departmentId = auth()->user()->department_id;
-                        if ($departmentId) {
-                            $query->where('id', $departmentId);
-                        }
-                    })
-                    ->pluck('name')
-                    ->toArray();
-                $filters['department'] = $departments;
+        $isEmptyDepartmentFilter = empty($filters['department']);
+        if ($isEmptyDepartmentFilter) {
+            $filters['department'] = $this->getDepartments();
         }
         if (!empty($filters['created_at']) && empty($filters['check_day'])) {
             $inputFilters = request()->input('filter', $filters);
@@ -472,6 +451,9 @@ class CheckListScreen extends Screen
         $transformed = $this->buildDepartmentSummary(collect($paginated->items()));
         $paginated->setCollection($transformed);
         $data['departmentSummary'] = $paginated;
+        if ($isEmptyDepartmentFilter) {
+            unset($filters['department']);
+        }
     }
 
     public function showMissing(&$filters, &$data): void
@@ -483,7 +465,7 @@ class CheckListScreen extends Screen
         $dates = array_unique((array)$dates);
 
         $type = is_array($filters['type']) ? reset($filters['type']) : $filters['type'];
-        $deptNames = (array)$filters['department'];
+        $deptNames = $filters['department'] ?? $this->getDepartments();
         $missingPage = request()->input('missingPage', 1);
         $missing = DeviceWithLocation::missingFor($deptNames, $type, $dates, $filters)
             ->paginate(15, ['*'], 'missingPage', $missingPage);
@@ -493,9 +475,8 @@ class CheckListScreen extends Screen
         $data['missingDates']   = $dates;
     }
 
-    public function buildFilterHoursToggleButtons(array $filters): array
+    public function buildFilterHoursToggleButtons(array $selectedHours): array
     {
-        $selectedHours = $this->resolveSelectedFilterHourIds($filters);
         $cacheTtl = (int) config('cache.filter_options_ttl', 60);
         $cacheKey = 'filter_hours:v' . (int) Cache::get('filter_options_version', 1);
         $filterHours = Cache::remember($cacheKey, $cacheTtl, function () {
@@ -507,11 +488,11 @@ class CheckListScreen extends Screen
         /** @var array<string, mixed> $baseQuery */
         $baseQuery = request()->query();
         unset($baseQuery['page'], $baseQuery['summaryPage'], $baseQuery['missingPage']);
-
         return $filterHours->map(function (FilterHours $filterHour) use ($selectedHours, $baseQuery) {
+            $isActive = in_array($filterHour->id, $selectedHours, true);
             return [
                 'hour' => Carbon::parse($filterHour->hour)->format('h:i A'),
-                'active' => in_array($filterHour->id, $selectedHours, true),
+                'active' => $isActive,
                 'url' => $this->buildFilterHoursToggleUrl($baseQuery, $filterHour->id, $selectedHours),
             ];
         })->toArray();
@@ -536,51 +517,18 @@ class CheckListScreen extends Screen
             : [];
 
         if (empty($updatedHours)) {
-            unset($query['filter']['report_time_ids']);
+            unset($query['filter']['report_time']);
             if (empty($query['filter'])) {
                 unset($query['filter']);
             }
         } else {
-            $query['filter']['report_time_ids'] = array_values(array_unique($updatedHours));
+            $x = array_unique($updatedHours);
+            $query['filter']['report_time'] = array_values($x);
         }
 
         $queryString = http_build_query($query);
 
         return $queryString !== '' ? request()->url() . '?' . $queryString : request()->url();
-    }
-
-    protected function normalizeFilterHours(mixed $reportTime): array
-    {
-        if ($reportTime === null || $reportTime === '') {
-            return [];
-        }
-
-        $values = is_array($reportTime)
-            ? $reportTime
-            : array_map('trim', explode(',', (string) $reportTime));
-
-        return array_values(array_unique(array_map(
-            static fn (string $value): int => (int) $value,
-            array_filter(
-                array_map(static fn ($value): string => trim((string) $value), $values),
-                static fn (string $value): bool => $value !== '' && ctype_digit($value) && (int) $value > 0
-            )
-        )));
-    }
-
-    /**
-     * @param array<string, mixed> $filters
-     * @return array<int, int>
-     */
-    protected function resolveSelectedFilterHourIds(array $filters): array
-    {
-        $selectedHourIds = $this->normalizeFilterHours($filters['report_time_ids'] ?? null);
-
-        if ($selectedHourIds !== []) {
-            return $selectedHourIds;
-        }
-
-        return $this->normalizeFilterHours($filters['report_time'] ?? null);
     }
 
     /**
@@ -589,19 +537,39 @@ class CheckListScreen extends Screen
      */
     protected function resolveFilterHoursToTimes(mixed $reportTime): array
     {
-        $selectedHourIds = $this->normalizeFilterHours($reportTime);
-
-        if ($selectedHourIds === []) {
-            return [];
-        }
-
         return FilterHours::query()
-            ->whereIn('id', $selectedHourIds)
+            ->whereIn('id', $reportTime)
             ->get(['hour'])
             ->map(function (FilterHours $filterHour): string {
                 return Carbon::parse((string) $filterHour->hour)->format('H:i:s');
             })
             ->values()
             ->all();
+    }
+
+    protected function getDepartments(): array
+    {
+        if ($this->departments !== null) {
+            return $this->departments;
+        }
+        $user = auth()->user();
+        $this->departments = Department::query()
+            ->select('departments.name')
+            ->join('divipoles', 'divipoles.department_id', '=', 'departments.id')
+            ->join('devices as d', 'd.divipole_id', '=', 'divipoles.id')
+            ->join('configurations as c', DB::raw('c.id'), '=', DB::raw('1'))
+            ->whereColumn('d.work_shift_id', 'c.current_work_shift_id')
+            ->when($user->hasAccess('platform.systems.devices.show-department'), function (Builder $query) use ($user) {
+                $departmentId = $user?->department_id;
+
+                if ($departmentId !== null) {
+                    $query->where('departments.id', $departmentId);
+                }
+            })
+            ->orderBy('departments.name', 'asc')
+            ->distinct()
+            ->pluck('name')
+            ->toArray();
+        return $this->departments;
     }
 }

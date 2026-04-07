@@ -2,6 +2,7 @@
 
 namespace App\Orchid\Layouts\Check;
 
+use App\Models\FilterHours;
 use Carbon\Carbon;
 use App\Models\User;
 use App\Models\Check;
@@ -112,6 +113,15 @@ class CheckListLayout extends Table
                 })->alignCenter(),
             TD::make('report_time', __('Scheduled Time'))
             ->width('160px')
+            ->filterValue(function ($value) {
+                if (is_array($value)) {
+                    $times = FilterHours::whereIn('id', $value)->pluck('hour')->map(function ($hour) {
+                        return Carbon::parse($hour)->format('H:i:s');
+                    })->toArray();
+                    return implode(', ', $times);
+                }
+                return $value;
+            })
             ->render(function (Check $check) {
                 if (! $check->report_time) {
                     return __('Not Scheduled');

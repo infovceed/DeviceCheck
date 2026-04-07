@@ -43,5 +43,10 @@ return [
             'key'   => 'id',
             'label' => 'name',
         ],
+        'report_time' => [
+            'model' => \App\Models\FilterHours::class,
+            'key'   => 'id',
+            'label' => 'hour',
+        ],
     ],
 ];
