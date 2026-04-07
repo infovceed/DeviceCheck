@@ -114,7 +114,7 @@ const POLL_MS = Number(process.env.POLL_MS || 0);
 // Timeout para requests al backend Laravel durante el push
 // Nota: en producción algunos endpoints pueden tardar >4s.
 // Sube este valor si ves "This operation was aborted" en el log.
-const FETCH_TIMEOUT_MS = Number(process.env.FETCH_TIMEOUT_MS || 15000);
+const FETCH_TIMEOUT_MS = Number(process.env.FETCH_TIMEOUT_MS || 30000);
 
 const server = http.createServer(async (req, res) => {
   // Basic health check endpoint
@@ -210,8 +210,14 @@ wss.on('connection', (ws) => {
   const filters = ws._filters || {};
   const path = ws._path || PATHS.departments;
   let intervalId = null;
+  let inFlightPoll = null;
 
   async function pollAndSend() {
+    if (inFlightPoll) {
+      return inFlightPoll;
+    }
+
+    inFlightPoll = (async () => {
     let targetUrl = null;
     try {
       const endpoint = API_ENDPOINTS[path] || API_ENDPOINTS[PATHS.departments];
@@ -247,7 +253,12 @@ wss.on('connection', (ws) => {
       }
       // Importante: re-lanzar para que /notify pueda reportar fallos reales
       throw err;
+    } finally {
+      inFlightPoll = null;
     }
+    })();
+
+    return inFlightPoll;
   }
   ws._pollAndSend = pollAndSend;
   if (POLL_MS > 0) {

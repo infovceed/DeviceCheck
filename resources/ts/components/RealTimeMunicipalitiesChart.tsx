@@ -14,6 +14,57 @@ import {
 import type { ChartDataPoint, Series,ChartProps,Radius,ConditionalBarShapeProps  } from '../interfaces/chart';
 import { municipalitiesBus } from '../services/municipalitiesBus';
 
+type CustomTooltipEntry = {
+  name?: string | number;
+  value?: string | number;
+  color?: string;
+};
+
+type CustomTooltipProps = {
+  active?: boolean;
+  payload?: CustomTooltipEntry[];
+  label?: string | number;
+};
+
+function getLegendTextColor(label: string): string {
+  return /salida/i.test(label) ? '#FF8805' : '#002060';
+}
+
+function renderTooltipContent({ active, payload, label }: CustomTooltipProps): React.ReactNode {
+  if (!active || !payload || payload.length === 0) return null;
+
+  return (
+    <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', padding: '8px 10px' }}>
+      <div style={{ color: '#111827', marginBottom: 6 }}>{String(label)}</div>
+      {payload.map((entry, index) => {
+        const seriesLabel = String(entry.name ?? '');
+        const textColor = getLegendTextColor(seriesLabel);
+        const markerColor = entry.color ?? textColor;
+        const value = String(entry.value ?? 0);
+
+        return (
+          <div
+            key={`${seriesLabel}-${index}`}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, color: textColor, marginTop: 3 }}
+          >
+            <span
+              style={{
+                width: 10,
+                height: 10,
+                borderRadius: 2,
+                backgroundColor: markerColor,
+                display: 'inline-block',
+                flexShrink: 0,
+              }}
+            />
+            <span>{`${seriesLabel} : ${value}`}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function ConditionalRoundedBarShape({ dataKey, payload, ...props }: ConditionalBarShapeProps) {
   const currentValue = payload?.[dataKey] ?? 0;
   const metaValue = payload?.Meta ?? 0;
@@ -127,6 +178,13 @@ function appendFiltersToWsUrl(baseUrl: string, search: string): string {
   return url.toString();
 }
 
+function legendTextFormatter(value: string | number): React.ReactNode {
+  const label = String(value);
+  const color = getLegendTextColor(label);
+
+  return <span style={{ marginRight: 12, color }}>{label}</span>;
+}
+
 export default function RealTimeMunicipalitiesChart({ initialSeries, wsUrl, title = 'Reporte por municipio', xLabel = 'Municipio', yLabel = 'Dispositivos reportados', pxPerLabel = 150 }: ChartProps) {
   const [series, setSeries] = useState<Series[] | undefined>(initialSeries);
   const [locationSearch, setLocationSearch] = useState<string>(() => location.search);
@@ -220,14 +278,12 @@ export default function RealTimeMunicipalitiesChart({ initialSeries, wsUrl, titl
                       label={{ value: xLabel, position: 'insideLeft', offset: 0, dy: 20 }}
                     />
                   <YAxis allowDecimals={false} label={{ value: yLabel, angle: -90, position: 'insideLeft', dy: 50 }} />
-                  <Tooltip />
+                  <Tooltip content={renderTooltipContent} />
                   <Legend
                     layout="horizontal"
                     verticalAlign="bottom"
                     align="left"
-                    formatter={(value: any) => (
-                      <span style={{ marginRight: 12 }}>{String(value)}</span>
-                    )}
+                    formatter={legendTextFormatter}
                   />
                   <Bar
                     dataKey="Arrival"
