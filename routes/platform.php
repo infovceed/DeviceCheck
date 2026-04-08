@@ -134,7 +134,7 @@ Route::group(['prefix' => 'devices'], function () {
 });
 
 // Platform > System > Device Checks
-Route::group(['prefix' => 'device-checks'], function () {
+Route::middleware('clean.query')->prefix('device-checks')->group(function () {
     // Platform > System > Device Checks > Device Check
     Route::screen('/', CheckListScreen::class)
         ->name('platform.systems.devices-check')

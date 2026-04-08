@@ -9,6 +9,7 @@ use App\Orchid\Layouts\Device\Modal\BulkUpdateByExcelModalLayout;
 use App\Orchid\Layouts\Device\Modal\EditDeviceModalLayout;
 use App\Services\DeviceReportQueryBuilder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Orchid\Screen\Actions\Button;
 use Orchid\Screen\Actions\ModalToggle;
@@ -28,6 +29,8 @@ class DeviceListScreen extends Screen
     {
         $devices = Device::query()
             ->filters()
+            ->join('configurations as c', DB::raw('c.id'), '=', DB::raw('1'))
+            ->whereColumn('devices.work_shift_id', 'c.current_work_shift_id')
             ->when(!auth()->user()->hasAccess('platform.systems.devices.show-all'), function ($query) {
                 $query->where('updated_by', auth()->user()->id);
             })
@@ -39,7 +42,7 @@ class DeviceListScreen extends Screen
                     });
                 }
             })
-            ->defaultSort('id', 'asc')
+            ->defaultSort('devices.id', 'asc')
             ->paginate();
         return [
             'devices' => $devices,

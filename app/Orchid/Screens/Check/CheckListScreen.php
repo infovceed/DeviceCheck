@@ -50,6 +50,11 @@ class CheckListScreen extends Screen
         $filters = request()->query('filter', []);
         $selectedReportHourIds = $filters['report_time'] ?? [];
         foreach ($selectedReportHourIds as $key => $value) {
+            if (!$value) {
+                unset($selectedReportHourIds[$key]);
+                unset($filters['report_time'][$key]);
+                continue;
+            }
             if (is_string($value)) {
                 $selectedReportHourIds[$key] = (int) $value;
                 $filters['report_time'][$key] = (int) $value;

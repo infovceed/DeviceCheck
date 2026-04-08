@@ -6,6 +6,7 @@ use App\Models\FilterHours;
 use App\Orchid\Layouts\FilterHours\FilterHoursListLayout;
 use App\Orchid\Layouts\FilterHours\Modal\FilterHoursEditModalLayout;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Orchid\Screen\Actions\ModalToggle;
 use Orchid\Screen\Screen;
 use Orchid\Support\Facades\Layout;
@@ -78,7 +79,9 @@ class FilterHoursScreen extends Screen
     public function create(Request $request): void
     {
         $request->validate([
-            'hour' => 'required|date_format:H:i',
+            'hour' => ['required', 'date_format:H:i', Rule::unique('filter_hours', 'hour')],
+        ], [
+            'hour.unique' => __('This hour has already been registered.'),
         ]);
 
         try {
@@ -95,7 +98,13 @@ class FilterHoursScreen extends Screen
     public function update(Request $request, FilterHours $filterHour): void
     {
         $request->validate([
-            'hour' => 'required|date_format:H:i',
+            'hour' => [
+                'required',
+                'date_format:H:i',
+                Rule::unique('filter_hours', 'hour')->ignore($filterHour->id),
+            ],
+        ], [
+            'hour.unique' => __('This hour has already been registered.'),
         ]);
 
         try {

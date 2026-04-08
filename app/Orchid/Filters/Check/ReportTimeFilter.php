@@ -2,13 +2,10 @@
 
 namespace App\Orchid\Filters\Check;
 
-use App\Models\FilterHours;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Cache;
 use Orchid\Filters\Filter;
 use Orchid\Screen\Field;
-use Orchid\Screen\Fields\Select;
+use Orchid\Screen\Fields\Input;
 
 class ReportTimeFilter extends Filter
 {
@@ -54,24 +51,24 @@ class ReportTimeFilter extends Filter
      */
     public function display(): iterable
     {
-        $cacheTtl = (int) config('cache.filter_options_ttl', 60);
-        $cacheVersion = (int) Cache::get('filter_options_version', 1);
-        $options = Cache::remember("filter_hours_options_{$cacheVersion}", $cacheTtl, function () {
-            return FilterHours::query()
-                ->orderBy('hour')
-                ->pluck('hour', 'id')
-                ->mapWithKeys(static fn ($hour, $id) => [
-                    $id => Carbon::parse($hour)->format('H:i'),
-                ])
-                ->all();
-        });
-        return [
-            Select::make('filter[report_time]')
-                ->title(__('Report Time'))
-                ->options($options)
-                ->empty(__('All'))
-                ->multiple()
-                ->value($this->request->input('filter.report_time')),
-        ];
+        $selected = $this->request->input('filter.report_time');
+
+        if (is_array($selected)) {
+            $values = $selected;
+        } elseif (is_string($selected) && trim($selected) !== '') {
+            $values = array_map('trim', explode(',', $selected));
+        } else {
+            $values = [];
+        }
+
+        $values = array_values(array_filter($values, static fn ($value): bool => is_scalar($value) && (string) $value !== ''));
+
+        return array_map(
+            static fn ($value): Field => Input::make('filter[report_time][]')
+                ->type('hidden')
+                ->withoutFormType()
+                ->value((string) $value),
+            $values
+        );
     }
 }

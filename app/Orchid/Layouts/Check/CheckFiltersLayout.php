@@ -15,7 +15,7 @@ use Orchid\Screen\Layouts\Selection;
 
 class CheckFiltersLayout extends Selection
 {
-    public $template = self::TEMPLATE_LINE;
+    public $template = 'orchid.layouts.check-filters-line';
     /**
      * @return string[]|Filter[]
      */
@@ -24,12 +24,12 @@ class CheckFiltersLayout extends Selection
         return [
             PageFilter::class,
             OperativeFilter::class,
-            DepartmentFilter::class,
             ReportTimeFilter::class,
-            MunicipalityCheckFilter::class,
-            PositionCheckFilter::class,
             CheckDateFilter::class,
             ReportTypeFilter::class,
+            DepartmentFilter::class,
+            MunicipalityCheckFilter::class,
+            PositionCheckFilter::class,
         ];
     }
 }

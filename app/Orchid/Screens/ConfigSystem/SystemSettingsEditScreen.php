@@ -369,6 +369,7 @@ class SystemSettingsEditScreen extends Screen
     {
         $currentVersion = (int) Cache::get('filter_options_version', 1);
         Cache::forever('filter_options_version', $currentVersion + 1);
+        Cache::flush();
         $request->validate([
             'current_work_shift_id' => 'required|exists:work_shifts,id',
         ]);

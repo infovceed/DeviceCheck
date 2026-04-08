@@ -2,6 +2,7 @@
 
 use Illuminate\Foundation\Application;
 use App\Http\Middleware\AuthenticateStorage;
+use App\Http\Middleware\CleanEmptyQueryParameters;
 use App\Http\Middleware\ValidateWebSocketKey;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -18,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'auth' => \App\Http\Middleware\Authenticate::class,
             'ws.key' => ValidateWebSocketKey::class,
+            'clean.query' => CleanEmptyQueryParameters::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
