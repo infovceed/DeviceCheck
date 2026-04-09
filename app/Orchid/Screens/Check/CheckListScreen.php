@@ -20,6 +20,7 @@ use App\Traits\ComponentsTrait;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Cache;
@@ -337,7 +338,7 @@ class CheckListScreen extends Screen
      * Build department toggle buttons preserving current filters.
      *
      * @param array<string, mixed> $filters
-     * @return array<int, array{name: string, active: bool, url: string}>
+     * @return array<int, array{name: string, active: bool, url: string, bg: string, text: string, hover: string}>
      */
     protected function buildDepartmentToggleButtons(array $filters): array
     {
@@ -346,7 +347,7 @@ class CheckListScreen extends Screen
         $cacheTtl = (int) config('cache.filter_options_ttl', 60);
         $cacheVersion = (int) Cache::get('filter_options_version', 1);
         $cacheKey = 'department_toggle_buttons:v' . $cacheVersion . ':' . md5(implode(',', $selectedDepartments) . '|' . $user->id);
-        $departmentNames = Cache::remember($cacheKey, $cacheTtl, function () use ($user) {
+        $departmentNames = Cache::remember($cacheKey, $cacheTtl, function () {
             return $this->getDepartments();
         });
 
@@ -355,12 +356,95 @@ class CheckListScreen extends Screen
         unset($baseQuery['page'], $baseQuery['summaryPage'], $baseQuery['missingPage']);
 
         return array_map(function (string $departmentName) use ($selectedDepartments, $baseQuery): array {
+            $colors = $this->resolveDepartmentButtonColors($departmentName);
+
             return [
                 'name' => $departmentName,
                 'active' => in_array($departmentName, $selectedDepartments, true),
                 'url' => $this->buildDepartmentToggleUrl($baseQuery, $departmentName, $selectedDepartments),
+                'bg' => $colors['bg'],
+                'text' => $colors['text'],
+                'hover' => $colors['hover'],
             ];
         }, $departmentNames);
+    }
+
+    /**
+     * Resolve colors for a department button.
+     *
+     * @return array{bg: string, text: string, hover: string}
+     */
+    protected function resolveDepartmentButtonColors(string $departmentName): array
+    {
+        /** @var array<array-key, mixed> $map */
+        $map = config('ui.department_button_colors', []);
+
+        $normalizeKey = static function (string $value): string {
+            $value = trim($value);
+            if ($value === '') {
+                return '';
+            }
+
+            // Normalize punctuation/spacing first (e.g. "D.C." -> "DC")
+            $value = str_replace(['.', '\'', '’'], '', $value);
+            $value = preg_replace('/\s+/u', ' ', $value) ?? $value;
+
+            $value = Str::upper(Str::ascii($value));
+
+            // Keep only A-Z, 0-9 and spaces
+            $value = preg_replace('/[^A-Z0-9 ]+/', '', $value) ?? $value;
+            $value = preg_replace('/\s+/', ' ', $value) ?? $value;
+
+            return trim($value);
+        };
+
+        $default = [
+            'bg' => '#ffffff',
+            'text' => '#002060',
+            'hover' => '#eaf0ff',
+        ];
+
+        $configuredDefault = $map['_default'] ?? null;
+        if (is_array($configuredDefault)) {
+            $default = array_merge($default, array_intersect_key($configuredDefault, $default));
+        }
+
+        /** @var array<string, array{bg?: string, text?: string, hover?: string}> $normalizedIndex */
+        $normalizedIndex = [];
+        foreach ($map as $key => $value) {
+            if ($key === '_default' || ! is_array($value)) {
+                continue;
+            }
+
+            $normalizedKey = $normalizeKey((string) $key);
+            if ($normalizedKey === '') {
+                continue;
+            }
+
+            // First match wins to keep behavior deterministic.
+            $normalizedIndex[$normalizedKey] ??= $value;
+        }
+
+        $trimmed = trim($departmentName);
+        $upper = function_exists('mb_strtoupper')
+            ? mb_strtoupper($trimmed, 'UTF-8')
+            : strtoupper($trimmed);
+
+        $candidates = array_values(array_unique([$departmentName, $trimmed, $upper]));
+
+        foreach ($candidates as $candidate) {
+            $departmentConfig = $map[$candidate] ?? null;
+            if (is_array($departmentConfig)) {
+                return array_merge($default, array_intersect_key($departmentConfig, $default));
+            }
+        }
+
+        $normalizedCandidate = $normalizeKey($departmentName);
+        $departmentConfig = $normalizedCandidate !== '' ? ($normalizedIndex[$normalizedCandidate] ?? null) : null;
+        if (is_array($departmentConfig)) {
+            return array_merge($default, array_intersect_key($departmentConfig, $default));
+        }
+        return $default;
     }
 
     /**

@@ -37,49 +37,50 @@
 }
 
 .department-toggle-btn {
-    --bs-btn-color: #002060;
-    --bs-btn-hover-color: #001647;
-    --bs-btn-active-color: #001647;
-    border: 1px solid #002060 !important;
-    background-color: #ffffff !important;
-    color: #002060 !important;
+    /*
+     * Configurable per-button via CSS variables:
+     *  --dept-bg: default background
+     *  --dept-text: default text (and border)
+     *  --dept-hover-bg: hover/active highlight background
+     */
+    border: 1px solid var(--dept-text, #002060) !important;
+    background-color: var(--dept-bg, #ffffff) !important;
+    color: var(--dept-text, #002060) !important;
     font-weight: 600;
     transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
 .department-toggle-btn:hover,
 .department-toggle-btn:focus {
-    border-color: #001647 !important;
-    background-color: #eaf0ff !important;
-    color: #001647 !important;
+    border-color: var(--dept-text, #002060) !important;
+    background-color: var(--dept-hover-bg, #eaf0ff) !important;
+    color: var(--dept-text, #002060) !important;
 }
 
 .department-toggle-btn:focus {
-    box-shadow: 0 0 0 0.2rem rgba(0, 32, 96, 0.2) !important;
+    box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--dept-text, #002060) 25%, transparent) !important;
 }
 
 .department-toggle-btn--active {
-    --bs-btn-color: #ffffff;
-    --bs-btn-hover-color: #FF8805;
-    --bs-btn-active-color: #FF8805;
-    border-color: #002060 !important;
-    background-color: #002060 !important;
-    color: #ffffff !important;
+    border-width: 2px !important;
+    border-color: var(--dept-text, #002060) !important;
+    background-color: var(--dept-hover-bg, #eaf0ff) !important;
+    color: var(--dept-text, #002060) !important;
 }
 
 .department-toggle-btn--active:hover,
 .department-toggle-btn--active:focus {
-    border-color: #002060 !important;
-    background-color: #002060 !important;
-    color: #FF8805 !important;
+    border-color: var(--dept-text, #002060) !important;
+    background-color: var(--dept-hover-bg, #eaf0ff) !important;
+    color: var(--dept-text, #002060) !important;
 }
 
-a.department-toggle-btn--active:hover,
-a.department-toggle-btn--active:focus,
-a.department-toggle-btn--active:active,
-a.department-toggle-btn--active:visited:hover,
-a.department-toggle-btn--active:visited:focus,
-a.department-toggle-btn--active:visited:active {
-    color: #FF8805 !important;
+a.department-toggle-btn:hover,
+a.department-toggle-btn:focus,
+a.department-toggle-btn:active,
+a.department-toggle-btn:visited:hover,
+a.department-toggle-btn:visited:focus,
+a.department-toggle-btn:visited:active {
+    color: var(--dept-text, #002060) !important;
 }
 

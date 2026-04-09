@@ -22,7 +22,7 @@ class CleanEmptyQueryParameters
         if ($cleaned !== $original) {
             $baseUrl = $request->url();
             $queryString = http_build_query($cleaned);
-            $targetUrl = $queryString !== '' ? $baseUrl.'?'.$queryString : $baseUrl;
+            $targetUrl = $queryString !== '' ? $baseUrl . '?' . $queryString : $baseUrl;
 
             return redirect()->to($targetUrl);
         }
