@@ -273,9 +273,11 @@ class CheckListScreen extends Screen
     public function layout(): iterable
     {
         $layout[] = Layout::view('partials.auto-filter-enable');
+        $layout[] = Layout::split([
+            Layout::view('partials.check-department-buttons'),
+            Layout::view('partials.check-filter-hours-buttons'),
+        ])->ratio('50/50');
         $layout[] = new CheckFiltersLayout();
-        $layout[] = Layout::view('partials.check-department-buttons');
-        $layout[] = Layout::view('partials.check-filter-hours-buttons');
         $layout[] = (new CheckListLayout())->title(__('Reported Devices'));
         $filters  = request()->query('filter', []);
         $showSummary = isset($filters['type']) && !empty($filters['type']) && isset($filters['created_at']) && !empty($filters['created_at']);

@@ -5,8 +5,8 @@
 
 @if (!empty($departmentButtons))
     <div class="bg-white rounded shadow-sm p-3 mb-3">
+        <span class="text-muted small me-2">{{ __('Departments') }}:</span>
         <div class="d-flex flex-nowrap align-items-center overflow-auto py-2" style="gap: 0.5rem;">
-            <span class="text-muted small me-2">{{ __('Departments') }}:</span>
             @foreach ($departmentButtons as $button)
                 <a
                     href="{{ $button['url'] }}"
