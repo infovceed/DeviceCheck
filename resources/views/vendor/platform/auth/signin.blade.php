@@ -1,25 +1,25 @@
 @php
-    $invalidCredentials = collect($errors->get('email'))->unique()->first();
+    $invalidCredentials = collect($errors->get('username'))->unique()->first();
 @endphp
 
 <div class="mb-3">
 
-    <label class="form-label" for="email">
-        {{ __('Email address') }}
+    <label class="form-label" for="username">
+        {{ __('Usuario') }}
     </label>
 
     <input
-        id="email"
-        name="email"
-        type="email"
+        id="username"
+        name="username"
+        type="text"
         class="form-control"
-        value="{{ old('email') }}"
+        value="{{ old('username') }}"
         required
         tabindex="1"
         autofocus
-        autocomplete="email"
-        inputmode="email"
-        placeholder="{{ __('Enter your email') }}"
+        autocomplete="username"
+        inputmode="text"
+        placeholder="{{ __('Ingrese su usuario') }}"
     >
 
     @if($invalidCredentials)
@@ -34,18 +34,13 @@
         {{ __('Password') }}
     </label>
 
-    <div class="input-group">
-        <input
-            id="password"
-            name="password"
-            type="password"
-            class="form-control"
-            required
-            autocomplete="current-password"
-            tabindex="2"
-            placeholder="{{ __('Enter your password') }}"
-        >
-    </div>
+    {!!  \Orchid\Screen\Fields\Password::make('password')
+            ->set('id', 'password')
+            ->required()
+            ->autocomplete('current-password')
+            ->tabindex(2)
+            ->placeholder(__('Enter your password'))
+    !!}
 </div>
 
 <div class="row align-items-center">
