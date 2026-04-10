@@ -5,21 +5,22 @@ declare(strict_types=1);
 namespace App\Orchid\Screens\User;
 
 use App\Models\User;
-use Orchid\Screen\Action;
-use Orchid\Screen\Screen;
-use Orchid\Support\Color;
+use App\Orchid\Layouts\Role\RolePermissionLayout;
+use App\Orchid\Layouts\User\UserEditLayout;
+use App\Orchid\Layouts\User\UserPasswordLayout;
+use App\Orchid\Layouts\User\UserRoleLayout;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Orchid\Access\Impersonation;
+use Orchid\Screen\Action;
 use Orchid\Screen\Actions\Button;
-use Orchid\Support\Facades\Toast;
+use Orchid\Screen\Screen;
+use Orchid\Support\Color;
 use Orchid\Support\Facades\Layout;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Database\Eloquent\Builder;
-use App\Orchid\Layouts\User\UserEditLayout;
-use App\Orchid\Layouts\User\UserRoleLayout;
-use App\Orchid\Layouts\User\UserPasswordLayout;
-use App\Orchid\Layouts\Role\RolePermissionLayout;
+use Orchid\Support\Facades\Toast;
 
 class UserEditScreen extends Screen
 {
@@ -151,6 +152,8 @@ class UserEditScreen extends Screen
      */
     public function save(User $user, Request $request)
     {
+            Log::channel('config')->info('User save action dispatched by user ID: ' . auth()->id());
+            Log::channel('config')->info('save data: ' . json_encode($request->input('user')));
         $request->validate([
             'user.email' => [
                 'required',
@@ -185,6 +188,8 @@ class UserEditScreen extends Screen
      */
     public function remove(User $user)
     {
+        Log::channel('config')->info('User remove action dispatched by user ID: ' . auth()->id());
+        Log::channel('config')->info('User data for deletion: ' . json_encode($user->toArray()));
         $user->delete();
 
         Toast::info(__('User was removed'));
@@ -198,6 +203,8 @@ class UserEditScreen extends Screen
     public function loginAs(User $user)
     {
         Impersonation::loginAs($user);
+        Log::channel('config')->info('User impersonation action dispatched by user ID: ' . auth()->id());
+        Log::channel('config')->info('Impersonating user ID: ' . $user->id);
 
         Toast::info(__('You are now impersonating this user'));
 

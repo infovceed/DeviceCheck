@@ -7,6 +7,7 @@ namespace App\Orchid\Screens\Role;
 use App\Orchid\Layouts\Role\RoleEditLayout;
 use App\Orchid\Layouts\Role\RolePermissionLayout;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Orchid\Platform\Models\Role;
 use Orchid\Screen\Action;
@@ -107,6 +108,9 @@ class RoleEditScreen extends Screen
      */
     public function save(Request $request, Role $role)
     {
+        Log::channel('config')->info('Role save action dispatched by user ID: ' . auth()->id());
+        Log::channel('config')->info('save data: ' . json_encode($request->input('role')));
+
         $request->validate([
             'role.name' => 'required',
             'role.slug' => [
@@ -136,6 +140,8 @@ class RoleEditScreen extends Screen
      */
     public function remove(Role $role)
     {
+        Log::channel('config')->info('Role remove action dispatched by user ID: ' . auth()->id());
+        Log::channel('config')->info('Role ID to be removed: ' . $role->id);
         $role->delete();
 
         Toast::info(__('Role was removed'));

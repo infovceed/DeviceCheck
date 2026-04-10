@@ -8,6 +8,7 @@ use App\Orchid\Layouts\User\ProfilePasswordLayout;
 use App\Orchid\Layouts\User\UserEditLayout;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Orchid\Access\Impersonation;
 use Orchid\Platform\Models\User;
@@ -100,6 +101,8 @@ class UserProfileScreen extends Screen
 
     public function save(Request $request): void
     {
+        Log::channel('config')->info('User save action dispatched by user ID: ' . auth()->id());
+        Log::channel('config')->info('save data: ' . json_encode($request->input('user')));
         $request->validate([
             'user.name'  => 'required|string',
             'user.email' => [
@@ -117,6 +120,8 @@ class UserProfileScreen extends Screen
 
     public function changePassword(Request $request): void
     {
+        Log::channel('config')->info('User change password action dispatched by user ID: ' . auth()->id());
+        Log::channel('config')->info('User ID changing password: ' . $request->user()->id);
         $guard = config('platform.guard', 'web');
         $request->validate([
             'old_password' => 'required|current_password:' . $guard,

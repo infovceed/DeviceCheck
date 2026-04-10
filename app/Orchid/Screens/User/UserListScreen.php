@@ -4,20 +4,21 @@ declare(strict_types=1);
 
 namespace App\Orchid\Screens\User;
 
-use Orchid\Screen\Screen;
+use App\Actions\Import\UserFileAction;
+use App\Http\Requests\User\ImportFileRequest;
+use App\Models\User;
+use App\Orchid\Layouts\User\UserEditLayout;
+use App\Orchid\Layouts\User\UserFiltersLayout;
+use App\Orchid\Layouts\User\UserListLayout;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Orchid\Screen\Actions\Link;
-use Orchid\Screen\Fields\Input;
-use App\Models\User;
-use Orchid\Support\Facades\Toast;
-use Orchid\Support\Facades\Layout;
-use App\Actions\Import\UserFileAction;
 use Orchid\Screen\Actions\ModalToggle;
-use App\Orchid\Layouts\User\UserEditLayout;
-use App\Orchid\Layouts\User\UserListLayout;
-use App\Http\Requests\User\ImportFileRequest;
-use App\Orchid\Layouts\User\UserFiltersLayout;
+use Orchid\Screen\Fields\Input;
+use Orchid\Screen\Screen;
+use Orchid\Support\Facades\Layout;
+use Orchid\Support\Facades\Toast;
 
 class UserListScreen extends Screen
 {
@@ -124,6 +125,8 @@ class UserListScreen extends Screen
 
     public function saveUser(Request $request, User $user): void
     {
+        Log::channel('config')->info('User save action dispatched by user ID: ' . auth()->id());
+        Log::channel('config')->info('save data: ' . json_encode($request->input('user')));
         $request->validate([
             'user.email' => [
                 'required',
@@ -137,7 +140,7 @@ class UserListScreen extends Screen
     }
     public function uploadTemplate(ImportFileRequest $request)
     {
-
+        Log::channel('config')->info('Users file action dispatched by user ID: ' . auth()->id());
         UserFileAction::run(
             $request
         );
@@ -146,6 +149,13 @@ class UserListScreen extends Screen
 
     public function remove(Request $request): void
     {
+        Log::channel('config')->info('User remove action dispatched by user ID: ' . auth()->id());
+        $user=User::find($request->get('id'));
+        if (!$user) {
+            Toast::error(__('User not found'));
+            return;
+        }
+        Log::channel('config')->info('User data for deletion: ' . json_encode($user->toArray()));
         User::findOrFail($request->get('id'))->delete();
 
         Toast::info(__('User was removed'));
