@@ -14,9 +14,8 @@ class UserFileAction
 
     public function handle(ImportFileRequest $request)
     {
-        $import = new UsersImport();
-
         $user = $request->user();
+        $import = new UsersImport($user);
         if ($user) {
             $user->notify(new DashboardNotification(__('Users import started'), __('The import has started. You will be notified when it is completed.')));
         }

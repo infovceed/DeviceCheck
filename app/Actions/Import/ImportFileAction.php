@@ -18,7 +18,13 @@ class ImportFileAction
     public function handle(array $request)
     {
         ini_set('memory_limit', '-1');
-        $modelImport = $this->getImport($request['route']);
+
+        $user = User::find($request['userId']);
+        if (!$user instanceof User) {
+            throw new \InvalidArgumentException('User not found for import.');
+        }
+
+        $modelImport = $this->getImport($request['route'], $user);
         $file = null;
 
         if (in_array($request['route'], ["platform.settings", "settings.import", "platform.systems.users", "users.import"], true)) {
@@ -42,7 +48,6 @@ class ImportFileAction
             throw new FileNotFoundException('Import file not found for the selected route.');
         }
 
-        $user = User::find($request['userId']);
         $user->notify(new DashboardNotification(__('Import started'), __('The import has started. You will be notified when it is completed.')));
         $modelImport->queue($file)->chain([
             new NotifyUserOfCompletedImport($user)
@@ -54,12 +59,12 @@ class ImportFileAction
     {
         return $this->handle($request);
     }
-    public function getImport($route)
+    public function getImport($route, User $user)
     {
-        switch ($route) {
-            case "platform.systems.users":
-            case "users.import":
-                return new UsersImport();
+        if (in_array($route, ["platform.systems.users", "users.import"], true)) {
+            return new UsersImport($user);
         }
+
+        throw new \InvalidArgumentException('Unsupported import route: ' . (string) $route);
     }
 }

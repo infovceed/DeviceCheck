@@ -93,21 +93,23 @@ class User extends Authenticatable implements UserInterface
         'created_at',
     ];
     public static $rules = [
-        'user.id'       => ['required'],
+        'user.id'       => ['bail', 'required'],
         'user.email' => [
+            'bail',
             'nullable',
             'email',
             'unique:users,email',
         ],
-        'user.name'     => ['required', 'alpha', 'min:3', 'max:255'],
+        'user.name'     => ['bail', 'required', 'regex:/^[\pL\s\-0-9]+$/u', 'min:3', 'max:255'],
         'user.document' => [
+            'bail',
             'required',
             'unique:users,document',
             'numeric',
             'min:10',
             'max:9999999999',
         ],
-        'user.department_id' => ['required', 'exists:departments,id'],
+        'user.department_id' => ['bail', 'required', 'exists:departments,id'],
     ];
     /**
      * @return UserPresenter

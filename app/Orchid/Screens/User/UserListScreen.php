@@ -31,6 +31,7 @@ class UserListScreen extends Screen
         return [
             'users' => User::with(['roles', 'department'])
                 ->filters(UserFiltersLayout::class)
+                ->where('id', '!=', 1)
                 ->when(
                     !auth()->user()->hasAccess("platform.systems.user.show-all"),
                     function ($q) {

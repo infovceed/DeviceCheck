@@ -613,8 +613,7 @@ class CheckListScreen extends Screen
                 unset($query['filter']);
             }
         } else {
-            $x = array_unique($updatedHours);
-            $query['filter']['report_time'] = array_values($x);
+            $query['filter']['report_time'] = array_values(array_unique($updatedHours));
         }
 
         $queryString = http_build_query($query);
