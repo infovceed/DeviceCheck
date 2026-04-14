@@ -68,7 +68,8 @@ class SystemSettingsEditScreen extends Screen
                 ->type(Color::PRIMARY)
                 ->icon('bs.database')
                 ->confirm(__('This action will truncate incidents, Devices, divipoles, departments and municipalities tables. Do you want to proceed?'))
-                ->method('clearDatabase'),
+                ->method('clearDatabase')
+                ->canSee(auth()->user()->id === 1),
         ];
     }
 
