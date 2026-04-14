@@ -4,15 +4,14 @@
 @endphp
 
 @if (!empty($departmentButtons))
-    <div class="bg-white rounded shadow-sm p-3 mb-3">
+    <div class="bg-white rounded shadow-sm p-3 mb-0 h-100 d-flex flex-column">
         <span class="text-muted small me-2">{{ __('Departments') }}:</span>
-        <div class="d-flex flex-nowrap align-items-center overflow-auto py-2" style="gap: 0.5rem;">
+        <div class="d-flex flex-wrap align-items-center py-2" style="gap: 0.5rem;">
             @foreach ($departmentButtons as $button)
                 <a
                     href="{{ $button['url'] }}"
                     class="btn btn-sm text-nowrap rounded-pill department-toggle-btn {{ $button['active'] ? 'department-toggle-btn--active' : '' }}"
                     style="
-                        flex-shrink: 0;
                         --dept-bg: {{ $button['bg'] ?? '#ffffff' }};
                         --dept-text: {{ $button['text'] ?? '#002060' }};
                         --dept-hover-bg: {{ $button['hover'] ?? '#eaf0ff' }};

@@ -277,6 +277,7 @@ class CheckListScreen extends Screen
             Layout::view('partials.check-department-buttons'),
             Layout::view('partials.check-filter-hours-buttons'),
         ])->ratio('50/50');
+        $layout[] = Layout::view('partials.vertical-spacer');
         $layout[] = new CheckFiltersLayout();
         $layout[] = (new CheckListLayout())->title(__('Reported Devices'));
         $filters  = request()->query('filter', []);
