@@ -7,6 +7,9 @@ use App\Actions\Import\DevicesFileAction;
 use App\Actions\Import\DivipoleFileAction;
 use App\Actions\Import\MunicipalityFileAction;
 use App\Models\Configuration;
+use App\Models\Device;
+use App\Models\FilterHours;
+use App\Models\FilterHoursDepartment;
 use App\Models\WorkShift;
 use Illuminate\Console\Application;
 use Illuminate\Http\Request;
@@ -182,6 +185,7 @@ class SystemSettingsEditScreen extends Screen
      */
     public function clearCache()
     {
+        Cache::flush();
         Process::fromShellCommandline(
             Application::formatCommandString('optimize:clear') . ' > /dev/null 2>&1 &',
             base_path(),
@@ -209,6 +213,12 @@ class SystemSettingsEditScreen extends Screen
             $attachments = $this->getAttachments($request);
             $configuration->attachment()->sync($attachments);
         DB::commit();
+        if (isset($fill['current_work_shift_id']) && $configuration->wasChanged('current_work_shift_id')) {
+            $currentVersion = (int) Cache::get('filter_options_version', 1);
+            Cache::forever('filter_options_version', $currentVersion + 1);
+            Cache::flush();
+            $this->syncFilterHours();
+        }
         Log::channel('config')->info('Configuration saved with data: ' . json_encode($fill));
     }
 
@@ -379,5 +389,115 @@ class SystemSettingsEditScreen extends Screen
             'current_work_shift_id' => $request->input('current_work_shift_id'),
         ]);
         Toast::info(__('Configuration saved'));
+    }
+
+    public function syncFilterHours(): void
+    {
+        try {
+            /** @var \Illuminate\Support\Collection<int, object{hour:string, department_id:int, type:string, position_name:string}> $reportTimes */
+            $reportTimes = Device::query()
+                ->select(
+                    'report_time as hour',
+                    'department_id',
+                    'position_name',
+                    DB::raw('"checkin" as type')
+                )
+                ->join('divipoles', 'devices.divipole_id', '=', 'divipoles.id')
+                ->join('configurations as c', DB::raw('c.id'), '=', DB::raw('1'))
+                ->whereColumn('devices.work_shift_id', 'c.current_work_shift_id')
+                ->whereNotNull('report_time')
+                ->whereNotNull('department_id')
+                ->whereNotNull('position_name')
+                ->distinct()
+                ->union(
+                    Device::query()
+                        ->select(
+                            'report_time_departure as hour',
+                            'department_id',
+                            'position_name',
+                            DB::raw('"checkout" as type')
+                        )
+                        ->join('divipoles', 'devices.divipole_id', '=', 'divipoles.id')
+                        ->join('configurations as c', DB::raw('c.id'), '=', DB::raw('1'))
+                        ->whereColumn('devices.work_shift_id', 'c.current_work_shift_id')
+                        ->whereNotNull('report_time_departure')
+                        ->whereNotNull('department_id')
+                        ->whereNotNull('position_name')
+                        ->distinct()
+                )
+                ->get();
+
+            DB::transaction(function () use ($reportTimes): void {
+                $this->clearFilterHoursTable();
+
+                if ($reportTimes->isEmpty()) {
+                    return;
+                }
+
+                $now = now();
+                $filterHoursToInsert = $reportTimes
+                    ->pluck('hour')
+                    ->unique()
+                    ->values()
+                    ->map(static function (string $hour) use ($now): array {
+                        return [
+                            'hour' => $hour,
+                            'created_at' => $now,
+                            'updated_at' => $now,
+                        ];
+                    })
+                    ->all();
+
+                FilterHours::query()->insert($filterHoursToInsert);
+
+                /** @var array<string, int> $filterHoursByHour */
+                $filterHoursByHour = FilterHours::query()
+                    ->pluck('id', 'hour')
+                    ->mapWithKeys(static fn ($id, $hour): array => [(string) $hour => (int) $id])
+                    ->all();
+
+                $pivotRows = $reportTimes
+                    ->map(static function (object $item) use ($filterHoursByHour, $now): ?array {
+                        $filterHourId = $filterHoursByHour[$item->hour] ?? null;
+
+                        if ($filterHourId === null) {
+                            return null;
+                        }
+
+                        return [
+                            'filter_hours_id' => $filterHourId,
+                            'department_id' => (int) $item->department_id,
+                            'type' => (string) $item->type,
+                            'position_name' => (string) $item->position_name,
+                            'created_at' => $now,
+                            'updated_at' => $now,
+                        ];
+                    })
+                    ->filter()
+                    ->unique(static fn (array $row): string => implode('|', [
+                        $row['filter_hours_id'],
+                        $row['department_id'],
+                        $row['type'],
+                        $row['position_name'],
+                    ]))
+                    ->values()
+                    ->all();
+
+                if ($pivotRows !== []) {
+                    FilterHoursDepartment::query()->insert($pivotRows);
+                }
+            });
+
+            Cache::flush();
+        } catch (\Exception $e) {
+            Toast::error(__('There was an error synchronizing filter hours options. Please try again.'));
+        }
+    }
+
+    public function clearFilterHoursTable(): void
+    {
+        Log::channel('config')->info('Clearing filter hours table by user ID: ' . auth()->id());
+        DB::table('filter_hours_departments')->delete();
+        DB::table('filter_hours')->delete();
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Orchid\Filters\Check;
 
 use App\Models\Divipole;
+use App\Models\FilterHoursDepartment;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Orchid\Filters\Filter;
@@ -52,22 +53,33 @@ class PositionCheckFilter extends Filter
      */
     public function display(): array
     {
-        $cacheTtl = (int) config('cache.filter_options_ttl', 60);
-        $cacheVersion = (int) Cache::get('filter_options_version', 1);
-        $cacheKey = 'position_filter_options:v' . $cacheVersion . ':positions';
-        $options = Cache::remember($cacheKey, $cacheTtl, function () {
-            return Divipole::query()
-                ->select('divipoles.position_name')
-                ->join('devices as d', 'd.divipole_id', '=', 'divipoles.id')
-                ->join('configurations as c', DB::raw('c.id'), '=', DB::raw('1'))
-                ->whereColumn('d.work_shift_id', 'c.current_work_shift_id')
-                ->whereNotNull('divipoles.position_name')
-                ->where('divipoles.position_name', '!=', '')
+        $filters = $this->request->input('filter', []);
+        $options = FilterHoursDepartment::query()
+                ->select('position_name')
+                ->join('departments as d', 'filter_hours_departments.department_id', '=', 'd.id')
+                ->when(!empty($filters['department']), function (Builder $query) use ($filters) {
+                    $departments = is_array($filters['department']) ? $filters['department'] : array_map('trim', explode(',', (string) $filters['department']));
+                    $departments = array_values(array_filter($departments, static fn ($d) => is_string($d) && trim($d) !== ''));
+                    if (!empty($departments)) {
+                        $query->whereIn('d.name', $departments);
+                    }
+                })
+                ->when(!empty($filters['type']), function (Builder $query) use ($filters) {
+                    $types = is_array($filters['type']) ? $filters['type'] : array_map('trim', explode(',', (string) $filters['type']));
+                    if (!empty($types)) {
+                        $query->whereIn('filter_hours_departments.type', $types);
+                    }
+                })
+                ->when(!empty($filters['report_time']), function (Builder $query) use ($filters) {
+                    $reportTimes = is_array($filters['report_time']) ? $filters['report_time'] : array_map('trim', explode(',', (string) $filters['report_time']));
+                    if (!empty($reportTimes)) {
+                        $query->whereIn('filter_hours_departments.filter_hours_id', $reportTimes);
+                    }
+                })
                 ->distinct()
-                ->orderBy('divipoles.position_name', 'asc')
-                ->pluck('divipoles.position_name', 'divipoles.position_name')
+                ->orderBy('position_name', 'asc')
+                ->pluck('position_name', 'position_name')
                 ->toArray();
-        });
 
         return [
             Select::make('filter[position_name]')

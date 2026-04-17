@@ -37,6 +37,13 @@ class Department extends Model
         'created_at' => Where::class,
     ];
 
+    public function filterHours()
+    {
+        return $this->belongsToMany(FilterHours::class, 'filter_hours_departments', 'department_id', 'filter_hours_id')
+            ->withPivot('type')
+            ->withTimestamps();
+    }
+
     public function scopeOrderByName(Builder $query): Builder
     {
         return $query->orderBy('name', 'asc');

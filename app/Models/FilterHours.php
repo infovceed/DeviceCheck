@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 use Orchid\Screen\AsSource;
@@ -39,4 +40,12 @@ class FilterHours extends Model
     protected $casts = [
         'hour' => 'datetime:H:i',
     ];
+
+    public function departments(): BelongsToMany
+    {
+        return $this->belongsToMany(Department::class, 'filter_hours_departments', 'filter_hours_id', 'department_id')
+            ->withPivot('type')
+            ->withPivot('position_name')
+            ->withTimestamps();
+    }
 }

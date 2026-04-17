@@ -150,7 +150,7 @@ class UserListScreen extends Screen
     public function remove(Request $request): void
     {
         Log::channel('config')->info('User remove action dispatched by user ID: ' . auth()->id());
-        $user=User::find($request->get('id'));
+        $user = User::find($request->get('id'));
         if (!$user) {
             Toast::error(__('User not found'));
             return;

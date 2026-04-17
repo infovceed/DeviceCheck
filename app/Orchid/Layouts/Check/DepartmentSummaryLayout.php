@@ -7,6 +7,13 @@ use Orchid\Screen\TD;
 
 class DepartmentSummaryLayout extends Table
 {
+    protected function singleLine(TD $column): TD
+    {
+        return $column
+            ->class('text-nowrap')
+            ->style('white-space: nowrap;');
+    }
+
     /**
      * Data source.
      *
@@ -22,27 +29,27 @@ class DepartmentSummaryLayout extends Table
     protected function columns(): iterable
     {
         return [
-            TD::make('department', __('Department'))->render(function ($row) {
+            $this->singleLine(TD::make('department', __('Department'))->render(function ($row) {
                 return $row->department ?? $row->name ?? '';
-            }),
-            TD::make('municipality', __('Municipalities'))->render(function ($row) {
+            })),
+            $this->singleLine(TD::make('municipality', __('Municipalities'))->render(function ($row) {
                 return $row->municipality ?? '';
-            }),
-            TD::make('total', __('Total'))->render(function ($row) {
+            })),
+            $this->singleLine(TD::make('total', __('Total'))->render(function ($row) {
                 return $row->total ?? 0;
-            })->alignCenter(),
-            TD::make('reported', __('# Reportados'))->render(function ($row) {
+            })->alignCenter()),
+            $this->singleLine(TD::make('reported', __('# Reportados'))->render(function ($row) {
                 return $row->reported ?? 0;
-            })->alignCenter(),
-            TD::make('pending', __('# Pendientes'))->render(function ($row) {
+            })->alignCenter()),
+            $this->singleLine(TD::make('pending', __('# Pendientes'))->render(function ($row) {
                 return $row->pending ?? 0;
-            })->alignCenter(),
-            TD::make('pct_reported', __('% Reportados'))->render(function ($row) {
+            })->alignCenter()),
+            $this->singleLine(TD::make('pct_reported', __('% Reportados'))->render(function ($row) {
                 return ($row->pct_reported ?? 0) . ' %';
-            })->alignCenter(),
-            TD::make('pct_pending', __('% Faltan'))->render(function ($row) {
+            })->alignCenter()),
+            $this->singleLine(TD::make('pct_pending', __('% Faltan'))->render(function ($row) {
                 return ($row->pct_pending ?? 0) . ' %';
-            })->alignCenter(),
+            })->alignCenter()),
         ];
     }
 }

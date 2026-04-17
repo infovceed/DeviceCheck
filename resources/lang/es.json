@@ -389,5 +389,7 @@
     "Report Time": "Hora de programada",
     "Clear All": "Limpiar todo",
     "Select report time": "Seleccionar hora programada",
-    "This hour has already been registered.": "esta hora ya ha sido registrada"
+    "This hour has already been registered.": "esta hora ya ha sido registrada",
+    "Sync Filter Hours": "Sincronizar filtros de horas",
+    "Filter hours options synchronized successfully.": "Opciones de filtros de horas sincronizadas con éxito."
 }

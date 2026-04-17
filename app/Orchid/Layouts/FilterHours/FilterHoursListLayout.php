@@ -37,6 +37,18 @@ class FilterHoursListLayout extends Table
                     return Carbon::parse((string) $model->hour)->format('h:i:s a');
                 })
                 ->sort(),
+            TD::make('department_name', __('Department Name')),
+            TD::make('type', __('Report Type'))
+                ->render(function ($model) {
+                    if ($model->type === 'checkin') {
+                        return __('Arrival');
+                    } elseif ($model->type === 'checkout') {
+                        return __('Departure');
+                    }
+                    return $model->type;
+                }),
+             TD::make('position_name', __('Position Name')),
+            TD::make('position_name', __('Position Name')),
             TD::make('Actions', __('Actions'))
                 ->align(TD::ALIGN_CENTER)
                 ->width('250px')
