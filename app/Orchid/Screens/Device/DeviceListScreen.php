@@ -28,6 +28,21 @@ class DeviceListScreen extends Screen
     public function query(): iterable
     {
         $devices = Device::query()
+            ->select([
+                'devices.id',
+                'devices.divipole_id',
+                'devices.work_shift_id',
+                'devices.tel',
+                'devices.imei',
+                'devices.device_key',
+                'devices.sequential',
+                'devices.latitude',
+                'devices.longitude',
+                'devices.report_time',
+                'devices.report_time_departure',
+                'devices.status_incidents',
+                'devices.updated_by',
+            ])
             ->filters()
             ->join('configurations as c', DB::raw('c.id'), '=', DB::raw('1'))
             ->whereColumn('devices.work_shift_id', 'c.current_work_shift_id')

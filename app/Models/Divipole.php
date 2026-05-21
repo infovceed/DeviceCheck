@@ -26,6 +26,7 @@ class Divipole extends Model
     use AsSource;
 
     protected $fillable = [
+        'id',
         'code',
         'department_id',
         'municipality_id',
@@ -34,8 +35,6 @@ class Divipole extends Model
         'is_backup',
         'created_by',
         'updated_by',
-
-
     ];
 
     //filters
