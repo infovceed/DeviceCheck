@@ -20,6 +20,13 @@ use Orchid\Support\Facades\Toast;
 
 class FilterHoursScreen extends Screen
 {
+    public function permission(): iterable
+    {
+        return [
+            'platform.systems.device-check.filter-hours',
+        ];
+    }
+
     /**
      * Fetch data to be displayed on the screen.
      *

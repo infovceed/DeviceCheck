@@ -18,6 +18,13 @@ use Orchid\Screen\Actions\ModalToggle;
 
 class IncidentListScreen extends Screen
 {
+    public function permission(): iterable
+    {
+        return [
+            'platform.systems.incidents.report',
+        ];
+    }
+
     /**
      * Fetch data to be displayed on the screen.
      *

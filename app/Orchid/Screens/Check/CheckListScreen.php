@@ -42,6 +42,7 @@ class CheckListScreen extends Screen
     use ComponentsTrait;
 
     protected $departments;
+    protected $selectedReportHourIds;
     /**
      * Fetch data to be displayed on the screen.
      *
@@ -50,17 +51,17 @@ class CheckListScreen extends Screen
     public function query(): iterable
     {
         $filters = request()->query('filter', []);
-        $selectedReportHourIds = array_values(array_filter(
+        $this->selectedReportHourIds = array_values(array_filter(
             array_map(
                 static fn (string $value): int => (int) $value,
                 $this->normalizeFilterValues($filters['report_time'] ?? null)
             ),
             static fn (int $value): bool => $value > 0
         ));
-        $filters['report_time'] = $selectedReportHourIds;
+        $filters['report_time'] = $this->selectedReportHourIds;
         $data['departmentButtons']  = $this->buildDepartmentToggleButtons($filters);
-        $data['filterHoursButtons'] = $this->buildFilterHoursToggleButtons($selectedReportHourIds);
-        $filters['report_time']     = $this->resolveFilterHoursToTimes($selectedReportHourIds);
+        $data['filterHoursButtons'] = $this->buildFilterHoursToggleButtons($this->selectedReportHourIds);
+        $filters['report_time']     = $this->resolveFilterHoursToTimes($this->selectedReportHourIds);
 
         if (isset($filters['type']) && $filters['type'] == 'checkin' && !empty($filters['report_time'])) {
             $addFilters['report_time_arrival'] = $filters['report_time'];
@@ -85,7 +86,7 @@ class CheckListScreen extends Screen
         if ($showMissing) {
             $this->showMissing($filters, $data);
         }
-        $filters['report_time'] = $selectedReportHourIds;
+        $filters['report_time'] = $this->selectedReportHourIds;
         request()->merge(['filter' => $filters]);
         return $data;
     }
@@ -682,7 +683,7 @@ class CheckListScreen extends Screen
                 }
             })
             ->when(!empty($filters['report_time']), function (Builder $query) use ($filters) {
-                 $query->whereIn('filter_hours_departments.filter_hours_id', $filters['report_time']);
+                 $query->whereIn('filter_hours_departments.filter_hours_id', $this->selectedReportHourIds);
             })
             ->when(!empty($filters['type']), function (Builder $query) use ($filters) {
                 $types = is_array($filters['type']) ? $filters['type'] : array_map('trim', explode(',', (string) $filters['type']));

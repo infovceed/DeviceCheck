@@ -28,6 +28,13 @@ use Symfony\Component\Process\Process;
 
 class SystemSettingsEditScreen extends Screen
 {
+    public function permission(): iterable
+    {
+        return [
+            'platform.systems.settings',
+        ];
+    }
+
     /**
      * Fetch data to be displayed on the screen.
      *

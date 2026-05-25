@@ -158,6 +158,7 @@ class DeviceListScreen extends Screen
 
     public function update(Device $device, Request $request): void
     {
+        logger()->info('Update device by user ID: ' . auth()->id(), ['device_id' => $device->id, 'request_data' => $request->all()]);
         try {
             $data = $request->get('payload', []);
 

@@ -10,6 +10,13 @@ use Orchid\Support\Facades\Layout;
 
 class DepartmentListScreen extends Screen
 {
+    public function permission(): iterable
+    {
+        return [
+            'platform.systems.departments',
+        ];
+    }
+
     /**
      * Fetch data to be displayed on the screen.
      *

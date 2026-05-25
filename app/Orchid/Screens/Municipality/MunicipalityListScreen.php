@@ -9,6 +9,13 @@ use Orchid\Support\Facades\Layout;
 
 class MunicipalityListScreen extends Screen
 {
+    public function permission(): iterable
+    {
+        return [
+            'platform.systems.municipalities',
+        ];
+    }
+
     /**
      * Fetch data to be displayed on the screen.
      *
