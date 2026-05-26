@@ -31,7 +31,7 @@ class SystemSettingsEditScreen extends Screen
     public function permission(): iterable
     {
         return [
-            'platform.systems.settings',
+            'platform.settings',
         ];
     }
 
