@@ -75,6 +75,12 @@ class ReportDeviceRequest extends FormRequest
         $currentWorkShiftId = $this->currentWorkShiftId();
 
         $device = Device::query()
+            ->select(['id', 'divipole_id', 'is_backup'])
+            ->with([
+                'divipole:id,code,department_id,municipality_id,position_name',
+                'divipole.department:id,name',
+                'divipole.municipality:id,name',
+            ])
             ->where('imei', $imei)
             ->where('work_shift_id', $currentWorkShiftId)
             ->first();
@@ -109,6 +115,8 @@ class ReportDeviceRequest extends FormRequest
         if ($deviceCheck) {
             $this->responseMessage(3);
         }
+
+        $this->attributes->set('resolved_device', $device);
     }
 
     private function currentWorkShiftId(): ?int

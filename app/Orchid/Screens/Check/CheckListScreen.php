@@ -515,7 +515,9 @@ class CheckListScreen extends Screen
         }
         if (!empty($filters['created_at']) && empty($filters['check_day'])) {
             $inputFilters = request()->input('filter', $filters);
-            $inputFilters['check_day'] = $filters['created_at'];
+            $inputFilters['check_day'] = is_array($filters['created_at'])
+                ? array_map('trim', $filters['created_at'])
+                : array_map('trim', explode(',', (string) $filters['created_at']));
             request()->merge(['filter' => $inputFilters]);
         }
         $query = DeviceDailyCheck::query()->filters();

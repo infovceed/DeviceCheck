@@ -26,10 +26,19 @@ class ReportDeviceController extends Controller
     public function store(ReportDeviceRequest $request)
     {
         $deviceData = $request->validated();
+
         try {
-            $device = Device::findByImeiWithLocation($deviceData);
+            $device = $request->attributes->get('resolved_device');
+            if (! $device instanceof Device) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Invalid QR code.',
+                ], 422);
+            }
+
             $deviceData['device_id'] = $device->id;
             DeviceCheck::createReport($deviceData);
+
             $divipole     = $device?->divipole;
             $department   = $divipole?->department?->name;
             $municipality = $divipole?->municipality?->name;
@@ -52,10 +61,13 @@ class ReportDeviceController extends Controller
                 'message' => implode("\n", $lines),
             ], 200);
         } catch (\Exception $e) {
-            logger()->error('Error saving device report: ' . $e->getMessage());
+            logger()->error('Error saving device report', [
+                'error' => $e->getMessage(),
+            ]);
+
             return response()->json([
                 'status' => 'error',
-                'message' => __('An error occurred while processing the report. Please try again.'),
+                'message' => 'Unknown error.',
             ], 500);
         }
     }

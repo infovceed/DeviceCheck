@@ -72,19 +72,25 @@ class DeviceBulkUpdateJob implements ShouldQueue
                 }
                 $total++;
 
-                $idCell = $row[$headerMap['id_dispositivo_cambio']] ?? null;
-                $telCell = $row[$headerMap['telefono']] ?? null;
-                $imeiCell = $row[$headerMap['imei']] ?? null;
-                $keyCell = $row[$headerMap['llave']] ?? null;
+                $idCell            = $row[$headerMap['id_dispositivo_cambio']] ?? null;
+                $telCell           = $row[$headerMap['telefono']] ?? null;
+                $imeiCell          = $row[$headerMap['imei']] ?? null;
+                $keyCell           = $row[$headerMap['llave']] ?? null;
+                $arrivalTimeCell   = isset($headerMap['hora_llegada'])  ? ($row[$headerMap['hora_llegada']]  ?? null) : null;
+                $departureTimeCell = isset($headerMap['hora_salida'])   ? ($row[$headerMap['hora_salida']]   ?? null) : null;
 
-                $id = is_numeric($idCell) ? (int)$idCell : (int)trim((string)$idCell);
-                $tel = $telCell !== null ? trim((string)$telCell) : null;
-                $imei = $imeiCell !== null ? trim((string)$imeiCell) : null;
-                $key  = $keyCell !== null ? trim((string)$keyCell) : null;
+                $id            = is_numeric($idCell) ? (int)$idCell : (int)trim((string)$idCell);
+                $tel           = $telCell  !== null ? trim((string)$telCell) : null;
+                $imei          = $imeiCell !== null ? trim((string)$imeiCell) : null;
+                $key           = $keyCell  !== null ? trim((string)$keyCell) : null;
+                $arrivalTime   = $arrivalTimeCell !== null ? trim((string)$arrivalTimeCell) : null;
+                $departureTime = $departureTimeCell !== null ? trim((string)$departureTimeCell) : null;
 
-                $hasTel  = $tel !== null && $tel !== '';
-                $hasImei = $imei !== null && $imei !== '';
-                $hasKey  = $key !== null && $key !== '';
+                $hasTel           = $tel  !== null && $tel !== '';
+                $hasImei          = $imei !== null && $imei !== '';
+                $hasKey           = $key  !== null && $key !== '';
+                $hasArrivalTime   = $arrivalTime !== null && $arrivalTime !== '';
+                $hasDepartureTime = $departureTime !== null && $departureTime !== '';
 
                 if (!$id || !$hasKey) {
                     $skipped++;
@@ -102,6 +108,12 @@ class DeviceBulkUpdateJob implements ShouldQueue
                 }
                 if ($hasImei) {
                     $device->imei = $imei;
+                }
+                if ($hasArrivalTime) {
+                    $device->report_time = $arrivalTime;
+                }
+                if ($hasDepartureTime) {
+                    $device->report_time_departure = $departureTime;
                 }
                 $device->device_key = $key;
                 $device->updated_by = $this->user->id;
