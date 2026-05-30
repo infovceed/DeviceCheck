@@ -50,8 +50,11 @@ class ReportDeviceController extends Controller
                 "Puesto: $position",
             ];
             try {
-                $paths = ['/ws/stats', '/ws/departments', '/ws/municipalities'];
-                NotifyWebSocketClients::dispatch($paths)->afterResponse();
+                $shouldNotify = cache()->add('ws.notify.pending', 1, now()->addSeconds(2));
+                if ($shouldNotify) {
+                    $paths = ['/ws/stats', '/ws/departments', '/ws/municipalities'];
+                    NotifyWebSocketClients::dispatch($paths)->afterResponse();
+                }
             } catch (\Throwable $notifyErr) {
                 logger()->info('Queue dispatch for WS notify failed: ' . $notifyErr->getMessage());
             }
