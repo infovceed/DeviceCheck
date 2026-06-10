@@ -31,7 +31,7 @@ class DepartmentImport implements ToModel, WithHeadingRow, WithChunkReading, Wit
             return new Department([
                 'id' => $row['id'],
                 'code' => $row['cod_depto'],
-                'name' => $row['departamento'],
+                'name' => trim($row['departamento']),
             ]);
         } catch (\Exception $e) {
             Log::error('Error creating department: ' . $e->getMessage());

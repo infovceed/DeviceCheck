@@ -40,14 +40,19 @@
     /*
      * Configurable per-button via CSS variables:
      *  --dept-bg: default background
-     *  --dept-text: default text (and border)
-     *  --dept-hover-bg: hover/active highlight background
+     *  --dept-text: default text (and border / active fill)
+     *  --dept-hover-bg: hover highlight background
      */
-    border: 1px solid var(--dept-text, #002060) !important;
+    position: relative;
+    border: 1.5px solid color-mix(in srgb, var(--dept-text, #002060) 35%, transparent) !important;
     background-color: var(--dept-bg, #ffffff) !important;
     color: var(--dept-text, #002060) !important;
     font-weight: 600;
-    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    letter-spacing: 0.01em;
+    padding-inline: 0.85rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+    transition: background-color 0.18s ease, color 0.18s ease,
+        border-color 0.18s ease, box-shadow 0.18s ease, transform 0.12s ease;
 }
 
 .department-toggle-btn:hover,
@@ -55,24 +60,42 @@
     border-color: var(--dept-text, #002060) !important;
     background-color: var(--dept-hover-bg, #eaf0ff) !important;
     color: var(--dept-text, #002060) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px color-mix(in srgb, var(--dept-text, #002060) 22%, transparent);
 }
 
-.department-toggle-btn:focus {
-    box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--dept-text, #002060) 25%, transparent) !important;
+.department-toggle-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--dept-text, #002060) 30%, transparent) !important;
 }
 
+.department-toggle-btn:active {
+    transform: translateY(0);
+}
+
+/* Selected / active state: solid fill so it's unmistakable */
 .department-toggle-btn--active {
-    border-width: 2px !important;
     border-color: var(--dept-text, #002060) !important;
-    background-color: var(--dept-hover-bg, #eaf0ff) !important;
-    color: var(--dept-text, #002060) !important;
+    background-color: color-mix(in srgb, var(--dept-text, #002060) 82%, #ffffff) !important;
+    color: #ffffff !important;
+    font-weight: 700;
+    box-shadow: 0 3px 10px color-mix(in srgb, var(--dept-text, #002060) 35%, transparent);
+}
+
+/* Leading check mark to reinforce the "selected" affordance */
+.department-toggle-btn--active::before {
+    content: "✓";
+    margin-right: 0.35rem;
+    font-weight: 700;
 }
 
 .department-toggle-btn--active:hover,
 .department-toggle-btn--active:focus {
     border-color: var(--dept-text, #002060) !important;
-    background-color: var(--dept-hover-bg, #eaf0ff) !important;
-    color: var(--dept-text, #002060) !important;
+    background-color: var(--dept-text, #002060) !important;
+    color: #ffffff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 5px 14px color-mix(in srgb, var(--dept-text, #002060) 45%, transparent);
 }
 
 a.department-toggle-btn:hover,
@@ -82,5 +105,16 @@ a.department-toggle-btn:visited:hover,
 a.department-toggle-btn:visited:focus,
 a.department-toggle-btn:visited:active {
     color: var(--dept-text, #002060) !important;
+}
+
+a.department-toggle-btn--active,
+a.department-toggle-btn--active:hover,
+a.department-toggle-btn--active:focus,
+a.department-toggle-btn--active:active,
+a.department-toggle-btn--active:visited,
+a.department-toggle-btn--active:visited:hover,
+a.department-toggle-btn--active:visited:focus,
+a.department-toggle-btn--active:visited:active {
+    color: #ffffff !important;
 }
 

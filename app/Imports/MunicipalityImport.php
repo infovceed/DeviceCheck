@@ -31,7 +31,7 @@ class MunicipalityImport implements ToModel, WithHeadingRow, WithChunkReading, W
             return new Municipality([
                 'id'   => $row['id'],
                 'code' => $row['cod_mpio'],
-                'name' => $row['municipio'],
+                'name' => trim($row['municipio']),
             ]);
         } catch (\Exception $e) {
             Log::error('Error creating municipality: ' . $e->getMessage());
